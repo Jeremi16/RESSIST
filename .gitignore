@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Build / cache
+*.log
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Local auth/session artifacts
+whatsapp-auth/
+
+# Local debug artifacts
+build_error.txt
+build_output.txt
+
+# OS files
+.DS_Store
+Thumbs.db

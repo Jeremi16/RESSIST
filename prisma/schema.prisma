@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id   String @id @default(cuid())
+
+  // Google OAuth (Primary Auth)
+  email String @unique
+  google_id String? @unique  // Google sub/ID
+  name String?
+  avatar_url String?
+
+  // Domain verification
+  email_verified Boolean @default(false)
+
+  // Messaging Configuration
+  whatsapp_number String?
+  whatsapp_enabled Boolean @default(true)
+  telegram_username String?
+  telegram_chat_id String?
+  telegram_enabled Boolean @default(true)
+
+  // Moodle Configuration
+  moodle_enabled Boolean @default(false)
+  moodle_calendar_url String?
+
+  // Google Classroom Configuration
+  google_classroom_enabled Boolean @default(false)
+  google_access_token String?
+  google_refresh_token String?
+  google_token_expiry DateTime?
+
+  // Settings
+  reminder_hours String @default("[24]")
+  morning_briefing Boolean @default(false)
+  muted_courses String @default("[]")
+  lms_last_synced_at DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  events Event[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+model Event {
+  id String @id @default(cuid())
+  user_id String
+  title String
+  course String?
+  deadline DateTime
+  source String @default("moodle") // "moodle" | "google_classroom"
+  source_id String? // External ID from the LMS
+  sync_key String
+  reminder_24h_sent Boolean @default(false)
+  reminders_sent String @default("[]")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([deadline])
+  @@index([source])
+  @@unique([user_id, sync_key])
+  @@map("events")
+}
+
+model Session {
+  id String @id @default(cuid())
+  session_token String @unique @map("session_token")
+  user_id String @map("user_id")
+  expires DateTime
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("sessions")
+}
