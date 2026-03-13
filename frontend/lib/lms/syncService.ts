@@ -10,6 +10,7 @@ import { LMSAssignment } from "./types";
 const LMS_SYNC_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 const UPCOMING_WINDOW_DAYS = 60;
 const ALL_PROVIDERS: LMSProvider[] = ["moodle", "google_classroom"];
+const UPSERT_BATCH_SIZE = 50;
 
 type AssignmentWithSource = LMSAssignment & { source: LMSProvider };
 
@@ -36,6 +37,7 @@ export interface UserAssignmentSyncResult {
 
 interface SyncUserAssignmentsOptions {
   forceRefresh?: boolean;
+  readFromCacheOnly?: boolean;
 }
 
 function normalizeText(value: string | null | undefined): string {
@@ -176,13 +178,12 @@ async function persistAssignmentsFromResults(
       source: result.provider,
     })) as AssignmentWithSource[];
 
-    const syncKeys: string[] = [];
-
-    for (const assignment of assignments) {
+    const syncKeySet = new Set<string>();
+    const upsertOperations = assignments.map((assignment) => {
       const syncKey = buildAssignmentSyncKey(assignment);
-      syncKeys.push(syncKey);
+      syncKeySet.add(syncKey);
 
-      await prisma.event.upsert({
+      return prisma.event.upsert({
         where: {
           user_id_sync_key: {
             user_id: userId,
@@ -208,6 +209,12 @@ async function persistAssignmentsFromResults(
           reminders_sent: "[]",
         },
       });
+    });
+
+    for (let i = 0; i < upsertOperations.length; i += UPSERT_BATCH_SIZE) {
+      await prisma.$transaction(
+        upsertOperations.slice(i, i + UPSERT_BATCH_SIZE),
+      );
     }
 
     await prisma.event.deleteMany({
@@ -215,7 +222,9 @@ async function persistAssignmentsFromResults(
         user_id: userId,
         source: result.provider,
         deadline: { gt: now },
-        ...(syncKeys.length > 0 ? { sync_key: { notIn: syncKeys } } : {}),
+        ...(syncKeySet.size > 0
+          ? { sync_key: { notIn: Array.from(syncKeySet) } }
+          : {}),
       },
     });
   }
@@ -295,6 +304,22 @@ export async function syncUserAssignments(
   }
 
   const forceRefresh = options.forceRefresh === true;
+  const readFromCacheOnly = options.readFromCacheOnly === true;
+
+  if (readFromCacheOnly && !forceRefresh) {
+    const assignments = await loadCachedAssignments(user.id, enabledProviders);
+    const results = buildCachedResults(assignments, enabledProviders);
+
+    return {
+      assignments,
+      results,
+      fromCache: true,
+      successfulSources: results.length,
+      failedSources: 0,
+      lastSyncedAt: user.lms_last_synced_at,
+      nextRefreshAt: computeNextRefreshAt(user.lms_last_synced_at),
+    };
+  }
 
   if (!forceRefresh && !shouldRefresh(user.lms_last_synced_at)) {
     const assignments = await loadCachedAssignments(user.id, enabledProviders);

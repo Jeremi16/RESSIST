@@ -147,17 +147,20 @@ class LMSFactory {
     try {
       const service = this.getService(provider);
 
-      // Validate credentials before fetching
-      const isValid = await service.validateCredentials(credentials);
-      if (!isValid) {
-        return {
-          provider,
-          assignments: [],
-          error: new LMSConfigError(
+      // Google validation already requires a remote API call.
+      // Skip it here to avoid duplicate network round-trips before real fetch.
+      if (provider !== "google_classroom") {
+        const isValid = await service.validateCredentials(credentials);
+        if (!isValid) {
+          return {
             provider,
-            `Invalid ${provider} configuration`,
-          ),
-        };
+            assignments: [],
+            error: new LMSConfigError(
+              provider,
+              `Invalid ${provider} configuration`,
+            ),
+          };
+        }
       }
 
       const assignments = await service.fetchAssignments(credentials);
@@ -212,13 +215,14 @@ export async function fetchAssignmentsFromLMS(
 ): Promise<LMSAssignment[]> {
   const service = lmsFactory.getService(provider);
 
-  // Validate credentials before fetching
-  const isValid = await service.validateCredentials(credentials);
-  if (!isValid) {
-    throw new LMSConfigError(
-      provider,
-      `Invalid or missing ${provider} configuration`,
-    );
+  if (provider !== "google_classroom") {
+    const isValid = await service.validateCredentials(credentials);
+    if (!isValid) {
+      throw new LMSConfigError(
+        provider,
+        `Invalid or missing ${provider} configuration`,
+      );
+    }
   }
 
   return await service.fetchAssignments(credentials);

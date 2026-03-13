@@ -1,0 +1,9 @@
+{
+  "name": "resisst-api",
+  "private": true,
+  "scripts": {
+    "dev": "go run ./cmd/api",
+    "build": "go build ./...",
+    "start": "go run ./cmd/api"
+  }
+}

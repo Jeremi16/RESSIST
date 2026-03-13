@@ -17,6 +17,8 @@ export const GOOGLE_CLASSROOM_SCOPES = [
   "https://www.googleapis.com/auth/classroom.courses.readonly",
 ];
 
+const COURSEWORK_CONCURRENCY = 5;
+
 /**
  * Google Classroom Service - LMSService implementation for Google Classroom
  *
@@ -180,32 +182,6 @@ export class GoogleClassroomService implements LMSService {
   }
 
   /**
-   * Fetch course details to get course names
-   */
-  private async fetchCourseNames(
-    classroom: classroom_v1.Classroom,
-    courseIds: string[],
-  ): Promise<Map<string, string>> {
-    const courseNames = new Map<string, string>();
-
-    for (const courseId of courseIds) {
-      try {
-        const response = await classroom.courses.get({ id: courseId });
-        if (response.data.name) {
-          courseNames.set(courseId, response.data.name);
-        }
-      } catch (error: any) {
-        // If we can't get the course name, use the ID
-        if (error.code === 403 || error.code === 404) {
-          courseNames.set(courseId, "Unknown Course");
-        }
-      }
-    }
-
-    return courseNames;
-  }
-
-  /**
    * Validate Google credentials
    */
   async validateCredentials(credentials: LMSUserCredentials): Promise<boolean> {
@@ -286,28 +262,38 @@ export class GoogleClassroomService implements LMSService {
         return [];
       }
 
-      const courseIds = courses.map((c) => c.id!).filter(Boolean);
+      const courseNames = new Map<string, string>();
+      for (const course of courses) {
+        if (!course.id) continue;
+        courseNames.set(course.id, course.name || "Unknown Course");
+      }
+      const courseIds = Array.from(courseNames.keys());
 
       // Step 2: Fetch coursework from all courses
       const allAssignments: LMSAssignment[] = [];
-      for (const courseId of courseIds) {
-        try {
-          const courseAssignments = await this.fetchCourseWork(
-            classroom,
-            courseId,
-          );
+      for (let i = 0; i < courseIds.length; i += COURSEWORK_CONCURRENCY) {
+        const batch = courseIds.slice(i, i + COURSEWORK_CONCURRENCY);
+        const batchAssignments = await Promise.all(
+          batch.map(async (courseId) => {
+            try {
+              return await this.fetchCourseWork(classroom, courseId);
+            } catch (error) {
+              // Log error but continue with other courses
+              console.error(
+                `Error fetching coursework for course ${courseId}:`,
+                error,
+              );
+              return [];
+            }
+          }),
+        );
+
+        for (const courseAssignments of batchAssignments) {
           allAssignments.push(...courseAssignments);
-        } catch (error) {
-          // Log error but continue with other courses
-          console.error(
-            `Error fetching coursework for course ${courseId}:`,
-            error,
-          );
         }
       }
 
-      // Step 3: Get course names and update assignments
-      const courseNames = await this.fetchCourseNames(classroom, courseIds);
+      // Step 3: Resolve course IDs to names from the already-fetched course list
       for (const assignment of allAssignments) {
         const courseName = courseNames.get(assignment.course);
         if (courseName) {

@@ -175,7 +175,10 @@ export async function GET(request: NextRequest) {
       fromCache,
       lastSyncedAt,
       nextRefreshAt,
-    } = await syncUserAssignments(session.userId, { forceRefresh });
+    } = await syncUserAssignments(session.userId, {
+      forceRefresh,
+      readFromCacheOnly: !forceRefresh,
+    });
 
     // Format the events for preview
     const events: EventPreview[] = assignments.map((assignment) => ({
