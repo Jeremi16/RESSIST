@@ -2,6 +2,10 @@
 
 Backend service for auth and API endpoints, designed to run on homeserver at `resisst-api.nodryx.com`.
 
+Full API reference:
+
+- `backend/API_DOCUMENTATION.md`
+
 ## Quick start
 
 1. Copy env:

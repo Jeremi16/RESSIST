@@ -74,10 +74,7 @@ function LoginContent() {
   }, [router, searchParams]);
 
   const handleGoogleLogin = () => {
-    const backendBase =
-      process.env.NEXT_PUBLIC_API_URL?.trim()?.replace(/\/+$/, "") ||
-      "http://localhost:8080";
-    window.location.href = `${backendBase}/v1/auth/google/login`;
+    window.location.href = "/api/auth/google/login";
   };
 
   return (

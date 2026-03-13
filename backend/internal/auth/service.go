@@ -57,6 +57,8 @@ func NewService(db *gorm.DB, cfg *config.Config, tokens *TokenService) (*Service
 			"openid",
 			"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile",
+			"https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+			"https://www.googleapis.com/auth/classroom.courses.readonly",
 		},
 	}
 
@@ -70,7 +72,12 @@ func NewService(db *gorm.DB, cfg *config.Config, tokens *TokenService) (*Service
 }
 
 func (s *Service) BuildGoogleLoginURL(state string) string {
-	return s.oauthCfg.AuthCodeURL(state, oauth2.AccessTypeOffline)
+	return s.oauthCfg.AuthCodeURL(
+		state,
+		oauth2.AccessTypeOffline,
+		oauth2.SetAuthURLParam("prompt", "consent"),
+		oauth2.SetAuthURLParam("include_granted_scopes", "true"),
+	)
 }
 
 func (s *Service) ExchangeGoogleCode(ctx context.Context, code string) (*oauth2.Token, error) {
@@ -138,6 +145,33 @@ func (s *Service) UpsertGoogleUser(ctx context.Context, info *GoogleUserInfo) (*
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (s *Service) UpsertGoogleTokens(ctx context.Context, userID string, token *oauth2.Token) error {
+	if token == nil || strings.TrimSpace(token.AccessToken) == "" {
+		return fmt.Errorf("google access token is missing")
+	}
+
+	updates := map[string]interface{}{
+		"google_access_token":      token.AccessToken,
+		"google_classroom_enabled": true,
+		"lms_last_synced_at":       nil,
+	}
+
+	if strings.TrimSpace(token.RefreshToken) != "" {
+		updates["google_refresh_token"] = token.RefreshToken
+	}
+
+	if token.Expiry.IsZero() {
+		updates["google_token_expiry"] = nil
+	} else {
+		updates["google_token_expiry"] = token.Expiry.UTC()
+	}
+
+	return s.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("id = ?", userID).
+		Updates(updates).Error
 }
 
 func (s *Service) GenerateAccessToken(user models.User) (string, time.Time, error) {

@@ -15,7 +15,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func New(cfg *config.Config, authHandler *handlers.AuthHandler, authSvc *auth.Service, db *gorm.DB) *gin.Engine {
+func New(
+	cfg *config.Config,
+	authHandler *handlers.AuthHandler,
+	userHandler *handlers.UserHandler,
+	calendarHandler *handlers.CalendarHandler,
+	authSvc *auth.Service,
+	db *gorm.DB,
+) *gin.Engine {
 	if cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -73,6 +80,17 @@ func New(cfg *config.Config, authHandler *handlers.AuthHandler, authSvc *auth.Se
 	})
 	v1AuthGroup := v1.Group("/auth")
 	registerAuthRoutes(v1AuthGroup, authHandler, authSvc, authRateLimit)
+
+	userGroup := v1.Group("/user")
+	userGroup.Use(middleware.AccessToken(authSvc))
+	userGroup.GET("", userHandler.GetCurrentUser)
+	userGroup.PUT("", userHandler.UpdateCurrentUser)
+	userGroup.POST("/google/disconnect", userHandler.DisconnectGoogleClassroom)
+
+	calendarGroup := v1.Group("/calendar")
+	calendarGroup.Use(middleware.AccessToken(authSvc))
+	calendarGroup.GET("/preview", calendarHandler.GetPreview)
+	calendarGroup.POST("/test", calendarHandler.TestPreview)
 
 	return r
 }

@@ -43,7 +43,9 @@ func main() {
 	}
 
 	authHandler := handlers.NewAuthHandler(cfg, authSvc)
-	engine := router.New(cfg, authHandler, authSvc, db)
+	userHandler := handlers.NewUserHandler(db)
+	calendarHandler := handlers.NewCalendarHandler(db)
+	engine := router.New(cfg, authHandler, userHandler, calendarHandler, authSvc, db)
 
 	requestTimeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second
 	if requestTimeout <= 0 {

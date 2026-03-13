@@ -97,6 +97,79 @@
           }
         }
       }
+    },
+    "/v1/user": {
+      "get": {
+        "summary": "Get current user settings/profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current user settings"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update current user settings/profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated user settings"
+          }
+        }
+      }
+    },
+    "/v1/user/google/disconnect": {
+      "post": {
+        "summary": "Disconnect Google Classroom for current user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Disconnected"
+          }
+        }
+      }
+    },
+    "/v1/calendar/preview": {
+      "get": {
+        "summary": "Get calendar preview from cached assignments",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calendar preview"
+          }
+        }
+      }
+    },
+    "/v1/calendar/test": {
+      "post": {
+        "summary": "Test selected LMS sources (cache-based)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test result"
+          }
+        }
+      }
     }
   },
   "components": {

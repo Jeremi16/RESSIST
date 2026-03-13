@@ -71,6 +71,10 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 		h.redirectError(c, "user_upsert_failed")
 		return
 	}
+	if err := h.auth.UpsertGoogleTokens(c.Request.Context(), user.ID, token); err != nil {
+		h.redirectError(c, "token_upsert_failed")
+		return
+	}
 
 	rawRefreshToken, err := h.auth.CreateRefreshToken(
 		c.Request.Context(),
