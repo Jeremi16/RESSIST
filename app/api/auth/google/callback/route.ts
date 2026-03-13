@@ -10,6 +10,7 @@ import { google } from "googleapis";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { getAppBaseUrl, getGoogleRedirectUri } from "@/lib/google-oauth";
 
 const SESSION_SECRET =
   process.env.SESSION_SECRET || "fallback-secret-for-development-only";
@@ -18,12 +19,10 @@ const COOKIE_NAME = "el-learning-session";
 /**
  * Create OAuth2 client
  */
-function createOAuth2Client() {
+function createOAuth2Client(request: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri =
-    process.env.GOOGLE_REDIRECT_URI ||
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/google/callback`;
+  const redirectUri = getGoogleRedirectUri(request);
 
   if (!clientId || !clientSecret) {
     throw new Error("Google OAuth credentials not configured");
@@ -63,7 +62,7 @@ async function createSessionCookie(userId: string) {
  * GET handler
  */
 export async function GET(request: NextRequest) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = getAppBaseUrl(request);
 
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -83,7 +82,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const oauth2Client = createOAuth2Client();
+    const oauth2Client = createOAuth2Client(request);
 
     // Exchange code for tokens
     const { tokens } = await oauth2Client.getToken(code);
