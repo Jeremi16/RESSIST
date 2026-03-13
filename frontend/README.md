@@ -130,7 +130,7 @@ npx prisma generate
 5. Configure OAuth consent screen (External or Internal)
 6. Add these scopes:
    - `https://www.googleapis.com/auth/classroom.courses.readonly`
-   - `https://www.googleapis.com/auth/classroom.coursework.me.readonly`
+   - `https://www.googleapis.com/auth/classroom.course-work.readonly`
 7. Add authorized redirect URI: `http://localhost:3000/api/auth/google/callback`
 8. Copy Client ID and Client Secret to `.env`
 

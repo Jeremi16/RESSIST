@@ -13,7 +13,7 @@ import {
  * Google Classroom API scopes required for accessing coursework
  */
 export const GOOGLE_CLASSROOM_SCOPES = [
-  "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+  "https://www.googleapis.com/auth/classroom.course-work.readonly",
   "https://www.googleapis.com/auth/classroom.courses.readonly",
 ];
 
@@ -26,7 +26,7 @@ const COURSEWORK_CONCURRENCY = 5;
  * Users must authenticate via OAuth2 to grant access to their coursework.
  *
  * Required OAuth scopes:
- * - classroom.coursework.me.readonly (view student's coursework)
+ * - classroom.course-work.readonly (view classroom coursework)
  * - classroom.courses.readonly (view courses)
  */
 export class GoogleClassroomService implements LMSService {

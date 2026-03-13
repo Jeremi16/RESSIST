@@ -57,7 +57,7 @@ func NewService(db *gorm.DB, cfg *config.Config, tokens *TokenService) (*Service
 			"openid",
 			"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile",
-			"https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+			"https://www.googleapis.com/auth/classroom.course-work.readonly",
 			"https://www.googleapis.com/auth/classroom.courses.readonly",
 		},
 	}

@@ -63,7 +63,7 @@ Created a modular LMS integration architecture:
 
 **OAuth Scopes Required:**
 - `https://www.googleapis.com/auth/classroom.courses.readonly`
-- `https://www.googleapis.com/auth/classroom.coursework.me.readonly`
+- `https://www.googleapis.com/auth/classroom.course-work.readonly`
 
 ### 4. API Routes
 
