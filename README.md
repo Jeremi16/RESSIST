@@ -14,6 +14,11 @@ npm install
 npm run dev
 ```
 
+### Vercel deploy
+
+Repository sudah punya `vercel.json` di root untuk memastikan Vercel build app Next.js dari `frontend/`.
+Jika project Vercel sudah terlanjur dibuat dari root, deploy tetap akan mengarah ke frontend.
+
 ## Backend
 
 ```bash
