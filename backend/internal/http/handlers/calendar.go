@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jeremi16/resisst-api/internal/config"
 	"github.com/jeremi16/resisst-api/internal/http/middleware"
 	"github.com/jeremi16/resisst-api/internal/models"
 	"gorm.io/gorm"
@@ -19,7 +20,8 @@ const (
 )
 
 type CalendarHandler struct {
-	db *gorm.DB
+	db  *gorm.DB
+	cfg *config.Config
 }
 
 type calendarEventPreview struct {
@@ -43,8 +45,8 @@ type calendarTestRequest struct {
 	TestGoogle        bool   `json:"test_google"`
 }
 
-func NewCalendarHandler(db *gorm.DB) *CalendarHandler {
-	return &CalendarHandler{db: db}
+func NewCalendarHandler(db *gorm.DB, cfg *config.Config) *CalendarHandler {
+	return &CalendarHandler{db: db, cfg: cfg}
 }
 
 func (h *CalendarHandler) GetPreview(c *gin.Context) {
@@ -61,12 +63,22 @@ func (h *CalendarHandler) GetPreview(c *gin.Context) {
 	}
 
 	providers := enabledProvidersFromUser(user)
-	response, err := h.buildCalendarResponse(c, user, providers)
+	forceRefresh := strings.EqualFold(strings.TrimSpace(c.Query("force")), "true")
+	if forceRefresh {
+		response, err := h.syncAndBuildCalendarResponse(c, user, providers)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to refresh calendar preview"})
+			return
+		}
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	response, err := h.buildCalendarResponse(c, user, providers, nil, true)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch calendar preview"})
 		return
 	}
-
 	c.JSON(http.StatusOK, response)
 }
 
@@ -114,7 +126,7 @@ func (h *CalendarHandler) TestPreview(c *gin.Context) {
 		return
 	}
 
-	response, err := h.buildCalendarResponse(c, user, providers)
+	response, err := h.syncAndBuildCalendarResponse(c, user, providers)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to test calendar"})
 		return
@@ -122,7 +134,13 @@ func (h *CalendarHandler) TestPreview(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (h *CalendarHandler) buildCalendarResponse(c *gin.Context, user *models.User, providers []string) (gin.H, error) {
+func (h *CalendarHandler) buildCalendarResponse(
+	c *gin.Context,
+	user *models.User,
+	providers []string,
+	sourceInfoOverride []calendarSourceInfo,
+	fromCache bool,
+) (gin.H, error) {
 	events, err := h.loadCachedEvents(c, user.ID, providers)
 	if err != nil {
 		return nil, err
@@ -145,19 +163,22 @@ func (h *CalendarHandler) buildCalendarResponse(c *gin.Context, user *models.Use
 		})
 	}
 
-	sourceInfo := make([]calendarSourceInfo, 0, len(providers))
-	for _, provider := range providers {
-		count := 0
-		for _, event := range events {
-			if event.Source == provider {
-				count++
+	sourceInfo := sourceInfoOverride
+	if sourceInfo == nil {
+		sourceInfo = make([]calendarSourceInfo, 0, len(providers))
+		for _, provider := range providers {
+			count := 0
+			for _, event := range events {
+				if event.Source == provider {
+					count++
+				}
 			}
+			sourceInfo = append(sourceInfo, calendarSourceInfo{
+				Provider: provider,
+				Count:    count,
+				Success:  true,
+			})
 		}
-		sourceInfo = append(sourceInfo, calendarSourceInfo{
-			Provider: provider,
-			Count:    count,
-			Success:  true,
-		})
 	}
 
 	var nextRefreshAt *time.Time
@@ -172,7 +193,7 @@ func (h *CalendarHandler) buildCalendarResponse(c *gin.Context, user *models.Use
 		"total":             len(previews),
 		"successfulSources": len(sourceInfo),
 		"failedSources":     0,
-		"fromCache":         true,
+		"fromCache":         fromCache,
 		"lastSyncedAt":      user.LMSLastSyncedAt,
 		"nextRefreshAt":     nextRefreshAt,
 	}, nil
