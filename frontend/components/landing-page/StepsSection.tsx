@@ -1,30 +1,31 @@
-'use client'
+"use client";
 
-import { motion } from 'framer-motion'
-import { UserPlus, Link2, BellRing, Coffee } from 'lucide-react'
+import { motion } from "framer-motion";
+import { UserPlus, Link2, BellRing, Coffee } from "lucide-react";
 
 const steps = [
   {
-    title: 'Pendaftaran',
-    description: 'Buat akun Resisst yang aman dalam kurang dari 60 detik.',
+    title: "Pendaftaran",
+    description: "Masuk dengan akun Student ITERA",
     icon: UserPlus,
   },
   {
-    title: 'Integrasi',
-    description: 'Hubungkan kalender Moodle ITERA-mu cukup dengan URL.',
+    title: "Integrasi",
+    description: "Hubungkan dengan kuliah2.itera.ac.id cukup dengan URL.",
     icon: Link2,
   },
   {
-    title: 'Otomatisasi',
-    description: 'Atur kapan kamu ingin menerima notifikasi WhatsApp.',
+    title: "Otomatisasi",
+    description: "Atur kapan kamu ingin menerima pesan pengingat.",
     icon: BellRing,
   },
   {
-    title: 'Fokus Belajar',
-    description: 'Biarkan Resisst yang memantau deadline sementara kamu fokus belajar.',
+    title: "Fokus Belajar",
+    description:
+      "Biarkan Resisst yang memantau deadline sementara kamu fokus belajar.",
     icon: Coffee,
   },
-]
+];
 
 export function StepsSection() {
   return (
@@ -37,9 +38,11 @@ export function StepsSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-blue-600 mb-4">Alur Kerja</h2>
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-blue-600 mb-4">
+              Alur Kerja
+            </h2>
             <p className="text-4xl font-black text-slate-900 tracking-tight leading-tight">
-              Dari pusing deadline menjadi <br /> tenang dalam empat langkah.
+              Dari Deadliners jadi <br /> non-chalant.
             </p>
           </motion.div>
         </div>
@@ -47,7 +50,7 @@ export function StepsSection() {
         <div className="relative">
           {/* Connector Line (Desktop) */}
           <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative z-10">
             {steps.map((step, index) => (
               <motion.div
@@ -64,13 +67,17 @@ export function StepsSection() {
                     0{index + 1}
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">{step.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed max-w-[200px]">{step.description}</p>
+                <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">
+                  {step.title}
+                </h3>
+                <p className="text-slate-500 text-sm leading-relaxed max-w-[200px]">
+                  {step.description}
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }

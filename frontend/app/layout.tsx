@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Poppins, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
+import { WhatsNewPopup } from "@/components/WhatsNewPopup";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
@@ -40,8 +42,13 @@ export default function RootLayout({
       lang="en"
       className={cn(inter.variable, poppins.variable, spaceGrotesk.variable)}
     >
-      <body className="font-sans">
-        <AuthProvider>{children}</AuthProvider>
+      <body className="font-sans h-full flex flex-col">
+        <AuthProvider>
+          <ToastProvider>
+            <div className="flex-1 flex flex-col min-h-full">{children}</div>
+            <WhatsNewPopup />
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );

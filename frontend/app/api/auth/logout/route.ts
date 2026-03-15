@@ -9,7 +9,7 @@
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { clearSession } from "@/lib/session";
+import { clearSession, COOKIE_NAME } from "@/lib/session";
 
 function getBackendBaseUrl(): string {
   return (
@@ -45,6 +45,7 @@ export async function GET() {
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`,
   );
   response.cookies.delete("refresh_token");
+  response.cookies.delete(COOKIE_NAME);
   return response;
 }
 
@@ -57,5 +58,6 @@ export async function POST() {
     message: "Logged out successfully",
   });
   response.cookies.delete("refresh_token");
+  response.cookies.delete(COOKIE_NAME);
   return response;
 }

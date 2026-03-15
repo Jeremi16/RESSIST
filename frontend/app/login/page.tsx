@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -8,19 +8,21 @@ import {
   GraduationCap,
   AlertCircle,
   ArrowLeft,
-  Sparkles,
   Shield,
   Mail,
   Info,
 } from "lucide-react";
+import { useToast } from "@/components/ui/toast-provider";
 
 import { Suspense } from "react";
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const [error, setError] = useState("");
-  const [isSyncingSession, setIsSyncingSession] = useState(false);
+  const hasSyncedBackendSession = useRef(false);
+  const hasShownSessionExpiredToast = useRef(false);
 
   // Get error from URL
   useEffect(() => {
@@ -31,41 +33,38 @@ function LoginContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    const reasonParam = searchParams.get("reason");
+    if (reasonParam !== "session-expired") return;
+    if (hasShownSessionExpiredToast.current) return;
+    hasShownSessionExpiredToast.current = true;
+    showToast({
+      title: "Sesi Anda habis",
+      description: "Token sudah tidak valid. Silakan login ulang.",
+      variant: "warning",
+    });
+  }, [searchParams, showToast]);
+
+  useEffect(() => {
     const authParam = searchParams.get("auth");
     if (authParam !== "success") return;
+    if (hasSyncedBackendSession.current) return;
+    hasSyncedBackendSession.current = true;
 
     let cancelled = false;
 
     const syncBackendSession = async () => {
       try {
-        setIsSyncingSession(true);
-        const response = await fetch("/api/auth/backend/sync", {
+        await fetch("/api/auth/backend/sync", {
           method: "POST",
         });
-
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          throw new Error(data.error || "Gagal sinkronisasi sesi backend");
-        }
-
-        if (!cancelled) {
-          router.push("/dashboard");
-        }
       } catch (err) {
         if (!cancelled) {
-          const message =
-            err instanceof Error
-              ? err.message
-              : "Gagal sinkronisasi sesi backend";
-          setError(message);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsSyncingSession(false);
+          console.error("Background sync backend session failed:", err);
         }
       }
     };
 
+    router.replace("/dashboard");
     syncBackendSession();
 
     return () => {
@@ -129,7 +128,6 @@ function LoginContent() {
             {/* Google Sign In Button */}
             <button
               onClick={handleGoogleLogin}
-              disabled={isSyncingSession}
               className="w-full h-14 bg-white border-2 border-slate-200 rounded-2xl font-bold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center justify-center gap-3 group mb-6"
             >
               <svg className="size-5" viewBox="0 0 24 24">
@@ -150,9 +148,7 @@ function LoginContent() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              {isSyncingSession
-                ? "Sinkronisasi sesi..."
-                : "Lanjutkan dengan Google"}
+              Lanjutkan dengan Google
             </button>
 
             <div className="relative mb-6">
@@ -203,8 +199,7 @@ function LoginContent() {
           </div>
 
           {/* Footer */}
-          <div className="mt-12 flex items-center justify-center gap-2 text-slate-400">
-            <Sparkles className="size-4" />
+          <div className="mt-12 flex items-center justify-center text-slate-400">
             <span className="text-xs font-bold uppercase tracking-widest">
               Resisst for ITERA
             </span>

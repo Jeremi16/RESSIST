@@ -1,10 +1,14 @@
 import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
+import { COOKIE_NAME } from "@/lib/session";
 
 export interface BackendAuthCallResult {
   status: number;
   body: unknown;
   rotatedRefreshToken?: string;
 }
+
+const REFRESH_COOKIE_NAME = "refresh_token";
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "");
@@ -18,10 +22,38 @@ export function getBackendBaseUrl(): string {
   return trimTrailingSlash(candidate);
 }
 
-function extractRefreshToken(setCookieHeader: string | null): string | undefined {
+function extractRefreshToken(
+  setCookieHeader: string | null,
+): string | undefined {
   if (!setCookieHeader) return undefined;
   const match = setCookieHeader.match(/refresh_token=([^;]+)/);
   return match?.[1];
+}
+
+export function applyBackendAuthCookies(
+  response: NextResponse,
+  result: Pick<BackendAuthCallResult, "status" | "rotatedRefreshToken">,
+): NextResponse {
+  if (result.status === 401) {
+    response.cookies.delete(REFRESH_COOKIE_NAME);
+    response.cookies.delete(COOKIE_NAME);
+    return response;
+  }
+
+  if (!result.rotatedRefreshToken) {
+    return response;
+  }
+
+  response.cookies.set({
+    name: REFRESH_COOKIE_NAME,
+    value: result.rotatedRefreshToken,
+    httpOnly: true,
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 30 * 24 * 60 * 60,
+  });
+  return response;
 }
 
 async function refreshAccessToken(): Promise<{
@@ -56,7 +88,9 @@ async function refreshAccessToken(): Promise<{
 
   return {
     accessToken: payload.access_token,
-    rotatedRefreshToken: extractRefreshToken(response.headers.get("set-cookie")),
+    rotatedRefreshToken: extractRefreshToken(
+      response.headers.get("set-cookie"),
+    ),
   };
 }
 

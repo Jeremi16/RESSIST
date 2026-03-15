@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LMSConfig } from "@/components/dashboard/LMSConfig";
 import { TelegramConfig } from "@/components/dashboard/TelegramConfig";
@@ -15,7 +15,6 @@ import {
   LayoutDashboard,
   Calendar as CalendarIcon,
   Settings,
-  Sparkles,
   User as UserIcon,
   ChevronRight,
   Zap,
@@ -51,7 +50,7 @@ interface UserData {
 }
 
 type TabType = "overview" | "lms" | "telegram" | "general";
-const APP_VERSION = "v0.1.0 Beta";
+const APP_VERSION = "v0.3.0";
 
 // Skeleton Components
 function Skeleton({ className }: { className?: string }) {
@@ -155,8 +154,15 @@ export default function Dashboard() {
   const [previewError, setPreviewError] = useState<string>("");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const hasFetchedInitialUserData = useRef(false);
+
+  const redirectToLogin = () => {
+    router.replace("/login?reason=session-expired");
+  };
 
   useEffect(() => {
+    if (hasFetchedInitialUserData.current) return;
+    hasFetchedInitialUserData.current = true;
     fetchUserData();
   }, []);
 
@@ -172,7 +178,7 @@ export default function Dashboard() {
       setIsLoadingUser(true);
       const response = await fetch("/api/user");
       if (response.status === 401) {
-        router.push("/login");
+        redirectToLogin();
         return;
       }
       const data = await response.json();
@@ -195,6 +201,10 @@ export default function Dashboard() {
       const response = await fetch(
         `/api/test-calendar${forceRefresh ? "?force=true" : ""}`,
       );
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
       const data = await response.json();
       if (response.ok) {
         setPreviewEvents(data.events);
@@ -216,6 +226,10 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
       });
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
       if (response.ok) {
         const updatedUser = await response.json();
         setUserData(updatedUser);
@@ -253,6 +267,10 @@ export default function Dashboard() {
           test_google: config.testGoogle,
         }),
       });
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
       const data = await response.json();
       if (response.ok) {
         setPreviewEvents(data.events);
@@ -269,7 +287,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
+    router.replace("/login");
   };
 
   if (isLoadingUser) {
@@ -503,15 +521,14 @@ export default function Dashboard() {
         <div className="px-4 sm:px-6 lg:px-12 py-6 sm:py-12 max-w-[1600px] mx-auto">
           <header className="mb-8 sm:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 border-b border-slate-100 pb-6 sm:pb-8">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 mb-4">
-                <Sparkles className="size-3 text-blue-600" />
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-100 mb-4">
                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">
                   {TABS.find((t) => t.id === activeTab)?.label}
                 </span>
               </div>
               <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
                 {activeTab === "overview"
-                  ? `Halo, ${userData?.name?.split(" ")[0] || "Teman Resisst"}! 👋`
+                  ? `Halo, ${userData?.name?.split(" ")[0] || "Ressistent"}! 👋`
                   : TABS.find((t) => t.id === activeTab)?.label}
               </h2>
               <p className="text-sm sm:text-base lg:text-lg text-slate-500 font-medium mt-3">

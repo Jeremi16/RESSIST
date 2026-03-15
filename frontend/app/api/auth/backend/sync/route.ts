@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies, headers } from "next/headers";
+import { applyBackendAuthCookies } from "@/lib/backend-auth";
 import { createSession } from "@/lib/session";
 
 function getBackendBaseUrl(): string {
@@ -23,10 +24,11 @@ export async function POST() {
   const incomingRefresh = cookieStore.get("refresh_token")?.value;
 
   if (!incomingRefresh) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "missing backend refresh token" },
       { status: 401 },
     );
+    return applyBackendAuthCookies(response, { status: 401 });
   }
 
   const backendBaseUrl = getBackendBaseUrl();
@@ -43,10 +45,11 @@ export async function POST() {
   });
 
   if (!refreshResponse.ok) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "failed to refresh backend session" },
       { status: 401 },
     );
+    return applyBackendAuthCookies(response, { status: 401 });
   }
 
   const refreshData = (await refreshResponse.json()) as {
@@ -55,10 +58,11 @@ export async function POST() {
   const accessToken = refreshData.access_token;
 
   if (!accessToken) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "missing access token from backend" },
       { status: 401 },
     );
+    return applyBackendAuthCookies(response, { status: 401 });
   }
 
   const meResponse = await fetch(`${backendBaseUrl}/v1/auth/me`, {
@@ -70,10 +74,11 @@ export async function POST() {
   });
 
   if (!meResponse.ok) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "failed to fetch backend user profile" },
       { status: 401 },
     );
+    return applyBackendAuthCookies(response, { status: 401 });
   }
 
   const meData = (await meResponse.json()) as {
@@ -82,10 +87,11 @@ export async function POST() {
   };
 
   if (!meData.id) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "backend user profile is invalid" },
       { status: 401 },
     );
+    return applyBackendAuthCookies(response, { status: 401 });
   }
 
   await createSession({
@@ -97,18 +103,11 @@ export async function POST() {
     success: true,
   });
 
-  const rotatedRefresh = extractRefreshToken(refreshResponse.headers.get("set-cookie"));
-  if (rotatedRefresh) {
-    response.cookies.set({
-      name: "refresh_token",
-      value: rotatedRefresh,
-      httpOnly: true,
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60,
-    });
-  }
-
-  return response;
+  const rotatedRefresh = extractRefreshToken(
+    refreshResponse.headers.get("set-cookie"),
+  );
+  return applyBackendAuthCookies(response, {
+    status: 200,
+    rotatedRefreshToken: rotatedRefresh || undefined,
+  });
 }

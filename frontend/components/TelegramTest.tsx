@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 export function TelegramTest({ chatId }: { chatId?: string | null }) {
   return (
@@ -7,10 +7,11 @@ export function TelegramTest({ chatId }: { chatId?: string | null }) {
         Telegram Bot (Belum Ready)
       </h4>
       <p className="text-sm text-blue-700 mb-2">
-        Fitur Telegram Bot masih dalam pengembangan dan belum aktif untuk publik.
+        Fitur Telegram Bot masih dalam pengembangan dan belum aktif untuk
+        publik.
       </p>
       <p className="text-xs text-blue-700 mb-4">
-        Versi aplikasi saat ini: <strong>v0.1.0 Beta</strong>.
+        Versi aplikasi saat ini: <strong>v0.3.0</strong>.
       </p>
       <button
         disabled
@@ -19,5 +20,5 @@ export function TelegramTest({ chatId }: { chatId?: string | null }) {
         Coming Soon
       </button>
     </div>
-  )
+  );
 }

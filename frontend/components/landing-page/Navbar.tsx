@@ -29,7 +29,7 @@ export function Navbar() {
               Ressist by <span className="font-brand">NODRYX</span>
             </span>
             <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">
-              v0.1.0 Beta
+              v0.3.0
             </span>
           </div>
         </Link>
@@ -55,6 +55,17 @@ export function Navbar() {
                 )}
               >
                 Cara Kerja
+              </Link>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link
+                href="/version"
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  "bg-transparent hover:bg-slate-100/50 rounded-full transition-all",
+                )}
+              >
+                Versi
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
