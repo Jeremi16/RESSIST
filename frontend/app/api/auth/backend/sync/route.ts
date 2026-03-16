@@ -99,8 +99,39 @@ export async function POST() {
     email: meData.email || "",
   });
 
+  let syncResult: {
+    synced?: boolean;
+    newAssignmentsCount?: number;
+    newAssignments?: unknown[];
+  } | null = null;
+
+  try {
+    const syncResponse = await fetch(`${backendBaseUrl}/v1/auth/sync`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      cache: "no-store",
+    });
+
+    if (syncResponse.ok) {
+      syncResult = (await syncResponse.json()) as {
+        synced?: boolean;
+        newAssignmentsCount?: number;
+        newAssignments?: unknown[];
+      };
+    }
+  } catch {
+    syncResult = null;
+  }
+
   const response = NextResponse.json({
     success: true,
+    synced: syncResult?.synced ?? false,
+    newAssignmentsCount: syncResult?.newAssignmentsCount ?? 0,
+    newAssignments: Array.isArray(syncResult?.newAssignments)
+      ? syncResult?.newAssignments
+      : [],
   });
 
   const rotatedRefresh = extractRefreshToken(

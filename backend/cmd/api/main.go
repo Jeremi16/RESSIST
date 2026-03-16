@@ -42,10 +42,11 @@ func main() {
 		log.Fatalf("init auth service: %v", err)
 	}
 
-	authHandler := handlers.NewAuthHandler(cfg, authSvc)
 	userHandler := handlers.NewUserHandler(db)
 	calendarHandler := handlers.NewCalendarHandler(db, cfg)
-	engine := router.New(cfg, authHandler, userHandler, calendarHandler, authSvc, db)
+	courseHandler := handlers.NewCourseHandler(db)
+	authHandler := handlers.NewAuthHandler(cfg, authSvc, db, calendarHandler)
+	engine := router.New(cfg, authHandler, userHandler, calendarHandler, courseHandler, authSvc, db)
 
 	requestTimeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second
 	if requestTimeout <= 0 {

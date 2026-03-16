@@ -20,6 +20,7 @@ func New(
 	authHandler *handlers.AuthHandler,
 	userHandler *handlers.UserHandler,
 	calendarHandler *handlers.CalendarHandler,
+	courseHandler *handlers.CourseHandler,
 	authSvc *auth.Service,
 	db *gorm.DB,
 ) *gin.Engine {
@@ -86,11 +87,18 @@ func New(
 	userGroup.GET("", userHandler.GetCurrentUser)
 	userGroup.PUT("", userHandler.UpdateCurrentUser)
 	userGroup.POST("/google/disconnect", userHandler.DisconnectGoogleClassroom)
+	userGroup.GET("/course-aliases", userHandler.GetCourseAliases)
+	userGroup.POST("/course-aliases", userHandler.AddCourseAlias)
+	userGroup.DELETE("/course-aliases", userHandler.DeleteCourseAlias)
 
 	calendarGroup := v1.Group("/calendar")
 	calendarGroup.Use(middleware.AccessToken(authSvc))
 	calendarGroup.GET("/preview", calendarHandler.GetPreview)
 	calendarGroup.POST("/test", calendarHandler.TestPreview)
+
+	courseGroup := v1.Group("/courses")
+	courseGroup.Use(middleware.AccessToken(authSvc))
+	courseGroup.GET("", courseHandler.GetAllCourses)
 
 	return r
 }
@@ -101,4 +109,5 @@ func registerAuthRoutes(group *gin.RouterGroup, authHandler *handlers.AuthHandle
 	group.POST("/refresh", authRateLimit, authHandler.Refresh)
 	group.POST("/logout", authRateLimit, authHandler.Logout)
 	group.GET("/me", middleware.AccessToken(authSvc), authHandler.Me)
+	group.POST("/sync", middleware.AccessToken(authSvc), authHandler.SyncAfterLogin)
 }

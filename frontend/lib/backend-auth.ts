@@ -56,6 +56,14 @@ export function applyBackendAuthCookies(
   return response;
 }
 
+const refreshPromises = new Map<
+  string,
+  Promise<{
+    accessToken: string;
+    rotatedRefreshToken?: string;
+  } | null>
+>();
+
 async function refreshAccessToken(): Promise<{
   accessToken: string;
   rotatedRefreshToken?: string;
@@ -67,31 +75,49 @@ async function refreshAccessToken(): Promise<{
     return null;
   }
 
-  const response = await fetch(`${getBackendBaseUrl()}/v1/auth/refresh`, {
-    method: "POST",
-    headers: {
-      Cookie: `refresh_token=${refreshToken}`,
-      "User-Agent": incomingHeaders.get("user-agent") || "resisst-frontend",
-      "X-Forwarded-For": incomingHeaders.get("x-forwarded-for") || "",
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    return null;
+  if (refreshPromises.has(refreshToken)) {
+    return refreshPromises.get(refreshToken)!;
   }
 
-  const payload = (await response.json()) as { access_token?: string };
-  if (!payload.access_token) {
-    return null;
-  }
+  const promise = (async () => {
+    try {
+      const response = await fetch(`${getBackendBaseUrl()}/v1/auth/refresh`, {
+        method: "POST",
+        headers: {
+          Cookie: `refresh_token=${refreshToken}`,
+          "User-Agent": incomingHeaders.get("user-agent") || "resisst-frontend",
+          "X-Forwarded-For": incomingHeaders.get("x-forwarded-for") || "",
+        },
+        cache: "no-store",
+      });
 
-  return {
-    accessToken: payload.access_token,
-    rotatedRefreshToken: extractRefreshToken(
-      response.headers.get("set-cookie"),
-    ),
-  };
+      if (!response.ok) {
+        return null;
+      }
+
+      const payload = (await response.json()) as { access_token?: string };
+      if (!payload.access_token) {
+        return null;
+      }
+
+      return {
+        accessToken: payload.access_token,
+        rotatedRefreshToken: extractRefreshToken(
+          response.headers.get("set-cookie"),
+        ),
+      };
+    } catch (error) {
+      console.error("Refresh token error:", error);
+      return null;
+    } finally {
+      setTimeout(() => {
+        refreshPromises.delete(refreshToken);
+      }, 5000);
+    }
+  })();
+
+  refreshPromises.set(refreshToken, promise);
+  return promise;
 }
 
 export async function callBackendAsUser(

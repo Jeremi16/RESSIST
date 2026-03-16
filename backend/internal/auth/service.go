@@ -22,9 +22,12 @@ import (
 )
 
 var (
-	ErrInvalidRefreshToken = errors.New("invalid refresh token")
-	ErrExpiredRefreshToken = errors.New("refresh token expired")
-	ErrRefreshTokenReuse   = errors.New("refresh token reuse detected")
+	ErrInvalidRefreshToken   = errors.New("invalid refresh token")
+	ErrExpiredRefreshToken   = errors.New("refresh token expired")
+	ErrRefreshTokenReuse     = errors.New("refresh token reuse detected")
+	ErrEmailDomainNotAllowed = errors.New("email domain is not allowed")
+	ErrInvalidGoogleUserInfo = errors.New("invalid google user info")
+	ErrUserIdentityConflict  = errors.New("google account conflicts with existing user")
 )
 
 type GoogleUserInfo struct {
@@ -110,38 +113,82 @@ func (s *Service) FetchGoogleUser(ctx context.Context, accessToken string) (*Goo
 }
 
 func (s *Service) UpsertGoogleUser(ctx context.Context, info *GoogleUserInfo) (*models.User, error) {
+	if info == nil {
+		return nil, ErrInvalidGoogleUserInfo
+	}
+
+	email := strings.TrimSpace(info.Email)
+	googleID := strings.TrimSpace(info.Sub)
+	if email == "" || googleID == "" {
+		return nil, ErrInvalidGoogleUserInfo
+	}
+
 	if s.cfg.AllowedEmailDomain != "" {
 		domain := "@" + strings.ToLower(strings.TrimSpace(s.cfg.AllowedEmailDomain))
-		if !strings.HasSuffix(strings.ToLower(info.Email), domain) {
-			return nil, fmt.Errorf("email domain is not allowed")
+		if !strings.HasSuffix(strings.ToLower(email), domain) {
+			return nil, ErrEmailDomainNotAllowed
 		}
 	}
 
 	var user models.User
-	err := s.db.WithContext(ctx).Where("email = ?", info.Email).First(&user).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
+	// Primary lookup by Google subject (stable identity).
+	err := s.db.WithContext(ctx).Where("google_id = ?", googleID).First(&user).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
-	if err == gorm.ErrRecordNotFound {
-		user = models.User{
-			Email:         info.Email,
-			Name:          info.Name,
-			AvatarURL:     info.Picture,
-			GoogleID:      info.Sub,
-			EmailVerified: info.EmailVerified,
-		}
-		if err := s.db.WithContext(ctx).Create(&user).Error; err != nil {
+	if err == nil {
+		user.Email = email
+		user.Name = info.Name
+		user.AvatarURL = info.Picture
+		user.GoogleID = googleID
+		user.EmailVerified = info.EmailVerified
+		if err := s.db.WithContext(ctx).Save(&user).Error; err != nil {
+			if isUniqueConstraintError(err) {
+				return nil, ErrUserIdentityConflict
+			}
 			return nil, err
 		}
 		return &user, nil
 	}
 
-	user.Name = info.Name
-	user.AvatarURL = info.Picture
-	user.GoogleID = info.Sub
-	user.EmailVerified = info.EmailVerified
-	if err := s.db.WithContext(ctx).Save(&user).Error; err != nil {
+	// Fallback for legacy rows that may not have google_id set.
+	err = s.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	if err == nil {
+		existingGoogleID := strings.TrimSpace(user.GoogleID)
+		if existingGoogleID != "" && existingGoogleID != googleID {
+			return nil, ErrUserIdentityConflict
+		}
+
+		user.Email = email
+		user.Name = info.Name
+		user.AvatarURL = info.Picture
+		user.GoogleID = googleID
+		user.EmailVerified = info.EmailVerified
+		if err := s.db.WithContext(ctx).Save(&user).Error; err != nil {
+			if isUniqueConstraintError(err) {
+				return nil, ErrUserIdentityConflict
+			}
+			return nil, err
+		}
+		return &user, nil
+	}
+
+	user = models.User{
+		Email:         email,
+		Name:          info.Name,
+		AvatarURL:     info.Picture,
+		GoogleID:      googleID,
+		EmailVerified: info.EmailVerified,
+	}
+	if err := s.db.WithContext(ctx).Create(&user).Error; err != nil {
+		if isUniqueConstraintError(err) {
+			return nil, ErrUserIdentityConflict
+		}
 		return nil, err
 	}
 	return &user, nil
@@ -311,4 +358,15 @@ func generateSecureToken(bytesLen int) (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(buf), nil
+}
+
+func isUniqueConstraintError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "duplicate key") ||
+		strings.Contains(msg, "unique constraint") ||
+		strings.Contains(msg, "unique violation") ||
+		strings.Contains(msg, "constraint failed")
 }

@@ -70,7 +70,7 @@ func Load() (*Config, error) {
 
 		FrontendURL:         getEnv("FRONTEND_URL", "http://localhost:3000"),
 		FrontendSuccessPath: getEnv("FRONTEND_SUCCESS_PATH", "/login?auth=success"),
-		FrontendErrorPath:   getEnv("FRONTEND_ERROR_PATH", "/login?error=oauth"),
+		FrontendErrorPath:   getEnv("FRONTEND_ERROR_PATH", "/login"),
 
 		CookieDomain: getEnv("COOKIE_DOMAIN", ""),
 		CookieSecure: getEnvAsBool("COOKIE_SECURE", false),

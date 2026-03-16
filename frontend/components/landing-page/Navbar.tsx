@@ -19,17 +19,17 @@ export function Navbar() {
       <div className="container mx-auto px-6 h-20 flex items-center justify-between">
         <Link
           href="/"
-          className="text-lg sm:text-xl font-black tracking-tight text-slate-900 flex items-center gap-2"
+          className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-3"
         >
-          <div className="size-8 bg-blue-600 rounded-lg rotate-3 shadow-lg flex items-center justify-center text-white text-lg font-bold">
+          <div className="size-10 sm:size-12 bg-blue-600 rounded-xl rotate-3 shadow-lg flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
             R
           </div>
           <div className="flex flex-col leading-tight">
             <span>
               Ressist by <span className="font-brand">NODRYX</span>
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">
-              v0.3.0
+            <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-blue-600">
+              v0.3.4
             </span>
           </div>
         </Link>

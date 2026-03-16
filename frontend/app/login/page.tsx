@@ -16,6 +16,37 @@ import { useToast } from "@/components/ui/toast-provider";
 
 import { Suspense } from "react";
 
+// Map error codes to user-friendly messages
+function mapErrorToMessage(error: string): string {
+  const errorMap: Record<string, string> = {
+    oauth_denied: "Login dibatalkan. Silakan coba lagi.",
+    "oauth_error: access_denied":
+      "Akses ditolak. Anda membatalkan login Google.",
+    missing_code_or_state: "Terjadi kesalahan teknis. Silakan coba lagi.",
+    state_mismatch: "Sesi tidak valid. Silakan refresh halaman dan coba lagi.",
+    exchange_failed: "Gagal menghubungkan ke Google. Silakan coba lagi.",
+    userinfo_failed: "Gagal mengambil data pengguna. Silakan coba lagi.",
+    google_userinfo_invalid:
+      "Data akun Google tidak lengkap. Silakan coba akun Google lain.",
+    email_domain_not_allowed:
+      "Akun tidak diizinkan. Gunakan email domain student.itera.ac.id.",
+    user_identity_conflict:
+      "Akun Google ini bentrok dengan data akun lama. Hubungi admin untuk sinkronisasi akun.",
+    user_upsert_failed: "Gagal menyimpan data pengguna. Silakan coba lagi.",
+    token_upsert_failed: "Gagal menyimpan token. Silakan coba lagi.",
+    refresh_create_failed: "Gagal membuat sesi. Silakan coba lagi.",
+  };
+
+  // Check for oauth_error prefix
+  if (error.startsWith("oauth_error:")) {
+    const oauthError = errorMap[error];
+    if (oauthError) return oauthError;
+    return "Terjadi kesalahan saat login dengan Google. Silakan coba lagi.";
+  }
+
+  return errorMap[error] || error || "Terjadi kesalahan. Silakan coba lagi.";
+}
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,11 +55,22 @@ function LoginContent() {
   const hasSyncedBackendSession = useRef(false);
   const hasShownSessionExpiredToast = useRef(false);
 
-  // Get error from URL
+  // Get error from URL and map to user-friendly messages
   useEffect(() => {
     const errorParam = searchParams.get("error");
+    const reasonParam = searchParams.get("reason");
+
     if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+      const decodedError = decodeURIComponent(errorParam);
+      // If error is "oauth" and there's a reason, use the reason for better message
+      if (decodedError === "oauth" && reasonParam) {
+        setError(mapErrorToMessage(reasonParam));
+      } else {
+        setError(mapErrorToMessage(decodedError));
+      }
+    } else if (reasonParam && reasonParam !== "session-expired") {
+      // Handle reason-only errors
+      setError(mapErrorToMessage(reasonParam));
     }
   }, [searchParams]);
 
@@ -54,9 +96,27 @@ function LoginContent() {
 
     const syncBackendSession = async () => {
       try {
-        await fetch("/api/auth/backend/sync", {
+        const response = await fetch("/api/auth/backend/sync", {
           method: "POST",
         });
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as {
+          newAssignmentsCount?: number;
+          newAssignments?: unknown[];
+        };
+
+        if ((payload.newAssignmentsCount ?? 0) > 0) {
+          sessionStorage.setItem(
+            "resisst.sync.new-assignments",
+            JSON.stringify({
+              count: payload.newAssignmentsCount ?? 0,
+              items: Array.isArray(payload.newAssignments)
+                ? payload.newAssignments
+                : [],
+            }),
+          );
+        }
       } catch (err) {
         if (!cancelled) {
           console.error("Background sync backend session failed:", err);

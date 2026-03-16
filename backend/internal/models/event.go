@@ -7,6 +7,10 @@ type Event struct {
 	UserID          string `gorm:"index;not null"`
 	Title           string
 	Course          *string
+	CourseID        *string `gorm:"index"`
+	ClassCode       *string `gorm:"column:class_code"`
+	Description     *string
+	URL             *string
 	Deadline        time.Time `gorm:"index"`
 	Source          string    `gorm:"index;default:moodle"`
 	SourceID        *string

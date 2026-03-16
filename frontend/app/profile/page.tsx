@@ -47,6 +47,11 @@ export default function ProfilePage() {
           const data = await response.json();
           setUserData(data);
         } else if (response.status === 401) {
+          try {
+            await fetch("/api/auth/logout", { method: "POST" });
+          } catch (e) {
+            console.error("Auto-logout failed:", e);
+          }
           router.replace("/login?reason=session-expired");
         }
       } catch (error) {

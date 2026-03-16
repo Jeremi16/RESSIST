@@ -28,6 +28,9 @@ type User struct {
 	ReminderHours          string     `gorm:"column:reminder_hours;default:'[24]'"`
 	MorningBriefing        bool       `gorm:"column:morning_briefing;default:false"`
 	MutedCourses           string     `gorm:"column:muted_courses;default:'[]'"`
+	CourseAliases          string     `gorm:"column:course_aliases;default:'{}'"`
+	ClassCode              *string    `gorm:"column:class_code"`
+	AvailableClassCodes    string     `gorm:"column:available_class_codes;default:'[]'"`
 	LMSLastSyncedAt        *time.Time `gorm:"column:lms_last_synced_at"`
 	CreatedAt              time.Time
 	UpdatedAt              time.Time

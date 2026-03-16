@@ -15,7 +15,10 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 		return nil, fmt.Errorf("DATABASE_URL is required")
 	}
 
-	db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  databaseURL,
+		PreferSimpleProtocol: true,
+	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Warn),
 	})
 	if err != nil {
@@ -33,7 +36,7 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 	sqlDB.SetConnMaxIdleTime(10 * time.Minute)
 
 	if autoMigrate {
-		if err := db.AutoMigrate(&models.User{}, &models.RefreshToken{}, &models.Event{}); err != nil {
+		if err := db.AutoMigrate(&models.User{}, &models.RefreshToken{}, &models.Event{}, &models.Course{}); err != nil {
 			return nil, fmt.Errorf("auto migrate: %w", err)
 		}
 	}
