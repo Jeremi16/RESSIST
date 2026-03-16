@@ -1,7 +1,13 @@
 FROM golang:1.25-alpine AS builder
 
+# Install build dependencies
+RUN apk add --no-cache git ca-certificates tzdata
+
+ENV GOPROXY=https://proxy.golang.org,direct
+
 WORKDIR /app
 
+# Copy go.mod and go.sum first for better caching
 COPY go.mod go.sum* ./
 RUN go mod download
 
