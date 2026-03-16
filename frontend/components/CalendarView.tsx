@@ -24,7 +24,10 @@ import { cn } from "@/lib/utils";
 interface Event {
   title: string;
   course: string | null;
+  class_code?: string | null;
   deadline: Date | string;
+  full_title?: string;
+  original_course?: string | null;
 }
 
 interface CalendarViewProps {
@@ -48,6 +51,8 @@ export function CalendarView({ events }: CalendarViewProps) {
     return events.map((e) => ({
       ...e,
       date: new Date(e.deadline),
+      full_title: e.title,
+      original_course: e.course,
     }));
   }, [events]);
 
@@ -138,7 +143,7 @@ export function CalendarView({ events }: CalendarViewProps) {
                   <div
                     key={idx}
                     className="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight truncate bg-blue-50 text-blue-600 border border-blue-100 group relative"
-                    title={`${event.title} (${event.course})`}
+                    title={`${event.full_title || event.title} (${event.course}${event.class_code ? ` - Kelas ${event.class_code}` : ""})`}
                   >
                     <div className="w-1 h-3 bg-blue-600 absolute left-0 top-1/2 -translate-y-1/2 rounded-r-sm opacity-0 group-hover:opacity-100 transition-opacity" />
                     {event.title}

@@ -50,7 +50,7 @@ export function TelegramConfig({
             </h4>
             <p className="text-sm text-amber-700 font-medium mt-1">
               Fitur Telegram Bot masih dalam pengembangan. Status saat ini:{" "}
-              <strong>v0.3.0</strong>.
+              <strong>v0.3.4</strong>.
             </p>
           </div>
         </div>

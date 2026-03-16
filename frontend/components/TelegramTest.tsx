@@ -11,7 +11,7 @@ export function TelegramTest({ chatId }: { chatId?: string | null }) {
         publik.
       </p>
       <p className="text-xs text-blue-700 mb-4">
-        Versi aplikasi saat ini: <strong>v0.3.0</strong>.
+        Versi aplikasi saat ini: <strong>v0.3.4</strong>.
       </p>
       <button
         disabled
