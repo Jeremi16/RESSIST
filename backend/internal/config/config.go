@@ -73,7 +73,7 @@ func Load() (*Config, error) {
 		FrontendErrorPath:   getEnv("FRONTEND_ERROR_PATH", "/login"),
 
 		CookieDomain: getEnv("COOKIE_DOMAIN", ""),
-		CookieSecure: getEnvAsBool("COOKIE_SECURE", false),
+		CookieSecure: getEnvAsBool("COOKIE_SECURE", env == "production"),
 
 		AllowedOrigins: getEnvAsList("ALLOWED_ORIGINS", "http://localhost:3000"),
 	}

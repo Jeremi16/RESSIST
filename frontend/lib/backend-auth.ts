@@ -72,6 +72,7 @@ async function refreshAccessToken(): Promise<{
   const incomingHeaders = await headers();
   const refreshToken = cookieStore.get("refresh_token")?.value;
   if (!refreshToken) {
+    console.warn("[refreshAccessToken] No refresh_token cookie found in cookieStore");
     return null;
   }
 
@@ -92,6 +93,7 @@ async function refreshAccessToken(): Promise<{
       });
 
       if (!response.ok) {
+        console.error(`[refreshAccessToken] Failed to refresh token: status ${response.status}`);
         return null;
       }
 
