@@ -266,6 +266,20 @@ func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userA
 	}
 
 	if existing.RevokedAt != nil {
+		// Implement grace period for parallel requests:
+		// If the token was revoked less than 30 seconds ago, consider it still valid once.
+		if now.Sub(*existing.RevokedAt) < 30*time.Second {
+			// Return the user but don't rotate again, the previous rotation's token is already in the air.
+			// Actually better to just allow it to proceed to GenerateAccessToken, 
+			// but we need to return the user.
+			var user models.User
+			if err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error; err == nil {
+				// We return the user but NO NEW token (empty string). 
+				// The frontend should be smart enough to handle empty rotation.
+				return &user, "", nil
+			}
+		}
+
 		_ = s.RevokeAllUserRefreshTokens(ctx, existing.UserID)
 		return nil, "", ErrRefreshTokenReuse
 	}

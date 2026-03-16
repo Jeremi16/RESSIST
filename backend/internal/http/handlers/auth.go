@@ -113,7 +113,9 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		return
 	}
 
-	h.setCookie(c, refreshTokenCookieName, newRefresh, h.cfg.RefreshTokenTTLHour*3600)
+	if newRefresh != "" {
+		h.setCookie(c, refreshTokenCookieName, newRefresh, h.cfg.RefreshTokenTTLHour*3600)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"access_token": accessToken,
 		"token_type":   "Bearer",
