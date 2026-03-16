@@ -3,13 +3,14 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
-  LayoutDashboard,
-  LogIn,
-  Palette,
-  RefreshCw,
+  Filter,
+  Bell,
+  Tag,
   CheckCircle2,
   ExternalLink,
   PartyPopper,
+  ArrowRightLeft,
+  Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -21,42 +22,76 @@ interface WhatsNewPopupProps {
   showTrigger?: boolean;
 }
 
-const WHATS_NEW_VERSION = "v0.3.0";
+const WHATS_NEW_VERSION = "v0.5.0";
 const WHATS_NEW_STORAGE_KEY = `whats-new-${WHATS_NEW_VERSION}-seen`;
 
 const NEW_FEATURES = [
   {
-    icon: Palette,
-    title: "UX Lebih Konsisten",
+    icon: ExternalLink,
+    title: "Quick Task Link",
     description:
-      "Tata letak antarmuka diperhalus agar alur penggunaan terasa lebih natural",
+      "Buka tautan tugas (MOODLE/Classroom) langsung dari timeline tanpa ribet.",
   },
   {
-    icon: LayoutDashboard,
-    title: "Mobile Experience Ditingkatkan",
+    icon: ExternalLink,
+    title: "Session Auto-Logout Fix",
     description:
-      "Komponen utama kini lebih responsif dan nyaman di layar kecil",
+      "Perbaikan fitur logout otomatis yang lebih stabil saat sesi berakhir.",
   },
   {
-    icon: LogIn,
-    title: "Interaksi Lebih Ringkas",
+    icon: Sparkles,
+    title: "Tab Mata Kuliah Baru",
     description:
-      "Penempatan tombol dan elemen penting dibuat lebih mudah dijangkau",
+      "Tampilan baru untuk manajemen mata kuliah yang lebih rapi dan intuitif.",
   },
   {
-    icon: RefreshCw,
-    title: "Detail Visual Dirapikan",
+    icon: ArrowRightLeft,
+    title: "Rekomposisi Fitur",
     description:
-      "Spacing, tipografi, dan hierarchy visual disesuaikan agar lebih jelas",
+      "Penataan ulang fitur Alias dan Filter untuk akses yang lebih cepat.",
+  },
+  {
+    icon: Filter,
+    title: "Filter Kelas",
+    description:
+      "Filter tugas berdasarkan kode kelas (RA, RB, RC). Auto-detect dari judul tugas [XX].",
+  },
+  {
+    icon: Tag,
+    title: "Course Alias",
+    description:
+      "Ganti nama mata kuliah panjang dengan alias singkat favoritmu.",
+  },
+  {
+    icon: ArrowRightLeft,
+    title: "Sorting Tugas",
+    description:
+      "Urutkan tugas berdasarkan deadline terdekat atau terjauh.",
+  },
+  {
+    icon: Bell,
+    title: "Notifikasi Tugas Baru",
+    description:
+      "Dapatkan notifikasi toast saat ada tugas baru saat sinkronisasi.",
+  },
+  {
+    icon: Sparkles,
+    title: "Smart Update",
+    description:
+      "Sinkronisasi lebih cepat dengan hanya mengupdate data yang berubah.",
   },
 ];
 
 const HIGHLIGHTS = [
-  "Penyempurnaan UX pada halaman informasi",
-  "Optimasi tampilan mobile di berbagai screen size",
-  "Perbaikan keterbacaan konten dan tombol",
-  "Konsistensi visual antar halaman ditingkatkan",
-  "Interaksi popup dan komponen penting dipoles",
+  "Tombol Cepat 'Buka Tugas'",
+  "Optimasi UI Mobile & Timeline",
+  "Perbaikan Skeleton Loading HP",
+  "Fix Auto-logout session",
+  "Update tab Mata Kuliah baru",
+  "Sorting: Deadline Terarah",
+  "Notifikasi tugas baru",
+  "Sinkronisasi otomatis",
+  "Smart update hemat data",
 ];
 
 export function WhatsNewPopup({
@@ -180,7 +215,9 @@ export function WhatsNewPopup({
                       <span className="px-3 py-1 rounded-lg bg-white/20 text-sm font-bold">
                         {WHATS_NEW_VERSION}
                       </span>
-                      <span className="text-blue-100 text-sm">UX Refresh</span>
+                      <span className="text-blue-100 text-sm">
+                        Manajemen Tugas
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -189,9 +226,9 @@ export function WhatsNewPopup({
                 <div className="p-6 sm:p-8 space-y-6 sm:space-y-8">
                   {/* Welcome Message */}
                   <p className="text-slate-600 leading-relaxed">
-                    <strong>Ressist {WHATS_NEW_VERSION}</strong> telah dirilis
-                    dengan fokus pada pembaruan UX agar penggunaan aplikasi
-                    terasa lebih rapi, ringan, dan nyaman.
+                    <strong>Ressist {WHATS_NEW_VERSION}</strong> hadir dengan
+                    fitur pengelolaan tugas yang lebih fleksibel. Filter, sort,
+                    dan notifikasi tugas baru kini tersedia!
                   </p>
 
                   {/* Feature Cards */}

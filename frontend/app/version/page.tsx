@@ -24,8 +24,139 @@ interface VersionEntry {
 
 const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "v0.5.0",
+    date: "16 Maret 2026",
+    title: "Quick Access Dashboard",
+    description:
+      "Akses cepat ke tautan tugas langsung dari timeline dashboard tanpa perlu membuka detail.",
+    type: "minor",
+    highlights: [
+      "Tombol 'Buka Tugas' langsung di timeline dashboard",
+      "Navigasi antar tugas yang lebih efisien",
+      "Penyelarasan visual identitas Resisst",
+    ],
+    fixes: ["Pembersihan redundansi header badge di semua tab"],
+  },
+  {
+    version: "v0.4.2",
+    date: "16 Maret 2026",
+    title: "Mobile UI Optimization",
+    description:
+      "Perbaikan tampilan antarmuka (UI) pada mode mobile untuk aksesibilitas yang lebih baik.",
+    type: "patch",
+    highlights: [
+      "Optimasi tampilan Timeline Tugas di HP",
+      "Perbaikan skeleton loading untuk responsivitas mobile",
+      "Penyesuaian padding dan layout untuk kenyamanan navigasi",
+    ],
+    fixes: ["Pencegahan teks countdown terpotong di mode mobile"],
+  },
+  {
+    version: "v0.4.1",
+    date: "16 Maret 2026",
+    title: "Session & Auth Fix",
+    description:
+      "Perbaikan fitur auto-logout otomatis saat sesi pengguna telah berakhir untuk keamanan yang lebih baik.",
+    type: "patch",
+    highlights: [
+      "Fix auto-logout otomatis saat session expired",
+      "Peningkatan stabilitas manajemen sesi",
+      "Redirect ke halaman login yang lebih mulus",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.4.0",
+    date: "16 Maret 2026",
+    title: "Tab Mata Kuliah & Reorganisasi",
+    description:
+      "Pembaruan tab Mata Kuliah serta rekomposisi fitur Alias dan Filter untuk alur kerja yang lebih intuitif.",
+    type: "minor",
+    highlights: [
+      "Update tab Mata Kuliah dengan tampilan baru",
+      "Rekomposisi fitur Course Alias agar lebih mudah diakses",
+      "Penyempurnaan sistem Filter tugas",
+      "Optimasi performa manajemen data mata kuliah",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.3.5",
+    date: "16 Maret 2026",
+    title: "Aliasing & Logic Fix",
+    description:
+      "Perbaikan kesalahan logika pada sistem alias mata kuliah untuk konsistensi data yang lebih baik.",
+    type: "patch",
+    highlights: [
+      "Fix logic error pada sistem alias mata kuliah",
+      "Peningkatan konsistensi nama alias di berbagai tampilan",
+      "Sinkronisasi alias yang lebih stabil",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.3.4",
+    date: "15 Maret 2026",
+    title: "Perbaikan UI Navbar",
+    description:
+      "Peningkatan visibilitas logo dan ukuran teks di navbar untuk pengalaman pengguna yang lebih baik.",
+    type: "patch",
+    highlights: [
+      "Logo navbar diperbesar untuk visibilitas lebih baik",
+      "Ukuran teks 'Ressist by NODRYX' ditingkatkan",
+      "Ukuran versi (v0.3.4) diperbesar dan lebih terbaca",
+      "Ukuran icon logo R diperbesar",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.3.3",
+    date: "15 Maret 2026",
+    title: "Filter Kelas & Sinkronisasi",
+    description:
+      "Peningkatan pengelolaan tugas dengan filter berdasarkan kelas dan sinkronisasi otomatis saat login.",
+    type: "patch",
+    highlights: [
+      "Filter tugas berdasarkan kode kelas (RA, RB, RC, dll)",
+      "Auto-detect kode kelas dari judul tugas [XX]",
+      "Sinkronisasi otomatis setelah login",
+      "Setting kode kelas di profil pengguna",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.3.2",
+    date: "15 Maret 2026",
+    title: "Course Alias & Smart Update",
+    description:
+      "Fitur penamaan ulang mata kuliah dan optimasi update data agar lebih efisien.",
+    type: "patch",
+    highlights: [
+      "Course alias untuk mengganti nama mata kuliah",
+      "Pengaturan alias di halaman profil",
+      "Smart update: hanya update data yang berubah",
+      "Penghematan query database saat sinkronisasi",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.3.1",
+    date: "15 Maret 2026",
+    title: "Sorting & Notifikasi",
+    description:
+      "Penambahan opsi pengurutan tugas dan notifikasi untuk tugas baru.",
+    type: "patch",
+    highlights: [
+      "Filter sorting tugas (deadline terdekat/terjauh, terbaru/terlama)",
+      "Toast notification untuk tugas baru saat sinkronisasi",
+      "Indikator jumlah tugas baru di response API",
+      "Perbaikan backend untuk performa lebih baik",
+    ],
+    fixes: [],
+  },
+  {
     version: "v0.3.0",
-    date: "Maret 2026",
+    date: "15 Maret 2026",
     title: "Pembaruan UX",
     description:
       "Rilis minor yang berfokus pada peningkatan pengalaman pengguna di mobile dan penyederhanaan alur interaksi utama.",
@@ -40,7 +171,7 @@ const VERSION_HISTORY: VersionEntry[] = [
   },
   {
     version: "v0.2.1",
-    date: "Maret 2026",
+    date: "15 Maret 2026",
     title: "Perbaikan Alur Login",
     description:
       "Patch untuk memperbaiki pengguna yang sempat nyangkut di halaman login setelah autentikasi berhasil.",
@@ -54,7 +185,7 @@ const VERSION_HISTORY: VersionEntry[] = [
   },
   {
     version: "v0.2.0",
-    date: "Maret 2026",
+    date: "15 Maret 2026",
     title: "Pembaruan Tampilan Depan",
     description:
       "Rilis minor yang membawa penyegaran tampilan halaman depan agar lebih modern, jelas, dan nyaman dipakai.",
@@ -69,7 +200,7 @@ const VERSION_HISTORY: VersionEntry[] = [
   },
   {
     version: "v0.1.0",
-    date: "Maret 2025",
+    date: "13 Maret 2026",
     title: "Beta Release",
     description:
       "Fase pengujian internal dengan closed beta untuk mahasiswa terpilih.",
@@ -144,15 +275,15 @@ export default function Version() {
                 Latest
               </span>
               <span className="text-blue-100 text-xs sm:text-sm font-medium">
-                v0.3.0
+                v0.5.0
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-black mb-2">
-              Versi Terbaru
+              Quick Task Link
             </h2>
             <p className="text-blue-100 text-sm sm:text-base max-w-lg leading-relaxed">
-              Fokus pembaruan terbaru ada pada peningkatan UX agar navigasi,
-              keterbacaan, dan pengalaman mobile terasa lebih nyaman.
+              Sekarang Anda bisa langsung membuka tautan MOODLE atau Google
+              Classroom langsung dari timeline tugas tanpa ribet.
             </p>
           </div>
         </motion.div>

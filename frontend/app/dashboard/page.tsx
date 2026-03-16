@@ -9,6 +9,7 @@ import { GeneralSettings } from "@/components/dashboard/GeneralSettings";
 import { EventPreview } from "@/components/EventPreview";
 import { TelegramTest } from "@/components/TelegramTest";
 import { CalendarView } from "@/components/CalendarView";
+import { WhatsAppConfig } from "@/components/dashboard/WhatsAppConfig";
 import { EventPreview as EventPreviewType } from "@/app/api/test-calendar/route";
 import {
   LogOut,
@@ -21,13 +22,20 @@ import {
   Clock,
   Send,
   GraduationCap,
+  BookOpen,
   RefreshCw,
   Menu,
   X,
   AlertTriangle,
+  ArrowUpDown,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast-provider";
+import { ProfileSettings } from "@/components/dashboard/ProfileSettings";
+import { ClassSettings } from "@/components/dashboard/ClassSettings";
+import { TimelineFilter } from "@/components/dashboard/TimelineFilter";
 
 interface UserData {
   id: string;
@@ -46,11 +54,20 @@ interface UserData {
   reminder_hours: string;
   morning_briefing: boolean;
   muted_courses: string;
+  class_code: string | null;
+  available_class_codes: string;
+  course_aliases: string | Record<string, string>;
   created_at: string;
 }
 
-type TabType = "overview" | "lms" | "telegram" | "general";
-const APP_VERSION = "v0.3.0";
+type TabType =
+  | "overview"
+  | "kelas"
+  | "lms"
+  | "bot"
+  | "general"
+  | "profile";
+const APP_VERSION = "v0.5.0";
 
 // Skeleton Components
 function Skeleton({ className }: { className?: string }) {
@@ -61,11 +78,11 @@ function Skeleton({ className }: { className?: string }) {
 
 function StatsCardSkeleton() {
   return (
-    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6">
-      <Skeleton className="size-14 rounded-2xl shrink-0" />
-      <div className="space-y-2 flex-1">
-        <Skeleton className="h-3 w-20" />
-        <Skeleton className="h-8 w-24" />
+    <div className="bg-white p-5 sm:p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4 sm:gap-6">
+      <Skeleton className="size-12 sm:size-14 rounded-2xl shrink-0" />
+      <div className="space-y-2 flex-1 min-w-0">
+        <Skeleton className="h-3 w-16 sm:w-20" />
+        <Skeleton className="h-6 sm:h-8 w-20 sm:w-24" />
       </div>
     </div>
   );
@@ -73,19 +90,19 @@ function StatsCardSkeleton() {
 
 function CalendarSkeleton() {
   return (
-    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-      <div className="flex items-center justify-between mb-8">
+    <div className="bg-white p-5 sm:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
           <Skeleton className="size-6 rounded" />
-          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-6 w-32 sm:w-40" />
         </div>
-        <Skeleton className="h-6 w-24 rounded-full" />
+        <Skeleton className="h-8 w-1/3 sm:w-24 rounded-full" />
       </div>
       <div className="space-y-4">
-        <Skeleton className="h-12 w-full" />
-        <div className="grid grid-cols-7 gap-2">
+        <Skeleton className="h-10 sm:h-12 w-full" />
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {Array.from({ length: 14 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+            <Skeleton key={i} className="h-12 sm:h-16 w-full rounded-lg sm:rounded-xl" />
           ))}
         </div>
       </div>
@@ -96,24 +113,24 @@ function CalendarSkeleton() {
 function TimelineSkeleton() {
   return (
     <div className="bg-white p-1 rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-      <div className="p-8 pb-4">
+      <div className="p-6 sm:p-8 pb-4">
         <Skeleton className="h-7 w-32" />
       </div>
-      <div className="p-4 space-y-4">
+      <div className="p-3 sm:p-4 space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="p-6 rounded-3xl border border-slate-100">
+          <div key={i} className="p-5 sm:p-6 rounded-[2rem] border border-slate-100">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-3 flex-1">
                 <div className="flex gap-2">
-                  <Skeleton className="h-5 w-20 rounded-lg" />
-                  <Skeleton className="h-5 w-16 rounded-lg" />
+                  <Skeleton className="h-5 w-16 sm:w-20 rounded-lg" />
+                  <Skeleton className="h-5 w-14 sm:w-16 rounded-lg" />
                 </div>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-6 w-full sm:w-3/4" />
+                <Skeleton className="h-4 w-32 sm:w-40" />
               </div>
-              <div className="space-y-2">
-                <Skeleton className="h-3 w-12" />
-                <Skeleton className="h-8 w-24" />
+              <div className="space-y-2 flex flex-col items-end sm:items-start group md:items-end">
+                <Skeleton className="h-3 w-10 sm:w-12 ml-auto sm:ml-0 md:ml-auto" />
+                <Skeleton className="h-8 w-20 sm:w-24 rounded-xl" />
               </div>
             </div>
           </div>
@@ -125,14 +142,20 @@ function TimelineSkeleton() {
 
 function StatusCardSkeleton() {
   return (
-    <div className="bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl">
+    <div className="bg-slate-900 p-6 sm:p-8 rounded-[2.5rem] shadow-2xl overflow-hidden relative">
+      <div className="absolute top-0 right-0 p-4 opacity-20">
+        <Skeleton className="size-16 rounded-full bg-slate-700" />
+      </div>
       <Skeleton className="h-6 w-32 mb-8 bg-slate-700" />
       <div className="space-y-6">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Skeleton className="size-8 rounded-lg bg-slate-700" />
-              <Skeleton className="h-4 w-24 bg-slate-700" />
+            <div className="flex items-center gap-3 flex-1">
+              <Skeleton className="size-8 rounded-lg bg-slate-700 shrink-0" />
+              <div className="space-y-1 flex-1">
+                <Skeleton className="h-3 w-20 bg-slate-700" />
+                <Skeleton className="h-2 w-12 bg-slate-700/50" />
+              </div>
             </div>
             <Skeleton className="size-2.5 rounded-full bg-slate-700" />
           </div>
@@ -145,18 +168,28 @@ function StatusCardSkeleton() {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isLoadingCalendar, setIsLoadingCalendar] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [previewEvents, setPreviewEvents] = useState<EventPreviewType[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [previewError, setPreviewError] = useState<string>("");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<string>("deadline_asc");
   const hasFetchedInitialUserData = useRef(false);
 
-  const redirectToLogin = () => {
+  const redirectToLogin = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      console.error("Auto-logout failed:", e);
+    }
     router.replace("/login?reason=session-expired");
   };
 
@@ -164,6 +197,7 @@ export default function Dashboard() {
     if (hasFetchedInitialUserData.current) return;
     hasFetchedInitialUserData.current = true;
     fetchUserData();
+    fetchCourses();
   }, []);
 
   useEffect(() => {
@@ -172,6 +206,18 @@ export default function Dashboard() {
       document.body.style.overflow = "";
     };
   }, [isMobileSidebarOpen]);
+
+  const fetchCourses = async () => {
+    try {
+      const response = await fetch("/api/courses");
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableCourses(data.courses || []);
+      }
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+    }
+  };
 
   const fetchUserData = async () => {
     try {
@@ -185,7 +231,7 @@ export default function Dashboard() {
       if (response.ok) {
         setUserData(data);
         if (data.moodle_enabled || data.google_classroom_enabled) {
-          fetchCalendarPreview();
+          fetchCalendarPreview(false, sortOrder);
         }
       }
     } catch (error) {
@@ -195,12 +241,17 @@ export default function Dashboard() {
     }
   };
 
-  const fetchCalendarPreview = async (forceRefresh = false) => {
+  const fetchCalendarPreview = async (
+    forceRefresh = false,
+    sort = sortOrder,
+  ) => {
     setIsLoadingCalendar(true);
     try {
-      const response = await fetch(
-        `/api/test-calendar${forceRefresh ? "?force=true" : ""}`,
-      );
+      const query = new URLSearchParams();
+      if (forceRefresh) query.append("force", "true");
+      if (sort) query.append("sort", sort);
+
+      const response = await fetch(`/api/test-calendar?${query.toString()}`);
       if (response.status === 401) {
         redirectToLogin();
         return;
@@ -209,6 +260,19 @@ export default function Dashboard() {
       if (response.ok) {
         setPreviewEvents(data.events);
         setPreviewError("");
+        if (forceRefresh && data.new_tasks_count && data.new_tasks_count > 0) {
+          showToast({
+            title: "Tugas Baru Ditemukan!",
+            description: `${data.new_tasks_count} tugas baru berhasil disinkronisasi.`,
+            variant: "success",
+          });
+        } else if (forceRefresh) {
+          showToast({
+            title: "Sinkronisasi Selesai",
+            description: "Tidak ada tugas baru saat ini.",
+            variant: "info",
+          });
+        }
       }
     } catch (error) {
       console.error("Error fetching calendar preview:", error);
@@ -216,6 +280,11 @@ export default function Dashboard() {
     } finally {
       setIsLoadingCalendar(false);
     }
+  };
+
+  const handleSortChange = (newSort: string) => {
+    setSortOrder(newSort);
+    fetchCalendarPreview(false, newSort);
   };
 
   const handleUpdate = async (updateData: any) => {
@@ -226,17 +295,50 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
       });
+
       if (response.status === 401) {
         redirectToLogin();
         return;
       }
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUserData(updatedUser);
-        fetchCalendarPreview();
+
+      let responseBody: any = null;
+      try {
+        responseBody = await response.json();
+      } catch {
+        responseBody = null;
       }
+
+      if (response.ok) {
+        setUserData(responseBody);
+        fetchCalendarPreview(false, sortOrder);
+        return;
+      }
+
+      const backendMessage =
+        responseBody?.error ||
+        responseBody?.message ||
+        "Gagal menyimpan perubahan profil.";
+
+      console.error("Profile update failed", {
+        status: response.status,
+        statusText: response.statusText,
+        requestPayload: updateData,
+        responseBody,
+      });
+
+      showToast({
+        title: "Gagal menyimpan pengaturan",
+        description: `${backendMessage} (HTTP ${response.status})`,
+        variant: "error",
+      });
     } catch (error) {
       console.error("Error updating user:", error);
+      showToast({
+        title: "Gagal menyimpan pengaturan",
+        description:
+          "Terjadi gangguan jaringan atau server. Coba lagi beberapa saat.",
+        variant: "error",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -308,10 +410,14 @@ export default function Dashboard() {
             <Skeleton className="h-12 w-full rounded-2xl mt-4" />
           </div>
         </aside>
-        <main className="flex-1 lg:ml-72 min-h-screen p-6 lg:p-12">
-          <Skeleton className="h-10 w-64 mb-2" />
-          <Skeleton className="h-6 w-96 mb-12" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <main className="flex-1 lg:ml-72 min-h-screen p-4 sm:p-6 lg:ml-72 lg:p-12">
+          <div className="lg:hidden flex items-center justify-between mb-6">
+            <Skeleton className="h-10 w-32 rounded-xl" />
+            <Skeleton className="size-10 rounded-xl" />
+          </div>
+          <Skeleton className="h-8 sm:h-10 w-48 sm:w-64 mb-2" />
+          <Skeleton className="h-4 sm:h-6 w-full max-w-[384px] mb-8 sm:mb-12" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
             <StatsCardSkeleton />
             <StatsCardSkeleton />
             <StatsCardSkeleton />
@@ -333,8 +439,10 @@ export default function Dashboard() {
 
   const TABS = [
     { id: "overview", label: "Ringkasan", icon: LayoutDashboard },
-    { id: "lms", label: "Sumber Tugas", icon: GraduationCap },
-    { id: "telegram", label: "Telegram Bot", icon: Send },
+    { id: "profile", label: "Profil", icon: UserIcon },
+    { id: "kelas", label: "Kelas", icon: GraduationCap },
+    { id: "lms", label: "Sumber Tugas", icon: BookOpen },
+    { id: "bot", label: "Bot", icon: Send },
     { id: "general", label: "Pengaturan", icon: Settings },
   ];
 
@@ -352,10 +460,10 @@ export default function Dashboard() {
               R
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-sm sm:text-base font-black tracking-tight text-slate-900">
-                Ressist by <span className="font-brand">NODRYX</span>
+              <span className="text-sm sm:text-lg font-black tracking-tight text-slate-900">
+                Resisst
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-600">
                 {APP_VERSION}
               </span>
             </div>
@@ -389,14 +497,14 @@ export default function Dashboard() {
             >
               <div className="flex items-center justify-between mb-8">
                 <Link href="/" className="flex items-center gap-2.5">
-                  <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-black rotate-3">
+                  <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-black rotate-3 shadow-lg shadow-blue-600/20">
                     R
                   </div>
                   <div className="flex flex-col leading-tight">
-                    <span className="text-sm sm:text-base font-black tracking-tight text-slate-900">
-                      Ressist by <span className="font-brand">NODRYX</span>
+                    <span className="text-sm sm:text-lg font-black tracking-tight text-slate-900">
+                      Resisst
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">
+                    <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-600">
                       {APP_VERSION}
                     </span>
                   </div>
@@ -447,15 +555,15 @@ export default function Dashboard() {
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-72 bg-white border-r border-slate-100 hidden lg:flex flex-col p-8 z-30">
-        <Link href="/" className="flex items-center gap-3 mb-10">
-          <div className="size-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xl font-black rotate-3">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 mb-10">
+          <div className="size-8 sm:size-10 bg-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white text-lg sm:text-xl font-black rotate-3 shadow-lg shadow-blue-600/20">
             R
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-black tracking-tight text-slate-900">
-              Ressist by <span className="font-brand">NODRYX</span>
+            <span className="text-sm sm:text-lg font-black tracking-tight text-slate-900">
+              Resisst
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-600">
               {APP_VERSION}
             </span>
           </div>
@@ -492,20 +600,6 @@ export default function Dashboard() {
         </nav>
 
         <div className="mt-8 pt-8 border-t border-slate-100">
-          <div className="flex items-center gap-4 p-4 rounded-3xl bg-slate-50 mb-6 border border-slate-100">
-            <div className="size-10 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-              <UserIcon className="size-5 text-slate-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-black text-slate-900 truncate leading-tight">
-                {userData?.name || "Mahasiswa ITERA"}
-              </p>
-              <p className="text-[9px] font-bold text-slate-400 truncate uppercase tracking-[0.2em] mt-0.5">
-                Free Account
-              </p>
-            </div>
-          </div>
-
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all"
@@ -521,11 +615,6 @@ export default function Dashboard() {
         <div className="px-4 sm:px-6 lg:px-12 py-6 sm:py-12 max-w-[1600px] mx-auto">
           <header className="mb-8 sm:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 border-b border-slate-100 pb-6 sm:pb-8">
             <div>
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-100 mb-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">
-                  {TABS.find((t) => t.id === activeTab)?.label}
-                </span>
-              </div>
               <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
                 {activeTab === "overview"
                   ? `Halo, ${userData?.name?.split(" ")[0] || "Ressistent"}! 👋`
@@ -570,28 +659,37 @@ export default function Dashboard() {
                         <TimelineSkeleton />
                       ) : (
                         <div className="bg-white p-2 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-                          <div className="p-4 sm:p-8 pb-3 sm:pb-4 flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3 sm:gap-4">
-                              <div className="size-10 sm:size-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center">
+                          <div className="p-5 sm:p-8 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-6 sm:gap-4">
+                            <div className="flex items-center gap-4">
+                              <div className="size-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shrink-0">
                                 <Clock className="size-6" />
                               </div>
-                              <h3 className="font-heading text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                              <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                                 Timeline Tugas
                               </h3>
                             </div>
-                            <button
-                              onClick={() => fetchCalendarPreview(true)}
-                              disabled={isLoadingCalendar}
-                              className="shrink-0 flex items-center gap-2 px-3 sm:px-6 py-2 sm:py-2.5 text-[11px] sm:text-sm font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 rounded-2xl transition-all disabled:opacity-50"
-                            >
-                              <RefreshCw
-                                className={cn(
-                                  "size-4",
-                                  isLoadingCalendar && "animate-spin",
-                                )}
-                              />
-                              Refresh
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 sm:flex-initial">
+                                <TimelineFilter
+                                  value={sortOrder}
+                                  onChange={handleSortChange}
+                                  disabled={isLoadingCalendar}
+                                />
+                              </div>
+                              <button
+                                onClick={() => fetchCalendarPreview(true)}
+                                disabled={isLoadingCalendar}
+                                className="shrink-0 flex items-center justify-center size-12 bg-slate-50 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-100 rounded-xl transition-all disabled:opacity-50"
+                                title="Refresh"
+                              >
+                                <RefreshCw
+                                  className={cn(
+                                    "size-5",
+                                    isLoadingCalendar && "animate-spin",
+                                  )}
+                                />
+                              </button>
+                            </div>
                           </div>
                           <div className="max-h-[1000px] overflow-y-auto custom-scrollbar">
                             <EventPreview
@@ -736,7 +834,7 @@ export default function Dashboard() {
                                   <Send className="size-4" />
                                 </div>
                                 <span className="text-sm font-bold text-slate-300">
-                                  Telegram
+                                  Bot
                                 </span>
                               </div>
                               <div
@@ -747,6 +845,19 @@ export default function Dashboard() {
                                     : "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.4)]",
                                 )}
                               />
+                            </li>
+                            <li className="flex items-center justify-between opacity-50">
+                              <div className="flex items-center gap-3">
+                                <div className="size-8 bg-green-500 text-white rounded-lg flex items-center justify-center">
+                                  <MessageSquare className="size-4" />
+                                </div>
+                                <span className="text-sm font-bold text-slate-300">
+                                  WhatsApp
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                Soon
+                              </span>
                             </li>
                           </ul>
                           <button
@@ -767,11 +878,67 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {(activeTab === "lms" ||
-                activeTab === "telegram" ||
-                activeTab === "general") && (
-                <div className="w-full max-w-3xl">
+              {(activeTab === "kelas" ||
+                activeTab === "lms" ||
+                activeTab === "bot" ||
+                activeTab === "general" ||
+                activeTab === "profile") && (
+                <div className={cn(
+                  "w-full transition-all duration-300",
+                  activeTab === "bot" ? "max-w-6xl" : "max-w-3xl"
+                )}>
                   <div className="bg-white p-5 sm:p-8 md:p-12 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                    {activeTab === "kelas" && (
+                      <ClassSettings
+                        classCode={userData?.class_code}
+                        availableClassCodes={(() => {
+                          try {
+                            return JSON.parse(
+                              userData?.available_class_codes || "[]",
+                            );
+                          } catch {
+                            return [];
+                          }
+                        })()}
+                        availableCourses={availableCourses}
+                        mutedCourses={(() => {
+                          try {
+                            const parsed = JSON.parse(
+                              userData?.muted_courses || "[]",
+                            );
+                            return Array.isArray(parsed) ? parsed : [];
+                          } catch {
+                            return [];
+                          }
+                        })()}
+                        courseAliases={
+                          userData?.course_aliases
+                            ? (() => {
+                                const raw = userData.course_aliases;
+                                if (typeof raw === "string") {
+                                  try {
+                                    const parsed = JSON.parse(raw);
+                                    return parsed &&
+                                      typeof parsed === "object" &&
+                                      !Array.isArray(parsed)
+                                      ? parsed
+                                      : {};
+                                  } catch {
+                                    return {};
+                                  }
+                                }
+                                return raw &&
+                                  typeof raw === "object" &&
+                                  !Array.isArray(raw)
+                                  ? raw
+                                  : {};
+                              })()
+                            : {}
+                        }
+                        onSave={handleUpdate}
+                        isLoading={isSaving}
+                      />
+                    )}
                     {activeTab === "lms" && (
                       <LMSConfig
                         moodleEnabled={userData?.moodle_enabled || false}
@@ -786,33 +953,44 @@ export default function Dashboard() {
                         isTesting={isTesting}
                       />
                     )}
-                    {activeTab === "telegram" && (
-                      <TelegramConfig
-                        chatId={userData?.telegram_chat_id || ""}
-                        enabled={userData?.telegram_enabled || false}
-                        botUsername={
-                          userData?.telegram_bot_username || "resisst_bot"
-                        }
+                    {activeTab === "bot" && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div className="flex flex-col h-full">
+                          <TelegramConfig
+                            chatId={userData?.telegram_chat_id || ""}
+                            enabled={userData?.telegram_enabled || false}
+                            botUsername={
+                              userData?.telegram_bot_username || "resisst_bot"
+                            }
+                            onSave={handleUpdate}
+                            isLoading={isSaving}
+                          />
+                        </div>
+                        <div className="flex flex-col h-full md:border-l md:border-slate-100 md:pl-12">
+                          <WhatsAppConfig />
+                        </div>
+                      </div>
+                    )}
+                    {activeTab === "general" && (
+                      <GeneralSettings
+                        reminderHours={(() => {
+                          try {
+                            const parsed = JSON.parse(
+                              userData?.reminder_hours || "[24]",
+                            );
+                            return Array.isArray(parsed) ? parsed : [24];
+                          } catch {
+                            return [24];
+                          }
+                        })()}
+                        morningBriefing={userData?.morning_briefing || false}
                         onSave={handleUpdate}
                         isLoading={isSaving}
                       />
                     )}
-                    {activeTab === "general" && (
-                      <GeneralSettings
-                        reminderHours={JSON.parse(
-                          userData?.reminder_hours || "[24]",
-                        )}
-                        morningBriefing={userData?.morning_briefing || false}
-                        mutedCourses={JSON.parse(
-                          userData?.muted_courses || "[]",
-                        )}
-                        availableCourses={Array.from(
-                          new Set(
-                            previewEvents
-                              .map((e) => e.course)
-                              .filter(Boolean) as string[],
-                          ),
-                        )}
+                    {activeTab === "profile" && userData && (
+                      <ProfileSettings
+                        userData={userData}
                         onSave={handleUpdate}
                         isLoading={isSaving}
                       />
