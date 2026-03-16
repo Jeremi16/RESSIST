@@ -47,5 +47,10 @@ export async function verifySession(): Promise<SessionPayload | null> {
 
 export async function clearSession() {
   const cookieStore = await cookies()
-  cookieStore.delete(COOKIE_NAME)
+  const domain = process.env.COOKIE_DOMAIN || process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "";
+  if (domain) {
+    cookieStore.delete({ name: COOKIE_NAME, domain, path: "/" })
+  } else {
+    cookieStore.delete(COOKIE_NAME)
+  }
 }

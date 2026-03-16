@@ -41,11 +41,17 @@ export async function GET() {
   await revokeBackendSession();
   await clearSession();
 
+  const domain = process.env.COOKIE_DOMAIN || process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "";
   const response = NextResponse.redirect(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/login`,
   );
-  response.cookies.delete("refresh_token");
-  response.cookies.delete(COOKIE_NAME);
+  if (domain) {
+    response.cookies.delete({ name: "refresh_token", domain, path: "/" });
+    response.cookies.delete({ name: COOKIE_NAME, domain, path: "/" });
+  } else {
+    response.cookies.delete("refresh_token");
+    response.cookies.delete(COOKIE_NAME);
+  }
   return response;
 }
 
@@ -53,11 +59,19 @@ export async function POST() {
   await revokeBackendSession();
   await clearSession();
 
+  const domain = process.env.COOKIE_DOMAIN || process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "";
   const response = NextResponse.json({
     success: true,
     message: "Logged out successfully",
   });
-  response.cookies.delete("refresh_token");
-  response.cookies.delete(COOKIE_NAME);
+  
+  if (domain) {
+    response.cookies.delete({ name: "refresh_token", domain, path: "/" });
+    response.cookies.delete({ name: COOKIE_NAME, domain, path: "/" });
+  } else {
+    response.cookies.delete("refresh_token");
+    response.cookies.delete(COOKIE_NAME);
+  }
+  
   return response;
 }

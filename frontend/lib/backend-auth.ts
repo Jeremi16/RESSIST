@@ -35,8 +35,14 @@ export function applyBackendAuthCookies(
   result: Pick<BackendAuthCallResult, "status" | "rotatedRefreshToken">,
 ): NextResponse {
   if (result.status === 401) {
-    response.cookies.delete(REFRESH_COOKIE_NAME);
-    response.cookies.delete(COOKIE_NAME);
+    const domain = process.env.COOKIE_DOMAIN || process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "";
+    if (domain) {
+      response.cookies.delete({ name: REFRESH_COOKIE_NAME, domain, path: "/" });
+      response.cookies.delete({ name: COOKIE_NAME, domain, path: "/" });
+    } else {
+      response.cookies.delete(REFRESH_COOKIE_NAME);
+      response.cookies.delete(COOKIE_NAME);
+    }
     return response;
   }
 
@@ -63,6 +69,16 @@ const refreshPromises = new Map<
     rotatedRefreshToken?: string;
   } | null>
 >();
+
+export async function clearSession() {
+  const cookieStore = await cookies()
+  const domain = process.env.COOKIE_DOMAIN || process.env.NEXT_PUBLIC_COOKIE_DOMAIN || "";
+  if (domain) {
+    cookieStore.delete({ name: COOKIE_NAME, domain, path: "/" })
+  } else {
+    cookieStore.delete(COOKIE_NAME)
+  }
+}
 
 async function refreshAccessToken(): Promise<{
   accessToken: string;

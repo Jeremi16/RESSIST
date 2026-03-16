@@ -224,7 +224,7 @@ export default function Dashboard() {
       setIsLoadingUser(true);
       const response = await fetch("/api/user");
       if (response.status === 401) {
-        redirectToLogin();
+        await redirectToLogin();
         return;
       }
       const data = await response.json();
@@ -253,7 +253,7 @@ export default function Dashboard() {
 
       const response = await fetch(`/api/test-calendar?${query.toString()}`);
       if (response.status === 401) {
-        redirectToLogin();
+        await redirectToLogin();
         return;
       }
       const data = await response.json();
@@ -297,7 +297,7 @@ export default function Dashboard() {
       });
 
       if (response.status === 401) {
-        redirectToLogin();
+        await redirectToLogin();
         return;
       }
 
@@ -370,7 +370,7 @@ export default function Dashboard() {
         }),
       });
       if (response.status === 401) {
-        redirectToLogin();
+        await redirectToLogin();
         return;
       }
       const data = await response.json();
