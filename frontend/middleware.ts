@@ -77,13 +77,12 @@ export async function middleware(request: NextRequest) {
     isAuthenticated = !!payload;
   }
 
-  // Fallback: if OAuth refresh cookie already exists, treat as authenticated
-  // so users can proceed to dashboard while frontend session is synced in background.
-  if (!isAuthenticated && refreshToken) {
-    isAuthenticated = true;
-  }
+  // REMOVED: Fallback blindly trusting refresh_token without verification.
+  // This was causing redirect loops in production when the token was revoked.
 
-  console.log(`[Middleware] ${pathname} - Auth: ${isAuthenticated}`);
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[Middleware] ${pathname} - Auth: ${isAuthenticated}`);
+  }
 
   // Jika sudah login dan mencoba akses /login atau /register, redirect ke dashboard
   if (isAuthenticated && AUTH_PATHS.includes(pathname)) {
