@@ -5,11 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LMSConfig } from "@/components/dashboard/LMSConfig";
 import { TelegramConfig } from "@/components/dashboard/TelegramConfig";
+import { TaskStats } from "@/components/dashboard/TaskStats";
 import { GeneralSettings } from "@/components/dashboard/GeneralSettings";
 import { EventPreview } from "@/components/EventPreview";
-import { TelegramTest } from "@/components/TelegramTest";
+import { TelegramVerify } from "@/components/TelegramVerify";
 import { CalendarView } from "@/components/CalendarView";
 import { WhatsAppConfig } from "@/components/dashboard/WhatsAppConfig";
+import { OverdueTasksPopup } from "@/components/dashboard/OverdueTasksPopup";
+import { VersionHistory } from "@/components/dashboard/VersionHistory";
 import { EventPreview as EventPreviewType } from "@/app/api/test-calendar/route";
 import {
   LogOut,
@@ -23,12 +26,16 @@ import {
   Send,
   GraduationCap,
   BookOpen,
+  History,
   RefreshCw,
   Menu,
   X,
   AlertTriangle,
   ArrowUpDown,
   MessageSquare,
+  CheckCircle2,
+  ListTodo,
+  Bell,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -62,12 +69,13 @@ interface UserData {
 
 type TabType =
   | "overview"
+  | "tugas"
   | "kelas"
   | "lms"
   | "bot"
   | "general"
   | "profile";
-const APP_VERSION = "v0.5.1";
+const APP_VERSION = "v0.8.7";
 
 // Skeleton Components
 function Skeleton({ className }: { className?: string }) {
@@ -142,7 +150,7 @@ function TimelineSkeleton() {
 
 function StatusCardSkeleton() {
   return (
-    <div className="bg-slate-900 p-6 sm:p-8 rounded-[2.5rem] shadow-2xl overflow-hidden relative">
+    <div className="bg-slate-900 p-6 sm:p-8 rounded-3xl shadow-2xl overflow-hidden relative">
       <div className="absolute top-0 right-0 p-4 opacity-20">
         <Skeleton className="size-16 rounded-full bg-slate-700" />
       </div>
@@ -182,6 +190,9 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<string>("deadline_asc");
+  const [allAssignments, setAllAssignments] = useState<any[]>([]);
+  const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
+  const [showOverduePopup, setShowOverduePopup] = useState(true);
   const hasFetchedInitialUserData = useRef(false);
 
   const redirectToLogin = async () => {
@@ -198,6 +209,7 @@ export default function Dashboard() {
     hasFetchedInitialUserData.current = true;
     fetchUserData();
     fetchCourses();
+    fetchAssignments();
   }, []);
 
   useEffect(() => {
@@ -279,6 +291,46 @@ export default function Dashboard() {
       setPreviewError("Gagal memuat data kalender");
     } finally {
       setIsLoadingCalendar(false);
+    }
+  };
+
+  const fetchAssignments = async () => {
+    setIsLoadingAssignments(true);
+    try {
+      const response = await fetch("/api/assignments");
+      if (response.ok) {
+        const data = await response.json();
+        setAllAssignments(Array.isArray(data) ? data : data.assignments || []);
+      }
+    } catch (error) {
+      console.error("Error fetching assignments:", error);
+    } finally {
+      setIsLoadingAssignments(false);
+    }
+  };
+
+  const markAssignmentComplete = async (assignmentId: string) => {
+    try {
+      const response = await fetch("/api/assignments/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignment_id: assignmentId }),
+      });
+      if (response.ok) {
+        // Optimistic update
+        setAllAssignments((prev) =>
+          prev.map((task) =>
+            task.id === assignmentId ? { ...task, completed: true } : task,
+          ),
+        );
+        showToast({
+          title: "Tugas Selesai!",
+          description: "Tugas telah ditandai sebagai selesai.",
+          variant: "success",
+        });
+      }
+    } catch (error) {
+      console.error("Error marking assignment complete:", error);
     }
   };
 
@@ -439,11 +491,12 @@ export default function Dashboard() {
 
   const TABS = [
     { id: "overview", label: "Ringkasan", icon: LayoutDashboard },
-    { id: "profile", label: "Profil", icon: UserIcon },
+    { id: "tugas", label: "Tugas", icon: ListTodo },
     { id: "kelas", label: "Kelas", icon: GraduationCap },
-    { id: "lms", label: "Sumber Tugas", icon: BookOpen },
+    { id: "lms", label: "LMS", icon: BookOpen },
     { id: "bot", label: "Bot", icon: Send },
-    { id: "general", label: "Pengaturan", icon: Settings },
+    { id: "general", label: "Notifikasi", icon: Bell },
+    { id: "profile", label: "Profil", icon: UserIcon },
   ];
 
   const activeSources = [
@@ -553,6 +606,17 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
+      {/* Overdue Tasks Popup */}
+      <AnimatePresence>
+        {showOverduePopup && allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date()).length > 0 && (
+          <OverdueTasksPopup
+            tasks={allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date())}
+            onMarkComplete={markAssignmentComplete}
+            onClose={() => setShowOverduePopup(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-72 bg-white border-r border-slate-100 hidden lg:flex flex-col p-8 z-30">
         <Link href="/" className="flex items-center gap-2 sm:gap-3 mb-10">
@@ -628,15 +692,15 @@ export default function Dashboard() {
             </div>
           </header>
 
-          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
-            <AlertTriangle className="size-5 text-amber-600 shrink-0 mt-0.5" />
+          {/* Telegram Ready Banner */}
+          <div className="mb-6 rounded-2xl border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 flex items-start gap-3">
+            <CheckCircle2 className="size-5 text-blue-600 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-black text-amber-900">
-                Telegram Bot belum ready
+              <p className="text-sm font-black text-blue-900">
+                Telegram Bot Sudah Tersedia! 🎉
               </p>
-              <p className="text-xs sm:text-sm text-amber-700 font-medium">
-                Fitur Telegram masih dalam pengembangan dan akan dirilis
-                bertahap di {APP_VERSION}.
+              <p className="text-xs sm:text-sm text-blue-700 font-medium">
+                Hubungkan Telegram di tab Bot untuk menerima notifikasi tugas real-time. Versi {APP_VERSION}.
               </p>
             </div>
           </div>
@@ -651,112 +715,24 @@ export default function Dashboard() {
             >
               {activeTab === "overview" && (
                 <div className="space-y-6 sm:space-y-8">
+                  {/* Task Statistics - Full Width */}
+                  <TaskStats
+                    overdueCount={allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date()).length}
+                    upcomingCount={allAssignments.filter(t => !t.completed && new Date(t.deadline) >= new Date()).length}
+                    completedCount={allAssignments.filter(t => t.completed).length}
+                    totalCount={allAssignments.length}
+                  />
+
                   {/* Main Grid: Resisst v2 Wide Layout */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-6 sm:gap-8">
-                    {/* Left Column: Timeline (Primary Focus) */}
+                    {/* Left Column: Calendar & Content */}
                     <div className="lg:col-span-12 xl:col-span-8 space-y-6 sm:space-y-8">
-                      {isLoadingCalendar ? (
-                        <TimelineSkeleton />
-                      ) : (
-                        <div className="bg-white p-2 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-                          <div className="p-5 sm:p-8 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-6 sm:gap-4">
-                            <div className="flex items-center gap-4">
-                              <div className="size-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shrink-0">
-                                <Clock className="size-6" />
-                              </div>
-                              <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                                Timeline Tugas
-                              </h3>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 sm:flex-initial">
-                                <TimelineFilter
-                                  value={sortOrder}
-                                  onChange={handleSortChange}
-                                  disabled={isLoadingCalendar}
-                                />
-                              </div>
-                              <button
-                                onClick={() => fetchCalendarPreview(true)}
-                                disabled={isLoadingCalendar}
-                                className="shrink-0 flex items-center justify-center size-12 bg-slate-50 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-100 rounded-xl transition-all disabled:opacity-50"
-                                title="Refresh"
-                              >
-                                <RefreshCw
-                                  className={cn(
-                                    "size-5",
-                                    isLoadingCalendar && "animate-spin",
-                                  )}
-                                />
-                              </button>
-                            </div>
-                          </div>
-                          <div className="max-h-[1000px] overflow-y-auto custom-scrollbar">
-                            <EventPreview
-                              events={previewEvents}
-                              error={previewError}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right Column(s): Stats, Calendar & Status */}
-                    <div className="lg:col-span-12 xl:col-span-4 space-y-6 sm:space-y-8">
-                      {/* Quick Stats - Repositioned from Header */}
-                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                        <div className="px-4 sm:px-5 py-4 bg-white border border-slate-100 rounded-[2rem] shadow-sm flex items-center gap-3 sm:gap-4 hover:border-blue-200 transition-colors">
-                          <div className="size-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-                            <CalendarIcon className="size-5" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                              Tugas
-                            </p>
-                            <p className="text-lg font-black text-slate-900">
-                              {previewEvents.length}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="px-4 sm:px-5 py-4 bg-white border border-slate-100 rounded-[2rem] shadow-sm flex items-center gap-3 sm:gap-4 hover:border-green-200 transition-colors">
-                          <div className="size-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
-                            <Zap className="size-5" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                              Bot
-                            </p>
-                            <p className="text-lg font-black text-slate-900">
-                              {userData?.telegram_enabled ? "Aktif" : "Off"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Calendar View */}
-                      {isLoadingCalendar ? (
-                        <CalendarSkeleton />
-                      ) : (
-                        <div className="bg-white p-4 sm:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                       <div className="bg-white p-4 sm:p-8 rounded-3xl border border-slate-100 shadow-sm">
                           <div className="flex items-center justify-between mb-6 sm:mb-8">
                             <h3 className="font-heading text-lg font-black text-slate-900 tracking-tight flex items-center gap-3">
                               <CalendarIcon className="size-5 text-blue-600" />
                               Kalender
                             </h3>
-                            <div className="flex gap-2">
-                              {userData?.moodle_enabled && (
-                                <div
-                                  className="size-2.5 rounded-full bg-orange-500"
-                                  title="Moodle"
-                                />
-                              )}
-                              {userData?.google_classroom_enabled && (
-                                <div
-                                  className="size-2.5 rounded-full bg-green-500"
-                                  title="Google"
-                                />
-                              )}
-                            </div>
                           </div>
                           <CalendarView
                             events={
@@ -764,12 +740,16 @@ export default function Dashboard() {
                             }
                           />
                         </div>
-                      )}
+                    </div>
+
+                    {/* Right Column(s): Status & Telegram */}
+                    <div className="lg:col-span-12 xl:col-span-4 space-y-6 sm:space-y-8">
 
                       {/* Side by Side Status & Test on larger screens if possible, or stacked */}
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6 sm:gap-8">
+
                         {/* Status Card */}
-                        <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-[2.5rem] shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
+                        <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
                           <div className="absolute top-0 right-0 p-6 sm:p-8 opacity-10 group-hover:scale-110 transition-transform">
                             <Zap className="size-20" />
                           </div>
@@ -869,8 +849,8 @@ export default function Dashboard() {
                         </div>
 
                         {/* Telegram Test */}
-                        <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                          <TelegramTest chatId={userData?.telegram_chat_id} />
+                        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                          <TelegramVerify chatId={userData?.telegram_chat_id} botUsername={userData?.telegram_bot_username} />
                         </div>
                       </div>
                     </div>
@@ -878,16 +858,126 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {activeTab === "tugas" && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div>
+                      <h3 className="text-2xl font-black text-slate-900 tracking-tight">Timeline Tugas</h3>
+                      <p className="text-slate-500 text-sm font-medium mt-1">
+                        Daftar tugas yang diatur dalam tiga kelompok utama.
+                      </p>
+                    </div>
+                    <button
+                      onClick={fetchAssignments}
+                      disabled={isLoadingAssignments}
+                      className="flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 shadow-lg shadow-slate-900/10"
+                    >
+                      <RefreshCw className={cn("size-4", isLoadingAssignments && "animate-spin")} />
+                      {isLoadingAssignments ? "Menyinkronkan..." : "Sinkronkan"}
+                    </button>
+                  </div>
+
+                  {isLoadingAssignments && allAssignments.length === 0 ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                       <TimelineSkeleton />
+                       <TimelineSkeleton />
+                       <TimelineSkeleton />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                      {/* Section: Terlewat */}
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between px-2">
+                          <div className="flex items-center gap-3">
+                            <div className="size-9 bg-red-50 text-red-600 rounded-xl flex items-center justify-center border border-red-100/50">
+                              <AlertTriangle className="size-4.5" />
+                            </div>
+                            <h4 className="font-black text-slate-900 tracking-tight">Terlewat</h4>
+                          </div>
+                          <span className="text-[10px] font-black px-2.5 py-1 bg-red-50 text-red-600 rounded-lg border border-red-100/50">
+                            {allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date()).length}
+                          </span>
+                        </div>
+                        <div className="space-y-4">
+                          {allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date()).length === 0 ? (
+                             <EmptyTasksState message="Tidak ada tugas terlewat" />
+                          ) : (
+                            allAssignments
+                              .filter(t => !t.completed && new Date(t.deadline) < new Date())
+                              .map(task => (
+                                <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />
+                              ))
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Section: Mendatang */}
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between px-2">
+                          <div className="flex items-center gap-3">
+                            <div className="size-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100/50">
+                              <Clock className="size-4.5" />
+                            </div>
+                            <h4 className="font-black text-slate-900 tracking-tight">Mendatang</h4>
+                          </div>
+                          <span className="text-[10px] font-black px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg border border-blue-100/50">
+                            {allAssignments.filter(t => !t.completed && new Date(t.deadline) >= new Date()).length}
+                          </span>
+                        </div>
+                        <div className="space-y-4">
+                          {allAssignments.filter(t => !t.completed && new Date(t.deadline) >= new Date()).length === 0 ? (
+                             <EmptyTasksState message="Tidak ada tugas mendatang" />
+                          ) : (
+                            allAssignments
+                              .filter(t => !t.completed && new Date(t.deadline) >= new Date())
+                              .map(task => (
+                                <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />
+                              ))
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Section: Selesai */}
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between px-2">
+                          <div className="flex items-center gap-3">
+                            <div className="size-9 bg-green-50 text-green-600 rounded-xl flex items-center justify-center border border-green-100/50">
+                              <CheckCircle2 className="size-4.5" />
+                            </div>
+                            <h4 className="font-black text-slate-900 tracking-tight">Selesai</h4>
+                          </div>
+                          <span className="text-[10px] font-black px-2.5 py-1 bg-green-50 text-green-600 rounded-lg border border-green-100/50">
+                            {allAssignments.filter(t => t.completed).length}
+                          </span>
+                        </div>
+                        <div className="space-y-4">
+                          {allAssignments.filter(t => t.completed).length === 0 ? (
+                             <EmptyTasksState message="Belum ada tugas selesai" />
+                          ) : (
+                            allAssignments
+                              .filter(t => t.completed)
+                              .map(task => (
+                                <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />
+                              ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {(activeTab === "kelas" ||
                 activeTab === "lms" ||
                 activeTab === "bot" ||
                 activeTab === "general" ||
+                activeTab === "tugas" ||
                 activeTab === "profile") && (
                 <div className={cn(
                   "w-full transition-all duration-300",
                   activeTab === "bot" ? "max-w-6xl" : "max-w-3xl"
                 )}>
-                  <div className="bg-white p-5 sm:p-8 md:p-12 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                  <div className="bg-white p-5 sm:p-8 md:p-12 rounded-3xl border border-slate-100 shadow-sm">
                     {activeTab === "kelas" && (
                       <ClassSettings
                         classCode={userData?.class_code}
@@ -984,16 +1074,44 @@ export default function Dashboard() {
                           }
                         })()}
                         morningBriefing={userData?.morning_briefing || false}
+                        mutedCourses={(() => {
+                          try {
+                            const parsed = JSON.parse(
+                              userData?.muted_courses || "[]",
+                            );
+                            return Array.isArray(parsed) ? parsed : [];
+                          } catch {
+                            return [];
+                          }
+                        })()}
+                        availableCourses={availableCourses}
+                        telegramConnected={!!userData?.telegram_chat_id}
+                        telegramEnabled={userData?.telegram_enabled || false}
                         onSave={handleUpdate}
                         isLoading={isSaving}
                       />
                     )}
                     {activeTab === "profile" && userData && (
-                      <ProfileSettings
-                        userData={userData}
-                        onSave={handleUpdate}
-                        isLoading={isSaving}
-                      />
+                      <div className="space-y-12">
+                        <ProfileSettings
+                          userData={userData}
+                          onSave={handleUpdate}
+                          isLoading={isSaving}
+                        />
+
+                        <div className="pt-12 border-t border-slate-100">
+                          <div className="flex items-center gap-3 mb-8">
+                            <div className="size-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                              <History className="size-5" />
+                            </div>
+                            <div>
+                               <h3 className="text-lg font-black text-slate-900 tracking-tight">Riwayat Versi</h3>
+                               <p className="text-xs text-slate-500 font-medium">Lacak pembaruan dan perubahan sistem baru</p>
+                            </div>
+                          </div>
+                          <VersionHistory />
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1002,6 +1120,84 @@ export default function Dashboard() {
           </AnimatePresence>
         </div>
       </main>
+    </div>
+  );
+}
+
+function EmptyTasksState({ message }: { message: string }) {
+  return (
+    <div className="p-8 text-center bg-white rounded-3xl border border-slate-100 border-dashed">
+       <div className="size-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <span className="text-xl">📋</span>
+       </div>
+       <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-relaxed font-bold">{message}</p>
+    </div>
+  );
+}
+
+function TaskCard({ task, onComplete }: { task: any; onComplete: (id: string) => void }) {
+  const isOverdue = !task.completed && new Date(task.deadline) < new Date();
+  const isSelesai = task.completed;
+
+  return (
+    <div className={cn(
+      "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all group relative overflow-hidden active:scale-[0.98] hover:shadow-md",
+      isSelesai && "opacity-75 grayscale-[0.2]"
+    )}>
+      <div className="space-y-3.5">
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <h5 className={cn(
+              "font-bold text-slate-900 leading-tight transition-colors line-clamp-2",
+              isSelesai && "line-through text-slate-400"
+            )}>
+              {task.title}
+            </h5>
+            <div className="flex items-center gap-2 overflow-hidden">
+               <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 truncate max-w-full">
+                {task.course}
+              </span>
+            </div>
+          </div>
+          {!isSelesai && (
+            <button
+              onClick={() => onComplete(task.id)}
+              className="size-10 bg-slate-50 text-slate-400 hover:text-green-600 hover:bg-green-50 border border-slate-100 rounded-2xl flex items-center justify-center transition-all shrink-0 shadow-sm"
+              title="Tandai Selesai"
+            >
+              <CheckCircle2 className="size-5" />
+            </button>
+          )}
+          {isSelesai && (
+             <div className="size-10 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center shrink-0 border border-green-100">
+               <CheckCircle2 className="size-5" />
+             </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between pt-1 border-t border-slate-50 mt-1">
+          <div className="flex items-center gap-1.5">
+            <Clock className={cn("size-3.5", isOverdue ? "text-red-500" : "text-slate-400")} />
+            <span className={cn("text-[11px] font-bold", isOverdue ? "text-red-500" : "text-slate-500")}>
+               {new Date(task.deadline).toLocaleString("id-ID", {
+                 day: 'numeric',
+                 month: 'short',
+                 hour: '2-digit',
+                 minute: '2-digit'
+               })} WIB
+            </span>
+          </div>
+          {task.url && (
+            <a
+              href={task.url}
+              target="_blank"
+              className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 bg-blue-50/50 px-3 py-1.5 rounded-xl transition-colors border border-blue-100/30"
+            >
+              Link
+            </a>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

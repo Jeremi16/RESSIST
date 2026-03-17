@@ -54,7 +54,7 @@ func parseICSEventLine(line string, event *moodleCalendarEvent) {
 	case strings.HasPrefix(line, "UID:"):
 		event.UID = strings.TrimSpace(strings.TrimPrefix(line, "UID:"))
 	case strings.HasPrefix(line, "SUMMARY:"):
-		event.Title = unescapeICS(strings.TrimPrefix(line, "SUMMARY:"))
+		event.Title = cleanMoodleTitle(unescapeICS(strings.TrimPrefix(line, "SUMMARY:")))
 	case strings.HasPrefix(line, "CATEGORIES:"):
 		event.Course = unescapeICS(strings.TrimPrefix(line, "CATEGORIES:"))
 	case strings.HasPrefix(line, "DESCRIPTION"):
@@ -138,6 +138,16 @@ func unescapeICS(value string) string {
 	replaced = strings.ReplaceAll(replaced, "\\;", ";")
 	replaced = strings.ReplaceAll(replaced, "\\\\", "\\")
 	return strings.TrimSpace(replaced)
+}
+
+// cleanMoodleTitle removes 'is due' suffix from Moodle assignment titles
+func cleanMoodleTitle(title string) string {
+	// Remove ' is due' suffix (case insensitive)
+	cleaned := title
+	if strings.HasSuffix(strings.ToLower(cleaned), " is due") {
+		cleaned = cleaned[:len(cleaned)-7]
+	}
+	return strings.TrimSpace(cleaned)
 }
 
 // parseICalDate parses iCalendar date formats

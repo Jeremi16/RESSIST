@@ -38,6 +38,8 @@ type Config struct {
 	CookieDomain string
 	CookieSecure bool
 
+	TelegramBotToken string
+
 	AllowedOrigins []string
 }
 
@@ -74,6 +76,8 @@ func Load() (*Config, error) {
 
 		CookieDomain: getEnv("COOKIE_DOMAIN", ""),
 		CookieSecure: getEnvAsBool("COOKIE_SECURE", env == "production"),
+
+		TelegramBotToken: getEnv("TELEGRAM_BOT_TOKEN", ""),
 
 		AllowedOrigins: getEnvAsList("ALLOWED_ORIGINS", "http://localhost:3000"),
 	}

@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"errors"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jeremi16/resisst-api/internal/models"
@@ -60,7 +62,7 @@ func (h *UserHandler) UpdateCurrentUser(c *gin.Context) {
 		return // Error already handled
 	}
 
-	updateData := h.buildUpdateData(c, user, &req)
+	updateData := h.buildUpdateData(&req)
 	if len(updateData) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no fields to update"})
 		return
@@ -173,6 +175,30 @@ func (h *UserHandler) DeleteCourseAlias(c *gin.Context) {
 	c.JSON(http.StatusOK, courseAliasResponse{Aliases: aliases})
 }
 
+// GenerateTelegramVerifyCode generates a new verification code for Telegram
+func (h *UserHandler) GenerateTelegramVerifyCode(c *gin.Context) {
+	user, err := h.getCurrentUser(c)
+	if err != nil {
+		return
+	}
+
+	code := generateAlphanumericCode(6)
+	expiresAt := time.Now().Add(10 * time.Minute)
+
+	if err := h.db.Model(&models.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
+		"telegram_verify_code":    code,
+		"telegram_verify_expires": expiresAt,
+	}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate code"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":       code,
+		"expires_at": expiresAt.Format(time.RFC3339),
+	})
+}
+
 // Helper methods
 
 func (h *UserHandler) findUserByID(c *gin.Context, userID string) (*models.User, error) {
@@ -238,7 +264,7 @@ func (h *UserHandler) validateUpdateRequest(c *gin.Context, user *models.User, r
 	return nil
 }
 
-func (h *UserHandler) buildUpdateData(c *gin.Context, user *models.User, req *userUpdateRequest) map[string]interface{} {
+func (h *UserHandler) buildUpdateData(req *userUpdateRequest) map[string]interface{} {
 	updateData := make(map[string]interface{})
 	nullableString := func(value *string) interface{} {
 		if value == nil {
@@ -338,4 +364,13 @@ func buildUserResponse(user *models.User) userResponse {
 		AvailableClassCodes:    parseAvailableClassCodes(user.AvailableClassCodes),
 		CreatedAt:              user.CreatedAt.UTC().Format("2006-01-02T15:04:05.000Z"),
 	}
+}
+
+func generateAlphanumericCode(length int) string {
+	const charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" // Removed confusing characters like O, 0, I, 1
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
 }

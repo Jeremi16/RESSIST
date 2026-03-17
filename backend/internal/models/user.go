@@ -19,6 +19,8 @@ type User struct {
 	TelegramUsername       *string
 	TelegramChatID         *string    `gorm:"column:telegram_chat_id"`
 	TelegramEnabled        bool       `gorm:"column:telegram_enabled;default:true"`
+	TelegramVerifyCode     *string    `gorm:"column:telegram_verify_code;index"`
+	TelegramVerifyExpires  *time.Time `gorm:"column:telegram_verify_expires"`
 	MoodleEnabled          bool       `gorm:"column:moodle_enabled;default:false"`
 	MoodleCalendarURL      *string    `gorm:"column:moodle_calendar_url"`
 	GoogleClassroomEnabled bool       `gorm:"column:google_classroom_enabled;default:false"`
@@ -29,6 +31,7 @@ type User struct {
 	MorningBriefing        bool       `gorm:"column:morning_briefing;default:false"`
 	MutedCourses           string     `gorm:"column:muted_courses;default:'[]'"`
 	CourseAliases          string     `gorm:"column:course_aliases;default:'{}'"`
+	CourseKeywordFilters   string     `gorm:"column:course_keyword_filters;default:'{}'"`
 	ClassCode              *string    `gorm:"column:class_code"`
 	AvailableClassCodes    string     `gorm:"column:available_class_codes;default:'[]'"`
 	LMSLastSyncedAt        *time.Time `gorm:"column:lms_last_synced_at"`

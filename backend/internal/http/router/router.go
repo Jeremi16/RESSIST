@@ -8,6 +8,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jeremi16/resisst-api/internal/auth"
+	"github.com/jeremi16/resisst-api/internal/bot"
 	"github.com/jeremi16/resisst-api/internal/config"
 	"github.com/jeremi16/resisst-api/internal/http/docs"
 	"github.com/jeremi16/resisst-api/internal/http/handlers"
@@ -21,8 +22,11 @@ func New(
 	userHandler *handlers.UserHandler,
 	calendarHandler *handlers.CalendarHandler,
 	courseHandler *handlers.CourseHandler,
+	telegramHandler *handlers.TelegramHandler,
+	assignmentHandler *handlers.AssignmentHandler,
 	authSvc *auth.Service,
 	db *gorm.DB,
+	telegramBot *bot.Bot,
 ) *gin.Engine {
 	if cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -90,6 +94,7 @@ func New(
 	userGroup.GET("/course-aliases", userHandler.GetCourseAliases)
 	userGroup.POST("/course-aliases", userHandler.AddCourseAlias)
 	userGroup.DELETE("/course-aliases", userHandler.DeleteCourseAlias)
+	userGroup.POST("/telegram/verify-code", userHandler.GenerateTelegramVerifyCode)
 
 	calendarGroup := v1.Group("/calendar")
 	calendarGroup.Use(middleware.AccessToken(authSvc))
@@ -100,7 +105,19 @@ func New(
 	courseGroup.Use(middleware.AccessToken(authSvc))
 	courseGroup.GET("", courseHandler.GetAllCourses)
 
-	return r
+	if telegramBot != nil {
+		telegramGroup := v1.Group("/telegram")
+		telegramGroup.Use(middleware.AccessToken(authSvc))
+		telegramGroup.POST("/test-reminder", telegramHandler.SendTestReminder)
+		telegramGroup.POST("/test-briefing", telegramHandler.SendMorningBriefing)
+	}
+
+	assignmentGroup := v1.Group("/assignments")
+	assignmentGroup.Use(middleware.AccessToken(authSvc))
+	assignmentGroup.GET("", assignmentHandler.GetAssignments)
+	assignmentGroup.POST("/complete", assignmentHandler.CompleteAssignment)
+
+		return r
 }
 
 func registerAuthRoutes(group *gin.RouterGroup, authHandler *handlers.AuthHandler, authSvc *auth.Service, authRateLimit gin.HandlerFunc) {

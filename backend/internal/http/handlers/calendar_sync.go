@@ -120,15 +120,32 @@ func isValidDeadline(deadline, now, cutoff time.Time) bool {
 	return !deadline.IsZero() && deadline.After(now) && deadline.Before(cutoff)
 }
 
-// shouldIncludeForUserClass checks if assignment should be included based on user class
-func shouldIncludeForUserClass(assignmentClassCode, userClassCode *string) bool {
-	if userClassCode == nil || dereferenceString(userClassCode, "") == "" {
-		return true // Include all if user has no class set
+// shouldIncludeForUserClass checks if assignment should be included based on user class codes
+func shouldIncludeForUserClass(assignmentClassCode, userClassCodesJson *string) bool {
+	if userClassCodesJson == nil || dereferenceString(userClassCodesJson, "") == "" {
+		return true // Include all if user has no class codes set
 	}
 	if assignmentClassCode == nil {
 		return true // Include general assignments (no class code)
 	}
-	return *assignmentClassCode == *userClassCode
+	
+	var selectedCodes []string
+	if err := json.Unmarshal([]byte(*userClassCodesJson), &selectedCodes); err != nil {
+		return true // If parse fails, include the assignment
+	}
+	
+	if len(selectedCodes) == 0 {
+		return true // No codes selected, include all
+	}
+	
+	// Check if assignment class code is in the selected codes
+	assignmentCode := *assignmentClassCode
+	for _, code := range selectedCodes {
+		if code == assignmentCode {
+			return true
+		}
+	}
+	return false
 }
 
 // sortAssignmentsByDeadline sorts assignments by deadline

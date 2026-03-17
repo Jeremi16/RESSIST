@@ -19,4 +19,6 @@ type Event struct {
 	RemindersSent   string
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	Completed       bool       `gorm:"column:completed;default:false"`
+	CompletedAt     *time.Time `gorm:"column:completed_at"`
 }

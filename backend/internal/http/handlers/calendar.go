@@ -216,6 +216,9 @@ func (h *CalendarHandler) buildResponse(c *gin.Context, user *models.User, provi
 		return nil, err
 	}
 
+	// Filter tasks
+	events = FilterAssignments(events, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters)
+
 	// Parse course aliases and apply them to previews
 	aliases := parseCourseAliases(user.CourseAliases)
 	previews := h.convertEventsToPreviews(events, aliases)
@@ -243,6 +246,7 @@ func (h *CalendarHandler) convertEventsToPreviews(events []models.Event, aliases
 		// Apply alias if exists (real-time alias application)
 		course := applyCourseAlias(originalCourse, aliases)
 		previews = append(previews, calendarEventPreview{
+			ID:             event.ID,
 			Title:          event.Title,
 			FullTitle:      event.Title,
 			Course:         course,
@@ -255,6 +259,8 @@ func (h *CalendarHandler) convertEventsToPreviews(events []models.Event, aliases
 			TimeRemaining:  formatTimeRemaining(event.Deadline),
 			DeadlineDate:   event.Deadline,
 			Source:         event.Source,
+			Completed:      event.Completed,
+			CompletedAt:    event.CompletedAt,
 		})
 	}
 	return previews

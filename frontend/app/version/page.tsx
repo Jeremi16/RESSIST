@@ -24,6 +24,160 @@ interface VersionEntry {
 
 const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "v0.8.7",
+    date: "18 Maret 2026",
+    title: "Perbaikan Layout Notifikasi",
+    description:
+      "Penyempurnaan tampilan tab Notifikasi dengan test buttons untuk Telegram dan pengaturan yang lebih intuitif.",
+    type: "patch",
+    highlights: [
+      "Tambah tombol Test Reminder dan Test Morning Briefing",
+      "Feedback real-time saat mengirim test notifikasi",
+      "Validasi status Telegram sebelum test",
+      "Peningkatan visual pengaturan notifikasi",
+    ],
+    fixes: ["Perbaikan layout responsive di mobile"],
+  },
+  {
+    version: "v0.8.6",
+    date: "18 Maret 2026",
+    title: "Perbaikan Layout LMS",
+    description:
+      "Optimasi tampilan pengaturan LMS untuk pengalaman konfigurasi yang lebih baik.",
+    type: "patch",
+    highlights: [
+      "Penyempurnaan layout konfigurasi Moodle",
+      "Peningkatan visual Google Classroom settings",
+      "Perbaikan spacing dan alignment",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.8.5",
+    date: "18 Maret 2026",
+    title: "Perbaikan Layout Kelas",
+    description:
+      "Penambahan warning banner untuk fitur yang masih dalam pengembangan dan perbaikan visual.",
+    type: "patch",
+    highlights: [
+      "Warning banner untuk fitur beta",
+      "Informasi status pengembangan yang jelas",
+      "Badge Beta Feature dan versi",
+      "Peningkatan UX untuk ekspektasi pengguna",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.8.4",
+    date: "18 Maret 2026",
+    title: "Perbaikan Layout Profil",
+    description:
+      "Optimasi tampilan halaman profil untuk kemudahan akses pengaturan akun.",
+    type: "patch",
+    highlights: [
+      "Penyempurnaan layout pengaturan profil",
+      "Peningkatan visual form input",
+      "Perbaikan responsive design",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.8.3",
+    date: "18 Maret 2026",
+    title: "Pengelompokkan Tugas",
+    description:
+      "Sistem pengelompokkan tugas yang lebih baik untuk memudahkan manajemen deadline.",
+    type: "patch",
+    highlights: [
+      "Pengelompokkan tugas berdasarkan status",
+      "Kategori: Terlewat, Akan Datang, Selesai",
+      "Visual indicator untuk setiap kategori",
+      "Filter dan sorting yang lebih baik",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.8.2",
+    date: "18 Maret 2026",
+    title: "Perbaikan Layout Tugas",
+    description:
+      "Peningkatan tampilan timeline tugas dengan visual yang lebih clean dan informatif.",
+    type: "patch",
+    highlights: [
+      "Redesign kartu tugas dengan informasi lebih lengkap",
+      "Peningkatan readability deadline dan status",
+      "Perbaikan spacing dan hierarchy visual",
+      "Optimasi untuk berbagai ukuran layar",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.8.1",
+    date: "18 Maret 2026",
+    title: "Perbaikan Layout Ringkasan",
+    description:
+      "Redesign tab Ringkasan dengan statistik tugas yang lebih informatif dan visual yang menarik.",
+    type: "patch",
+    highlights: [
+      "4 kartu statistik: Terlewat, Akan Datang, Selesai, Total",
+      "Progress bar untuk completion rate",
+      "Animasi smooth dengan framer-motion",
+      "Layout full-width untuk stats di atas",
+      "Hover effects dan visual feedback",
+    ],
+    fixes: ["Perbaikan perhitungan statistik tugas"],
+  },
+  {
+    version: "v0.8.0",
+    date: "18 Maret 2026",
+    title: "Penambahan Tab Tugas",
+    description:
+      "Tab baru khusus untuk manajemen tugas dengan timeline dan filter yang lebih lengkap.",
+    type: "minor",
+    highlights: [
+      "Tab Tugas dengan timeline lengkap",
+      "Filter berdasarkan status dan deadline",
+      "Tombol sinkronisasi manual",
+      "Tampilan kartu tugas yang informatif",
+      "Mark as complete langsung dari timeline",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.7.0",
+    date: "18 Maret 2026",
+    title: "Tab Notifikasi Lengkap",
+    description:
+      "Pengaturan notifikasi yang komprehensif dengan fitur mute courses dan test buttons.",
+    type: "minor",
+    highlights: [
+      "Pengaturan waktu pengingat (24h, 12h, 6h, 1h)",
+      "Toggle Morning Briefing jam 07:00 WIB",
+      "Fitur Bisukan Mata Kuliah",
+      "Tombol test untuk Reminder dan Morning Briefing",
+      "Change detection untuk efisiensi save",
+    ],
+    fixes: [],
+  },
+  {
+    version: "v0.6.0",
+    date: "18 Maret 2026",
+    title: "Telegram Bot Integration",
+    description:
+      "Integrasi lengkap Telegram Bot dengan sistem verifikasi code untuk notifikasi tugas real-time.",
+    type: "minor",
+    highlights: [
+      "Sistem verifikasi code 6 karakter",
+      "Countdown timer 10 menit untuk code",
+      "Copy code ke clipboard dengan satu klik",
+      "Instruksi step-by-step yang jelas",
+      "Link langsung ke bot Telegram",
+      "Status koneksi real-time",
+      "Toggle enable/disable notifikasi",
+    ],
+    fixes: [],
+  },
+  {
     version: "v0.5.1",
     date: "17 Maret 2026",
     title: "Smart Login & Stability",
@@ -292,14 +446,14 @@ export default function Version() {
                 Latest
               </span>
               <span className="text-blue-100 text-xs sm:text-sm font-medium">
-                v0.5.1
+                v0.8.7
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-black mb-2">
-              Smart Login & Stability
+              Perbaikan Layout Notifikasi
             </h2>
             <p className="text-blue-100 text-sm sm:text-base max-w-lg leading-relaxed">
-              Nikmati alur login yang lebih instan tanpa halaman persetujuan Google berulang dan stabilitas sesi yang lebih baik di semua perangkat Anda.
+              Tab Notifikasi kini dilengkapi dengan tombol test untuk Telegram, feedback real-time, dan pengaturan yang lebih intuitif untuk pengalaman yang lebih baik.
             </p>
           </div>
         </motion.div>

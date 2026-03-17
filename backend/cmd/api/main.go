@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jeremi16/resisst-api/internal/auth"
+	"github.com/jeremi16/resisst-api/internal/bot"
 	"github.com/jeremi16/resisst-api/internal/config"
 	"github.com/jeremi16/resisst-api/internal/database"
 	"github.com/jeremi16/resisst-api/internal/http/handlers"
@@ -42,11 +43,22 @@ func main() {
 		log.Fatalf("init auth service: %v", err)
 	}
 
+	// Initialize Telegram Bot
+	telegramBot, err := bot.New(cfg, db)
+	if err != nil {
+		log.Printf("warning: failed to init telegram bot: %v", err)
+	}
+
 	userHandler := handlers.NewUserHandler(db)
 	calendarHandler := handlers.NewCalendarHandler(db, cfg)
 	courseHandler := handlers.NewCourseHandler(db)
 	authHandler := handlers.NewAuthHandler(cfg, authSvc, db, calendarHandler)
-	engine := router.New(cfg, authHandler, userHandler, calendarHandler, courseHandler, authSvc, db)
+	telegramHandler := handlers.NewTelegramHandler(db, telegramBot)
+	assignmentHandler := handlers.NewAssignmentHandler(db)
+	engine := router.New(cfg, authHandler, userHandler, calendarHandler, courseHandler, telegramHandler, assignmentHandler, authSvc, db, telegramBot)
+	if err != nil {
+		log.Printf("warning: failed to init telegram bot: %v", err)
+	}
 
 	requestTimeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second
 	if requestTimeout <= 0 {
@@ -73,6 +85,25 @@ func main() {
 			log.Fatalf("run server: %v", err)
 		}
 	}()
+
+	// Start Telegram Bot in background
+	botCtx, cancelBot := context.WithCancel(context.Background())
+	defer cancelBot()
+	if telegramBot != nil {
+		go func() {
+			if err := telegramBot.Start(botCtx); err != nil && err != context.Canceled {
+				log.Printf("error: telegram bot unexpected stop: %v", err)
+			}
+		}()
+
+		// Start Telegram Scheduler
+		scheduler := bot.NewScheduler(telegramBot)
+		go func() {
+			if err := scheduler.Start(botCtx); err != nil && err != context.Canceled {
+				log.Printf("error: telegram scheduler unexpected stop: %v", err)
+			}
+		}()
+	}
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)

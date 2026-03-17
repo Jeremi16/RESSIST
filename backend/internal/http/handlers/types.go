@@ -7,6 +7,7 @@ import "time"
 // ============================================================================
 
 type calendarEventPreview struct {
+	ID             string    `json:"id"`
 	Title          string    `json:"title"`
 	FullTitle      string    `json:"full_title"`
 	Course         string    `json:"course"`
@@ -19,6 +20,8 @@ type calendarEventPreview struct {
 	TimeRemaining  string    `json:"timeRemaining"`
 	DeadlineDate   time.Time `json:"deadlineDate"`
 	Source         string    `json:"source"`
+	Completed      bool      `json:"completed"`
+	CompletedAt    *time.Time `json:"completed_at,omitempty"`
 }
 
 type calendarSourceInfo struct {

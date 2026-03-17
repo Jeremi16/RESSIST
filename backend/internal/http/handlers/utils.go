@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jeremi16/resisst-api/internal/http/middleware"
+	"github.com/jeremi16/resisst-api/internal/models"
 )
 
 // ============================================================================
@@ -36,10 +37,7 @@ func normalizeText(value string) string {
 	return strings.Join(strings.Fields(strings.ToLower(strings.TrimSpace(value))), " ")
 }
 
-// intToString converts int to string
-func intToString(value int) string {
-	return strconv.Itoa(value)
-}
+
 
 // onlyDigits extracts only digit characters from a string
 func onlyDigits(input string) string {
@@ -187,6 +185,39 @@ func availableClassCodesToJSON(codes []string) string {
 	return sb.String()
 }
 
+// parseCourseKeywordFilters parses JSON object string to map of string slices
+// Format: {"Course Name":["K1","K2"]}
+func parseCourseKeywordFilters(jsonStr string) map[string][]string {
+	filters := make(map[string][]string)
+	if strings.TrimSpace(jsonStr) == "" || jsonStr == "{}" {
+		return filters
+	}
+
+	trimmed := strings.TrimSpace(jsonStr)
+	trimmed = strings.TrimPrefix(trimmed, "{")
+	trimmed = strings.TrimSuffix(trimmed, "}")
+
+	if trimmed == "" {
+		return filters
+	}
+
+	pairs := splitJSONPairs(trimmed)
+	for _, pair := range pairs {
+		parts := strings.SplitN(pair, ":", 2)
+		if len(parts) == 2 {
+			key := strings.Trim(strings.TrimSpace(parts[0]), `"`)
+			valuePart := strings.TrimSpace(parts[1])
+			if key != "" && strings.HasPrefix(valuePart, "[") && strings.HasSuffix(valuePart, "]") {
+				keywords := parseAvailableClassCodes(valuePart) // Reused parser
+				if len(keywords) > 0 {
+					filters[key] = keywords
+				}
+			}
+		}
+	}
+	return filters
+}
+
 // splitJSONPairs splits JSON object content by comma, respecting quoted strings
 func splitJSONPairs(s string) []string {
 	var pairs []string
@@ -233,6 +264,80 @@ func extractClassCode(title string) *string {
 	}
 
 	return &classCode
+}
+
+// FilterAssignments filters a list of events based on muted courses, selected class codes, and keyword filters.
+// It applies three levels of filtering:
+// 1. Muted Courses: If an event's course is in the muted list, it is hidden.
+// 2. Class Codes: If an event has a class code, it is only shown if that code is in the selected list.
+//    If no class codes are selected by the user, this level of filtering is skipped (all codes shown).
+// 3. Keyword Filters: If keywords are set for a course, the title must contain at least one keyword.
+func FilterAssignments(events []models.Event, mutedCoursesJson string, selectedClassCodesJson *string, keywordFiltersJson string) []models.Event {
+	// Parse muted courses
+	mutedList := parseAvailableClassCodes(mutedCoursesJson)
+	mutedMap := make(map[string]bool)
+	for _, m := range mutedList {
+		mutedMap[normalizeText(m)] = true
+	}
+
+	// Parse selected class codes
+	var selectedCodes []string
+	if selectedClassCodesJson != nil {
+		selectedCodes = parseAvailableClassCodes(*selectedClassCodesJson)
+	}
+
+	hasCodeFilter := len(selectedCodes) > 0
+	codeMap := make(map[string]bool)
+	for _, c := range selectedCodes {
+		codeMap[normalizeText(c)] = true
+	}
+
+	// Parse keyword filters
+	keywordFilters := parseCourseKeywordFilters(keywordFiltersJson)
+	// Create a normalized map for easier lookup
+	normKeywordFilters := make(map[string][]string)
+	for course, keywords := range keywordFilters {
+		normKeywordFilters[normalizeText(course)] = keywords
+	}
+
+	filtered := make([]models.Event, 0, len(events))
+	for _, event := range events {
+		// 1. Check if course is muted
+		courseName := ""
+		if event.Course != nil {
+			courseName = *event.Course
+		}
+		normCourse := normalizeText(courseName)
+
+		if mutedMap[normCourse] {
+			continue
+		}
+
+		// 2. Check class code if applicable
+		if hasCodeFilter && event.ClassCode != nil && *event.ClassCode != "" {
+			if !codeMap[normalizeText(*event.ClassCode)] {
+				continue
+			}
+		}
+
+		// 3. Check keyword filters
+		if keywords, ok := normKeywordFilters[normCourse]; ok && len(keywords) > 0 {
+			found := false
+			titleLower := strings.ToLower(event.Title)
+			for _, k := range keywords {
+				if strings.Contains(titleLower, strings.ToLower(k)) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+
+		filtered = append(filtered, event)
+	}
+	return filtered
 }
 
 // ============================================================================

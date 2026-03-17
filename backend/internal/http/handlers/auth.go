@@ -245,16 +245,7 @@ func (h *AuthHandler) validateState(c *gin.Context, state string) bool {
 	return true
 }
 
-// hasValidRefreshToken checks if the user has a valid existing session (refresh token)
-func (h *AuthHandler) hasValidRefreshToken(c *gin.Context) bool {
-	rawRefreshToken, err := c.Cookie(refreshTokenCookieName)
-	if err != nil || rawRefreshToken == "" {
-		return false
-	}
 
-	// Check if this refresh token exists and is not revoked/expired
-	return h.auth.ValidateRefreshToken(c.Request.Context(), rawRefreshToken)
-}
 
 func (h *AuthHandler) processGoogleAuth(ctx context.Context, code string) (*models.User, error) {
 	token, err := h.auth.ExchangeGoogleCode(ctx, code)

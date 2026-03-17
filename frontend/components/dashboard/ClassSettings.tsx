@@ -155,6 +155,32 @@ export function ClassSettings({
 
   return (
     <div className="space-y-10">
+      {/* Development Warning */}
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-3xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="size-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shrink-0">
+            <Info className="size-6" />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-lg font-black text-amber-900 mb-2">
+              🚧 Fitur Dalam Pengembangan
+            </h4>
+            <p className="text-sm text-amber-800 leading-relaxed mb-3">
+              Fitur <strong>Filter Kelas</strong> dan <strong>Alias Mata Kuliah</strong> masih dalam tahap pengembangan aktif. 
+              Beberapa fungsi mungkin belum bekerja sempurna atau mengalami perubahan di versi mendatang.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">
+                Beta Feature
+              </span>
+              <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">
+                v0.5.1
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4 text-center">
