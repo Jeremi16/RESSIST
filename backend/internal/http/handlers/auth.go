@@ -47,10 +47,9 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 	state := uuid.NewString()
 	h.setCookie(c, oauthStateCookieName, state, 600)
 
-	// Check if user already has a valid refresh token (indicating previous login)
-	hasExistingSession := h.hasValidRefreshToken(c)
-
-	c.Redirect(http.StatusTemporaryRedirect, h.auth.BuildGoogleLoginURL(state, hasExistingSession))
+	// We'll let Google handle the consent screen skipping based on whether the user
+	// has granted permissions to our app before.
+	c.Redirect(http.StatusTemporaryRedirect, h.auth.BuildGoogleLoginURL(state, false))
 }
 
 // GoogleCallback handles OAuth callback

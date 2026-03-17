@@ -80,11 +80,9 @@ func (s *Service) BuildGoogleLoginURL(state string, hasExistingSession bool) str
 		oauth2.SetAuthURLParam("include_granted_scopes", "true"),
 	}
 
-	// Only show consent screen for new users or first-time login
-	// If user already has a session (refresh token), skip the consent screen
-	if !hasExistingSession {
-		opts = append(opts, oauth2.SetAuthURLParam("prompt", "consent"))
-	}
+	// We no longer force 'prompt=consent'. 
+	// Google will automatically skip the consent screen if the user has already granted permissions.
+	// This provides a much smoother experience for returning users across all devices.
 
 	return s.oauthCfg.AuthCodeURL(state, opts...)
 }
