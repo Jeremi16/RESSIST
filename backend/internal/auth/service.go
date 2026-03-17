@@ -74,13 +74,19 @@ func NewService(db *gorm.DB, cfg *config.Config, tokens *TokenService) (*Service
 	}, nil
 }
 
-func (s *Service) BuildGoogleLoginURL(state string) string {
-	return s.oauthCfg.AuthCodeURL(
-		state,
+func (s *Service) BuildGoogleLoginURL(state string, hasExistingSession bool) string {
+	opts := []oauth2.AuthCodeOption{
 		oauth2.AccessTypeOffline,
-		oauth2.SetAuthURLParam("prompt", "consent"),
 		oauth2.SetAuthURLParam("include_granted_scopes", "true"),
-	)
+	}
+
+	// Only show consent screen for new users or first-time login
+	// If user already has a session (refresh token), skip the consent screen
+	if !hasExistingSession {
+		opts = append(opts, oauth2.SetAuthURLParam("prompt", "consent"))
+	}
+
+	return s.oauthCfg.AuthCodeURL(state, opts...)
 }
 
 func (s *Service) ExchangeGoogleCode(ctx context.Context, code string) (*oauth2.Token, error) {
@@ -250,6 +256,31 @@ func (s *Service) CreateRefreshToken(ctx context.Context, userID string, userAge
 	return raw, nil
 }
 
+// ValidateRefreshToken checks if a refresh token is valid without rotating it
+func (s *Service) ValidateRefreshToken(ctx context.Context, rawToken string) bool {
+	hashed := hashToken(rawToken)
+	now := time.Now().UTC()
+
+	var existing models.RefreshToken
+	err := s.db.WithContext(ctx).
+		Where("token_hash = ?", hashed).
+		First(&existing).Error
+	if err != nil {
+		return false
+	}
+
+	// Check if token is revoked or expired
+	if existing.RevokedAt != nil {
+		return false
+	}
+
+	if existing.ExpiresAt.Before(now) {
+		return false
+	}
+
+	return true
+}
+
 func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userAgent string, ipAddress string) (*models.User, string, error) {
 	hashed := hashToken(rawToken)
 	now := time.Now().UTC()
@@ -270,11 +301,11 @@ func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userA
 		// If the token was revoked less than 30 seconds ago, consider it still valid once.
 		if now.Sub(*existing.RevokedAt) < 30*time.Second {
 			// Return the user but don't rotate again, the previous rotation's token is already in the air.
-			// Actually better to just allow it to proceed to GenerateAccessToken, 
+			// Actually better to just allow it to proceed to GenerateAccessToken,
 			// but we need to return the user.
 			var user models.User
 			if err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error; err == nil {
-				// We return the user but NO NEW token (empty string). 
+				// We return the user but NO NEW token (empty string).
 				// The frontend should be smart enough to handle empty rotation.
 				return &user, "", nil
 			}
