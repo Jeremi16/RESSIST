@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
 
-export const SESSION_SECRET = process.env.SESSION_SECRET || 'fallback-secret-for-development-must-be-long'
+export const SESSION_SECRET = process.env.SESSION_SECRET || 'fallback-secret-for-development-only'
 export const COOKIE_NAME = 'el-learning-session'
 
 export interface SessionPayload {

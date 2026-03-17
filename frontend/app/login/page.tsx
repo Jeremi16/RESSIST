@@ -52,6 +52,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
   const [error, setError] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
   const hasSyncedBackendSession = useRef(false);
   const hasShownSessionExpiredToast = useRef(false);
 
@@ -124,8 +125,19 @@ function LoginContent() {
       }
     };
 
-    router.replace("/dashboard");
-    syncBackendSession();
+    const syncAndRedirect = async () => {
+      setIsSyncing(true);
+      try {
+        await syncBackendSession();
+        router.replace("/dashboard");
+      } catch (err) {
+        console.error("Sync failed:", err);
+        setError("Gagal mensinkronisasi sesi. Silakan coba lagi.");
+        setIsSyncing(false);
+      }
+    };
+
+    syncAndRedirect();
 
     return () => {
       cancelled = true;
@@ -266,6 +278,15 @@ function LoginContent() {
           </div>
         </motion.div>
       </main>
+
+      {/* Syncing Overlay */}
+      {isSyncing && (
+        <div className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
+          <div className="size-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6" />
+          <h2 className="text-xl font-black text-slate-900">Menyiapkan Sesi...</h2>
+          <p className="text-slate-500 mt-2">Mohon tunggu sebentar sementara kami menyiapkan dashboard Anda.</p>
+        </div>
+      )}
     </div>
   );
 }
