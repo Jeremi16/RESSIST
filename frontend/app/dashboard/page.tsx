@@ -67,7 +67,7 @@ type TabType =
   | "bot"
   | "general"
   | "profile";
-const APP_VERSION = "v0.5.0";
+const APP_VERSION = "v0.5.1";
 
 // Skeleton Components
 function Skeleton({ className }: { className?: string }) {
@@ -564,7 +564,7 @@ export default function Dashboard() {
               Resisst
             </span>
             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-600">
-              {APP_VERSION}
+              v0.5.1
             </span>
           </div>
         </Link>

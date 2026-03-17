@@ -22,15 +22,27 @@ interface WhatsNewPopupProps {
   showTrigger?: boolean;
 }
 
-const WHATS_NEW_VERSION = "v0.5.0";
+const WHATS_NEW_VERSION = "v0.5.1";
 const WHATS_NEW_STORAGE_KEY = `whats-new-${WHATS_NEW_VERSION}-seen`;
 
 const NEW_FEATURES = [
+  {
+    icon: Sparkles,
+    title: "Smart Google Login",
+    description:
+      "Login lebih cepat tanpa halaman persetujuan (consent) untuk pengguna lama.",
+  },
   {
     icon: ExternalLink,
     title: "Quick Task Link",
     description:
       "Buka tautan tugas (MOODLE/Classroom) langsung dari timeline tanpa ribet.",
+  },
+  {
+    icon: ArrowRightLeft,
+    title: "Multi-device Stability",
+    description:
+      "Perbaikan login di berbagai perangkat agar tidak saling terpental.",
   },
   {
     icon: ExternalLink,
@@ -83,6 +95,8 @@ const NEW_FEATURES = [
 ];
 
 const HIGHLIGHTS = [
+  "Smart Google Login (No Consent)",
+  "Multi-device Authentication Fix",
   "Tombol Cepat 'Buka Tugas'",
   "Optimasi UI Mobile & Timeline",
   "Perbaikan Skeleton Loading HP",
@@ -90,8 +104,6 @@ const HIGHLIGHTS = [
   "Update tab Mata Kuliah baru",
   "Sorting: Deadline Terarah",
   "Notifikasi tugas baru",
-  "Sinkronisasi otomatis",
-  "Smart update hemat data",
 ];
 
 export function WhatsNewPopup({

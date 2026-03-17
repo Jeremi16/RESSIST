@@ -43,7 +43,7 @@ export function LandingNavbar({
               Resisst
             </span>
             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-600">
-              v0.5.0
+              v0.5.1
             </span>
           </div>
         </Link>

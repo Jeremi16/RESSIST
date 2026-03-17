@@ -24,6 +24,23 @@ interface VersionEntry {
 
 const VERSION_HISTORY: VersionEntry[] = [
   {
+    version: "v0.5.1",
+    date: "17 Maret 2026",
+    title: "Smart Login & Stability",
+    description:
+      "Penyempurnaan alur login Google dan peningkatan stabilitas autentikasi antar perangkat.",
+    type: "patch",
+    highlights: [
+      "Smart Google Login: Lewati consent screen untuk pengguna lama",
+      "Fix race condition saat login di perangkat baru",
+      "Peningkatan stabilitas sesi cross-subdomain",
+    ],
+    fixes: [
+      "Perbaikan redirect loop pada middleware",
+      "Sinkronisasi SESSION_SECRET antar modul",
+    ],
+  },
+  {
     version: "v0.5.0",
     date: "16 Maret 2026",
     title: "Quick Access Dashboard",
@@ -275,15 +292,14 @@ export default function Version() {
                 Latest
               </span>
               <span className="text-blue-100 text-xs sm:text-sm font-medium">
-                v0.5.0
+                v0.5.1
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-black mb-2">
-              Quick Task Link
+              Smart Login & Stability
             </h2>
             <p className="text-blue-100 text-sm sm:text-base max-w-lg leading-relaxed">
-              Sekarang Anda bisa langsung membuka tautan MOODLE atau Google
-              Classroom langsung dari timeline tugas tanpa ribet.
+              Nikmati alur login yang lebih instan tanpa halaman persetujuan Google berulang dan stabilitas sesi yang lebih baik di semua perangkat Anda.
             </p>
           </div>
         </motion.div>
