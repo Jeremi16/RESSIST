@@ -107,7 +107,7 @@ func (s *Scheduler) sendMorningBriefing() {
 		endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
 
 		var allAssignments []models.Event
-		s.bot.db.Where("user_id = ? AND deadline BETWEEN ? AND ?", user.ID, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
+		s.bot.db.Where("user_id = ? AND completed = ? AND deadline BETWEEN ? AND ?", user.ID, false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
 
 		// Filter assignments
 		var assignments []models.Event
@@ -178,10 +178,10 @@ func (s *Scheduler) buildMorningBriefingMessage(user models.User, assignments []
 	
 	message := fmt.Sprintf("☀️ *Selamat Pagi, %s!*\n\n", user.Name)
 	message += fmt.Sprintf("📅 %s\n\n", now.Format("Monday, 2 January 2006"))
-	message += "📚 *Daftar Tugas Mendatang:*\n\n"
+	message += "📚 *Tugas yang Belum Dikerjakan:*\n\n"
 
 	if len(assignments) == 0 {
-		message += "Wah, sepertinya belum ada tugas baru. Santai dulu yuk! ☕\n\n"
+		message += "Yeay! Semua tugas sudah selesai. Santai dulu yuk! ☕\n\n"
 	} else {
 		for i, a := range assignments {
 			course := "N/A"

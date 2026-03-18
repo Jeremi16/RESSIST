@@ -114,7 +114,7 @@ func (h *TelegramHandler) SendMorningBriefing(c *gin.Context) {
 	endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
 
 	var allAssignments []models.Event
-	h.db.Where("user_id = ? AND deadline BETWEEN ? AND ?", userID, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
+	h.db.Where("user_id = ? AND completed = ? AND deadline BETWEEN ? AND ?", userID, false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
 
 	assignments := FilterAssignments(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters)
 
@@ -140,10 +140,10 @@ func buildMorningBriefingMessage(userName string, assignments []models.Event) st
 	
 	message := fmt.Sprintf("☀️ *Selamat Pagi, %s!*\n\n", userName)
 	message += fmt.Sprintf("📅 %s\n\n", now.Format("Monday, 2 January 2006"))
-	message += "📚 *Daftar Tugas Mendatang:*\n\n"
+	message += "📚 *Tugas yang Belum Dikerjakan:*\n\n"
 
 	if len(assignments) == 0 {
-		message += "Wah, sepertinya belum ada tugas baru. Santai dulu yuk! ☕\n\n"
+		message += "Yeay! Semua tugas sudah selesai. Santai dulu yuk! ☕\n\n"
 	} else {
 		for i, a := range assignments {
 			course := "N/A"
