@@ -12,7 +12,6 @@ import { TelegramVerify } from "@/components/TelegramVerify";
 import { CalendarView } from "@/components/CalendarView";
 import { WhatsAppConfig } from "@/components/dashboard/WhatsAppConfig";
 import { OverdueTasksPopup } from "@/components/dashboard/OverdueTasksPopup";
-import { VersionHistory } from "@/components/dashboard/VersionHistory";
 import { EventPreview as EventPreviewType } from "@/app/api/test-calendar/route";
 import {
   LogOut,
@@ -26,7 +25,6 @@ import {
   Send,
   GraduationCap,
   BookOpen,
-  History,
   RefreshCw,
   Menu,
   X,
@@ -229,7 +227,11 @@ export default function Dashboard() {
     try {
       const response = await fetch("/api/courses");
       if (!response.ok) {
-        console.error("Failed to fetch courses:", response.status, response.statusText);
+        console.error(
+          "Failed to fetch courses:",
+          response.status,
+          response.statusText,
+        );
         const errorData = await response.json().catch(() => ({}));
         console.error("Error details:", errorData);
         return;
@@ -501,12 +503,12 @@ export default function Dashboard() {
 
   const TABS = [
     { id: "overview", label: "Ringkasan", icon: LayoutDashboard },
+    { id: "profile", label: "Profil", icon: UserIcon },
     { id: "tugas", label: "Tugas", icon: ListTodo },
     { id: "kelas", label: "Kelas", icon: GraduationCap },
     { id: "lms", label: "LMS", icon: BookOpen },
     { id: "bot", label: "Bot", icon: Send },
     { id: "general", label: "Notifikasi", icon: Bell },
-    { id: "profile", label: "Profil", icon: UserIcon },
   ];
 
   const activeSources = [
@@ -1053,9 +1055,7 @@ export default function Dashboard() {
                 activeTab === "general" ||
                 activeTab === "tugas" ||
                 activeTab === "profile") && (
-                <div
-                  className="w-full transition-all duration-300"
-                >
+                <div className="w-full transition-all duration-300">
                   <div className="bg-white p-5 sm:p-8 md:p-12 rounded-3xl border border-slate-100 shadow-sm">
                     {activeTab === "kelas" && (
                       <ClassSettings
@@ -1171,30 +1171,11 @@ export default function Dashboard() {
                       />
                     )}
                     {activeTab === "profile" && userData && (
-                      <div className="space-y-12">
-                        <ProfileSettings
-                          userData={userData}
-                          onSave={handleUpdate}
-                          isLoading={isSaving}
-                        />
-
-                        <div className="pt-12 border-t border-slate-100">
-                          <div className="flex items-center gap-3 mb-8">
-                            <div className="size-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                              <History className="size-5" />
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                                Riwayat Versi
-                              </h3>
-                              <p className="text-xs text-slate-500 font-medium">
-                                Lacak pembaruan dan perubahan sistem baru
-                              </p>
-                            </div>
-                          </div>
-                          <VersionHistory />
-                        </div>
-                      </div>
+                      <ProfileSettings
+                        userData={userData}
+                        onSave={handleUpdate}
+                        isLoading={isSaving}
+                      />
                     )}
                   </div>
                 </div>
