@@ -33,6 +33,11 @@ func (h *TelegramHandler) SendTestReminder(c *gin.Context) {
 		return
 	}
 
+	if h.bot == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Telegram bot is not configured on the server"})
+		return
+	}
+
 	// Try to find the closest upcoming assignment
 	var assignment models.Event
 	err := h.db.Where("user_id = ? AND deadline > ?", userID, time.Now()).Order("deadline asc").First(&assignment).Error
@@ -78,6 +83,11 @@ func (h *TelegramHandler) SendMorningBriefing(c *gin.Context) {
 	userID, ok := authenticatedUserID(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	if h.bot == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Telegram bot is not configured on the server"})
 		return
 	}
 

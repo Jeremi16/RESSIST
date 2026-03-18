@@ -105,12 +105,10 @@ func New(
 	courseGroup.Use(middleware.AccessToken(authSvc))
 	courseGroup.GET("", courseHandler.GetAllCourses)
 
-	if telegramBot != nil {
-		telegramGroup := v1.Group("/telegram")
-		telegramGroup.Use(middleware.AccessToken(authSvc))
-		telegramGroup.POST("/test-reminder", telegramHandler.SendTestReminder)
-		telegramGroup.POST("/test-briefing", telegramHandler.SendMorningBriefing)
-	}
+	telegramGroup := v1.Group("/telegram")
+	telegramGroup.Use(middleware.AccessToken(authSvc))
+	telegramGroup.POST("/test-reminder", telegramHandler.SendTestReminder)
+	telegramGroup.POST("/test-briefing", telegramHandler.SendMorningBriefing)
 
 	assignmentGroup := v1.Group("/assignments")
 	assignmentGroup.Use(middleware.AccessToken(authSvc))
