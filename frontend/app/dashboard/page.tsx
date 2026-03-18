@@ -110,7 +110,10 @@ function CalendarSkeleton() {
         <Skeleton className="h-10 sm:h-12 w-full" />
         <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {Array.from({ length: 14 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 sm:h-16 w-full rounded-lg sm:rounded-xl" />
+            <Skeleton
+              key={i}
+              className="h-12 sm:h-16 w-full rounded-lg sm:rounded-xl"
+            />
           ))}
         </div>
       </div>
@@ -126,7 +129,10 @@ function TimelineSkeleton() {
       </div>
       <div className="p-3 sm:p-4 space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="p-5 sm:p-6 rounded-[2rem] border border-slate-100">
+          <div
+            key={i}
+            className="p-5 sm:p-6 rounded-[2rem] border border-slate-100"
+          >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-3 flex-1">
                 <div className="flex gap-2">
@@ -222,10 +228,14 @@ export default function Dashboard() {
   const fetchCourses = async () => {
     try {
       const response = await fetch("/api/courses");
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableCourses(data.courses || []);
+      if (!response.ok) {
+        console.error("Failed to fetch courses:", response.status, response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Error details:", errorData);
+        return;
       }
+      const data = await response.json();
+      setAvailableCourses(data.courses || []);
     } catch (error) {
       console.error("Error fetching courses:", error);
     }
@@ -608,13 +618,18 @@ export default function Dashboard() {
 
       {/* Overdue Tasks Popup */}
       <AnimatePresence>
-        {showOverduePopup && allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date()).length > 0 && (
-          <OverdueTasksPopup
-            tasks={allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date())}
-            onMarkComplete={markAssignmentComplete}
-            onClose={() => setShowOverduePopup(false)}
-          />
-        )}
+        {showOverduePopup &&
+          allAssignments.filter(
+            (t) => !t.completed && new Date(t.deadline) < new Date(),
+          ).length > 0 && (
+            <OverdueTasksPopup
+              tasks={allAssignments.filter(
+                (t) => !t.completed && new Date(t.deadline) < new Date(),
+              )}
+              onMarkComplete={markAssignmentComplete}
+              onClose={() => setShowOverduePopup(false)}
+            />
+          )}
       </AnimatePresence>
 
       {/* Sidebar */}
@@ -700,7 +715,8 @@ export default function Dashboard() {
                 Telegram Bot Sudah Tersedia! 🎉
               </p>
               <p className="text-xs sm:text-sm text-blue-700 font-medium">
-                Hubungkan Telegram di tab Bot untuk menerima notifikasi tugas real-time. Versi {APP_VERSION}.
+                Hubungkan Telegram di tab Bot untuk menerima notifikasi tugas
+                real-time. Versi {APP_VERSION}.
               </p>
             </div>
           </div>
@@ -717,9 +733,21 @@ export default function Dashboard() {
                 <div className="space-y-6 sm:space-y-8">
                   {/* Task Statistics - Full Width */}
                   <TaskStats
-                    overdueCount={allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date()).length}
-                    upcomingCount={allAssignments.filter(t => !t.completed && new Date(t.deadline) >= new Date()).length}
-                    completedCount={allAssignments.filter(t => t.completed).length}
+                    overdueCount={
+                      allAssignments.filter(
+                        (t) =>
+                          !t.completed && new Date(t.deadline) < new Date(),
+                      ).length
+                    }
+                    upcomingCount={
+                      allAssignments.filter(
+                        (t) =>
+                          !t.completed && new Date(t.deadline) >= new Date(),
+                      ).length
+                    }
+                    completedCount={
+                      allAssignments.filter((t) => t.completed).length
+                    }
                     totalCount={allAssignments.length}
                   />
 
@@ -727,27 +755,23 @@ export default function Dashboard() {
                   <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-6 sm:gap-8">
                     {/* Left Column: Calendar & Content */}
                     <div className="lg:col-span-12 xl:col-span-8 space-y-6 sm:space-y-8">
-                       <div className="bg-white p-4 sm:p-8 rounded-3xl border border-slate-100 shadow-sm">
-                          <div className="flex items-center justify-between mb-6 sm:mb-8">
-                            <h3 className="font-heading text-lg font-black text-slate-900 tracking-tight flex items-center gap-3">
-                              <CalendarIcon className="size-5 text-blue-600" />
-                              Kalender
-                            </h3>
-                          </div>
-                          <CalendarView
-                            events={
-                              previewEvents.length > 0 ? previewEvents : []
-                            }
-                          />
+                      <div className="bg-white p-4 sm:p-8 rounded-3xl border border-slate-100 shadow-sm">
+                        <div className="flex items-center justify-between mb-6 sm:mb-8">
+                          <h3 className="font-heading text-lg font-black text-slate-900 tracking-tight flex items-center gap-3">
+                            <CalendarIcon className="size-5 text-blue-600" />
+                            Kalender
+                          </h3>
                         </div>
+                        <CalendarView
+                          events={previewEvents.length > 0 ? previewEvents : []}
+                        />
+                      </div>
                     </div>
 
                     {/* Right Column(s): Status & Telegram */}
                     <div className="lg:col-span-12 xl:col-span-4 space-y-6 sm:space-y-8">
-
                       {/* Side by Side Status & Test on larger screens if possible, or stacked */}
                       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6 sm:gap-8">
-
                         {/* Status Card */}
                         <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
                           <div className="absolute top-0 right-0 p-6 sm:p-8 opacity-10 group-hover:scale-110 transition-transform">
@@ -850,7 +874,10 @@ export default function Dashboard() {
 
                         {/* Telegram Test */}
                         <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                          <TelegramVerify chatId={userData?.telegram_chat_id} botUsername={userData?.telegram_bot_username} />
+                          <TelegramVerify
+                            chatId={userData?.telegram_chat_id}
+                            botUsername={userData?.telegram_bot_username}
+                          />
                         </div>
                       </div>
                     </div>
@@ -862,7 +889,9 @@ export default function Dashboard() {
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <div>
-                      <h3 className="text-2xl font-black text-slate-900 tracking-tight">Timeline Tugas</h3>
+                      <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                        Timeline Tugas
+                      </h3>
                       <p className="text-slate-500 text-sm font-medium mt-1">
                         Daftar tugas yang diatur dalam tiga kelompok utama.
                       </p>
@@ -872,16 +901,21 @@ export default function Dashboard() {
                       disabled={isLoadingAssignments}
                       className="flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 shadow-lg shadow-slate-900/10"
                     >
-                      <RefreshCw className={cn("size-4", isLoadingAssignments && "animate-spin")} />
+                      <RefreshCw
+                        className={cn(
+                          "size-4",
+                          isLoadingAssignments && "animate-spin",
+                        )}
+                      />
                       {isLoadingAssignments ? "Menyinkronkan..." : "Sinkronkan"}
                     </button>
                   </div>
 
                   {isLoadingAssignments && allAssignments.length === 0 ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                       <TimelineSkeleton />
-                       <TimelineSkeleton />
-                       <TimelineSkeleton />
+                      <TimelineSkeleton />
+                      <TimelineSkeleton />
+                      <TimelineSkeleton />
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -892,20 +926,39 @@ export default function Dashboard() {
                             <div className="size-9 bg-red-50 text-red-600 rounded-xl flex items-center justify-center border border-red-100/50">
                               <AlertTriangle className="size-4.5" />
                             </div>
-                            <h4 className="font-black text-slate-900 tracking-tight">Terlewat</h4>
+                            <h4 className="font-black text-slate-900 tracking-tight">
+                              Terlewat
+                            </h4>
                           </div>
                           <span className="text-[10px] font-black px-2.5 py-1 bg-red-50 text-red-600 rounded-lg border border-red-100/50">
-                            {allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date()).length}
+                            {
+                              allAssignments.filter(
+                                (t) =>
+                                  !t.completed &&
+                                  new Date(t.deadline) < new Date(),
+                              ).length
+                            }
                           </span>
                         </div>
                         <div className="space-y-4">
-                          {allAssignments.filter(t => !t.completed && new Date(t.deadline) < new Date()).length === 0 ? (
-                             <EmptyTasksState message="Tidak ada tugas terlewat" />
+                          {allAssignments.filter(
+                            (t) =>
+                              !t.completed && new Date(t.deadline) < new Date(),
+                          ).length === 0 ? (
+                            <EmptyTasksState message="Tidak ada tugas terlewat" />
                           ) : (
                             allAssignments
-                              .filter(t => !t.completed && new Date(t.deadline) < new Date())
-                              .map(task => (
-                                <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />
+                              .filter(
+                                (t) =>
+                                  !t.completed &&
+                                  new Date(t.deadline) < new Date(),
+                              )
+                              .map((task) => (
+                                <TaskCard
+                                  key={task.id}
+                                  task={task}
+                                  onComplete={markAssignmentComplete}
+                                />
                               ))
                           )}
                         </div>
@@ -918,20 +971,40 @@ export default function Dashboard() {
                             <div className="size-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100/50">
                               <Clock className="size-4.5" />
                             </div>
-                            <h4 className="font-black text-slate-900 tracking-tight">Mendatang</h4>
+                            <h4 className="font-black text-slate-900 tracking-tight">
+                              Mendatang
+                            </h4>
                           </div>
                           <span className="text-[10px] font-black px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg border border-blue-100/50">
-                            {allAssignments.filter(t => !t.completed && new Date(t.deadline) >= new Date()).length}
+                            {
+                              allAssignments.filter(
+                                (t) =>
+                                  !t.completed &&
+                                  new Date(t.deadline) >= new Date(),
+                              ).length
+                            }
                           </span>
                         </div>
                         <div className="space-y-4">
-                          {allAssignments.filter(t => !t.completed && new Date(t.deadline) >= new Date()).length === 0 ? (
-                             <EmptyTasksState message="Tidak ada tugas mendatang" />
+                          {allAssignments.filter(
+                            (t) =>
+                              !t.completed &&
+                              new Date(t.deadline) >= new Date(),
+                          ).length === 0 ? (
+                            <EmptyTasksState message="Tidak ada tugas mendatang" />
                           ) : (
                             allAssignments
-                              .filter(t => !t.completed && new Date(t.deadline) >= new Date())
-                              .map(task => (
-                                <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />
+                              .filter(
+                                (t) =>
+                                  !t.completed &&
+                                  new Date(t.deadline) >= new Date(),
+                              )
+                              .map((task) => (
+                                <TaskCard
+                                  key={task.id}
+                                  task={task}
+                                  onComplete={markAssignmentComplete}
+                                />
                               ))
                           )}
                         </div>
@@ -944,20 +1017,27 @@ export default function Dashboard() {
                             <div className="size-9 bg-green-50 text-green-600 rounded-xl flex items-center justify-center border border-green-100/50">
                               <CheckCircle2 className="size-4.5" />
                             </div>
-                            <h4 className="font-black text-slate-900 tracking-tight">Selesai</h4>
+                            <h4 className="font-black text-slate-900 tracking-tight">
+                              Selesai
+                            </h4>
                           </div>
                           <span className="text-[10px] font-black px-2.5 py-1 bg-green-50 text-green-600 rounded-lg border border-green-100/50">
-                            {allAssignments.filter(t => t.completed).length}
+                            {allAssignments.filter((t) => t.completed).length}
                           </span>
                         </div>
                         <div className="space-y-4">
-                          {allAssignments.filter(t => t.completed).length === 0 ? (
-                             <EmptyTasksState message="Belum ada tugas selesai" />
+                          {allAssignments.filter((t) => t.completed).length ===
+                          0 ? (
+                            <EmptyTasksState message="Belum ada tugas selesai" />
                           ) : (
                             allAssignments
-                              .filter(t => t.completed)
-                              .map(task => (
-                                <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />
+                              .filter((t) => t.completed)
+                              .map((task) => (
+                                <TaskCard
+                                  key={task.id}
+                                  task={task}
+                                  onComplete={markAssignmentComplete}
+                                />
                               ))
                           )}
                         </div>
@@ -973,10 +1053,9 @@ export default function Dashboard() {
                 activeTab === "general" ||
                 activeTab === "tugas" ||
                 activeTab === "profile") && (
-                <div className={cn(
-                  "w-full transition-all duration-300",
-                  activeTab === "bot" ? "max-w-6xl" : "max-w-3xl"
-                )}>
+                <div
+                  className="w-full transition-all duration-300"
+                >
                   <div className="bg-white p-5 sm:p-8 md:p-12 rounded-3xl border border-slate-100 shadow-sm">
                     {activeTab === "kelas" && (
                       <ClassSettings
@@ -1105,8 +1184,12 @@ export default function Dashboard() {
                               <History className="size-5" />
                             </div>
                             <div>
-                               <h3 className="text-lg font-black text-slate-900 tracking-tight">Riwayat Versi</h3>
-                               <p className="text-xs text-slate-500 font-medium">Lacak pembaruan dan perubahan sistem baru</p>
+                              <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                                Riwayat Versi
+                              </h3>
+                              <p className="text-xs text-slate-500 font-medium">
+                                Lacak pembaruan dan perubahan sistem baru
+                              </p>
                             </div>
                           </div>
                           <VersionHistory />
@@ -1127,34 +1210,46 @@ export default function Dashboard() {
 function EmptyTasksState({ message }: { message: string }) {
   return (
     <div className="p-8 text-center bg-white rounded-3xl border border-slate-100 border-dashed">
-       <div className="size-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-          <span className="text-xl">📋</span>
-       </div>
-       <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-relaxed font-bold">{message}</p>
+      <div className="size-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <span className="text-xl">📋</span>
+      </div>
+      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-relaxed font-bold">
+        {message}
+      </p>
     </div>
   );
 }
 
-function TaskCard({ task, onComplete }: { task: any; onComplete: (id: string) => void }) {
+function TaskCard({
+  task,
+  onComplete,
+}: {
+  task: any;
+  onComplete: (id: string) => void;
+}) {
   const isOverdue = !task.completed && new Date(task.deadline) < new Date();
   const isSelesai = task.completed;
 
   return (
-    <div className={cn(
-      "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all group relative overflow-hidden active:scale-[0.98] hover:shadow-md",
-      isSelesai && "opacity-75 grayscale-[0.2]"
-    )}>
+    <div
+      className={cn(
+        "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all group relative overflow-hidden active:scale-[0.98] hover:shadow-md",
+        isSelesai && "opacity-75 grayscale-[0.2]",
+      )}
+    >
       <div className="space-y-3.5">
         <div className="flex justify-between items-start gap-4">
           <div className="space-y-1.5 flex-1 min-w-0">
-            <h5 className={cn(
-              "font-bold text-slate-900 leading-tight transition-colors line-clamp-2",
-              isSelesai && "line-through text-slate-400"
-            )}>
+            <h5
+              className={cn(
+                "font-bold text-slate-900 leading-tight transition-colors line-clamp-2",
+                isSelesai && "line-through text-slate-400",
+              )}
+            >
               {task.title}
             </h5>
             <div className="flex items-center gap-2 overflow-hidden">
-               <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 truncate max-w-full">
+              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 truncate max-w-full">
                 {task.course}
               </span>
             </div>
@@ -1169,22 +1264,33 @@ function TaskCard({ task, onComplete }: { task: any; onComplete: (id: string) =>
             </button>
           )}
           {isSelesai && (
-             <div className="size-10 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center shrink-0 border border-green-100">
-               <CheckCircle2 className="size-5" />
-             </div>
+            <div className="size-10 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center shrink-0 border border-green-100">
+              <CheckCircle2 className="size-5" />
+            </div>
           )}
         </div>
 
         <div className="flex items-center justify-between pt-1 border-t border-slate-50 mt-1">
           <div className="flex items-center gap-1.5">
-            <Clock className={cn("size-3.5", isOverdue ? "text-red-500" : "text-slate-400")} />
-            <span className={cn("text-[11px] font-bold", isOverdue ? "text-red-500" : "text-slate-500")}>
-               {new Date(task.deadline).toLocaleString("id-ID", {
-                 day: 'numeric',
-                 month: 'short',
-                 hour: '2-digit',
-                 minute: '2-digit'
-               })} WIB
+            <Clock
+              className={cn(
+                "size-3.5",
+                isOverdue ? "text-red-500" : "text-slate-400",
+              )}
+            />
+            <span
+              className={cn(
+                "text-[11px] font-bold",
+                isOverdue ? "text-red-500" : "text-slate-500",
+              )}
+            >
+              {new Date(task.deadline).toLocaleString("id-ID", {
+                day: "numeric",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              WIB
             </span>
           </div>
           {task.url && (
