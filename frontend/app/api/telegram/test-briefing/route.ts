@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { applyBackendAuthCookies, callBackendAsUser } from "@/lib/backend-auth";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     console.log('[test-briefing] Calling backend');
