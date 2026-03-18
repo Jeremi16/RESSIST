@@ -226,18 +226,14 @@ export default function Dashboard() {
   const fetchCourses = async () => {
     try {
       const response = await fetch("/api/courses");
-      if (!response.ok) {
-        console.error(
-          "Failed to fetch courses:",
-          response.status,
-          response.statusText,
-        );
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Error details:", errorData);
+      if (response.status === 401) {
+        // Silent fail - fetchUserData will handle redirect
         return;
       }
-      const data = await response.json();
-      setAvailableCourses(data.courses || []);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableCourses(data.courses || []);
+      }
     } catch (error) {
       console.error("Error fetching courses:", error);
     }
@@ -1123,19 +1119,17 @@ export default function Dashboard() {
                       />
                     )}
                     {activeTab === "bot" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <div className="flex flex-col h-full">
-                          <TelegramConfig
-                            chatId={userData?.telegram_chat_id || ""}
-                            enabled={userData?.telegram_enabled || false}
-                            botUsername={
-                              userData?.telegram_bot_username || "resisst_bot"
-                            }
-                            onSave={handleUpdate}
-                            isLoading={isSaving}
-                          />
-                        </div>
-                        <div className="flex flex-col h-full md:border-l md:border-slate-100 md:pl-12">
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 xl:gap-16">
+                        <TelegramConfig
+                          chatId={userData?.telegram_chat_id || ""}
+                          enabled={userData?.telegram_enabled || false}
+                          botUsername={
+                            userData?.telegram_bot_username || "resisst_bot"
+                          }
+                          onSave={handleUpdate}
+                          isLoading={isSaving}
+                        />
+                        <div className="xl:border-l xl:border-slate-100 xl:pl-16">
                           <WhatsAppConfig />
                         </div>
                       </div>

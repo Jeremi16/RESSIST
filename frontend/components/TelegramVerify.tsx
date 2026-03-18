@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Copy, Check, RefreshCw } from 'lucide-react'
+import { Copy, Check, RefreshCw, ExternalLink, Shield, Zap } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface TelegramVerifyProps {
   chatId?: string | null
@@ -15,24 +16,22 @@ export function TelegramVerify({ chatId, botUsername = 'resisst_bot', onConnect 
   const [isGenerating, setIsGenerating] = useState(false)
   const [copied, setCopied] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState<string>('')
+  const [progress, setProgress] = useState(100)
+
+  const EXPIRE_SECONDS = 10 * 60
 
   const generateCode = async () => {
     setIsGenerating(true)
     try {
       const response = await fetch('/api/user/telegram/verify-code', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to generate code')
-      }
-
+      if (!response.ok) throw new Error('Failed to generate code')
       const data = await response.json()
       setVerifyCode(data.code)
       setExpiresAt(data.expires_at)
+      setProgress(100)
     } catch (error) {
       console.error('Error generating code:', error)
     } finally {
@@ -59,122 +58,184 @@ export function TelegramVerify({ chatId, botUsername = 'resisst_bot', onConnect 
       if (diff <= 0) {
         setTimeRemaining('Kadaluarsa')
         setVerifyCode(null)
+        setProgress(0)
         clearInterval(interval)
       } else {
         const minutes = Math.floor(diff / 60000)
         const seconds = Math.floor((diff % 60000) / 1000)
         setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`)
+        setProgress((diff / (EXPIRE_SECONDS * 1000)) * 100)
       }
     }, 1000)
 
     return () => clearInterval(interval)
   }, [expiresAt])
 
+  // — CONNECTED STATE —
   if (chatId) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-green-600 text-2xl">✅</span>
-          <h4 className="font-semibold text-green-900">Telegram Terhubung</h4>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white shadow-xl shadow-emerald-500/20">
+        {/* Background decoration */}
+        <div className="absolute -right-8 -top-8 size-40 rounded-full bg-white/10" />
+        <div className="absolute -bottom-6 -left-6 size-28 rounded-full bg-white/5" />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="size-14 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center shadow-inner">
+              <Check className="size-7 text-white" strokeWidth={3} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100 mb-0.5">Status Koneksi</p>
+              <h4 className="text-xl font-black tracking-tight">Telegram Terhubung</h4>
+            </div>
+          </div>
+
+          <p className="text-sm text-emerald-100 leading-relaxed">
+            Bot siap mengirimkan notifikasi tugas langsung ke akunmu 🚀
+          </p>
+
+          <div className="mt-5 flex items-center gap-2">
+            <div className="size-2.5 rounded-full bg-emerald-200 shadow-[0_0_10px_rgba(167,243,208,1)] animate-pulse" />
+            <span className="text-xs font-black uppercase tracking-widest text-emerald-100">Live • Aktif</span>
+          </div>
         </div>
-        <p className="text-sm text-green-700">
-          Telegram sudah terhubung. Siap mengirim pengingat!
-        </p>
       </div>
     )
   }
 
+  // — DISCONNECTED / CONNECT STATE —
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-      <div className="text-center mb-4">
-        <h4 className="font-semibold text-blue-900 mb-2 text-lg">
-          📱 Hubungkan Telegram
-        </h4>
-        <p className="text-sm text-blue-700 mb-4">
-          Dapatkan notifikasi tugas langsung di Telegram Anda
-        </p>
+    <div className="space-y-5">
+      {/* Header Card */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white shadow-xl shadow-blue-500/20">
+        <div className="absolute -right-8 -top-8 size-40 rounded-full bg-white/10" />
+        <div className="absolute -bottom-6 -left-6 size-28 rounded-full bg-white/5" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="size-14 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+              <Zap className="size-7 text-white" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-blue-200 mb-0.5">Langkah Pertama</p>
+              <h4 className="text-xl font-black tracking-tight">Hubungkan Telegram</h4>
+            </div>
+          </div>
+          <p className="text-sm text-blue-100 leading-relaxed">
+            Generate kode verifikasi unik, lalu kirimkan ke bot Telegram kami untuk mulai menerima notifikasi.
+          </p>
+        </div>
       </div>
 
+      {/* Code Area */}
       {!verifyCode ? (
-        <div className="text-center">
-          <button
-            onClick={generateCode}
-            disabled={isGenerating}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
-          >
-            {isGenerating ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              'Generate Kode Verifikasi'
-            )}
-          </button>
-        </div>
+        <button
+          onClick={generateCode}
+          disabled={isGenerating}
+          className="w-full h-14 bg-slate-900 text-white rounded-2xl font-black text-base tracking-wide hover:bg-slate-800 active:scale-95 transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-900/20 disabled:opacity-50"
+        >
+          {isGenerating ? (
+            <>
+              <RefreshCw className="size-5 animate-spin" />
+              Membuat Kode...
+            </>
+          ) : (
+            <>
+              <Shield className="size-5" />
+              Generate Kode Verifikasi
+            </>
+          )}
+        </button>
       ) : (
         <div className="space-y-4">
-          <div className="bg-white p-4 rounded-lg border-2 border-blue-300">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-blue-900">Kode Verifikasi:</span>
-              <span className="text-xs text-blue-600">
-                {timeRemaining === 'Kadaluarsa' ? (
-                  <span className="text-red-600 font-semibold">{timeRemaining}</span>
-                ) : (
-                  `Berlaku: ${timeRemaining}`
-                )}
+          {/* Code Display */}
+          <div className="bg-white border-2 border-slate-200 rounded-3xl p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Kode Verifikasi</span>
+              <span className={cn(
+                "text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full",
+                timeRemaining === 'Kadaluarsa'
+                  ? "bg-red-100 text-red-600"
+                  : "bg-blue-50 text-blue-600"
+              )}>
+                {timeRemaining === 'Kadaluarsa' ? '⚠ Kadaluarsa' : `⏱ ${timeRemaining}`}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 text-2xl font-bold text-blue-900 tracking-wider text-center py-2 bg-blue-50 rounded">
+
+            {/* Timer Bar */}
+            <div className="h-1 w-full bg-slate-100 rounded-full mb-4 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-1000",
+                  progress > 50 ? "bg-blue-500" : progress > 20 ? "bg-amber-500" : "bg-red-500"
+                )}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <code className="flex-1 text-3xl font-black text-slate-900 tracking-[0.3em] text-center py-3 bg-slate-50 rounded-2xl border border-slate-100">
                 {verifyCode}
               </code>
               <button
                 onClick={copyCode}
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
-                title="Copy code"
-              >
-                {copied ? (
-                  <Check className="w-5 h-5 text-green-600" />
-                ) : (
-                  <Copy className="w-5 h-5 text-blue-600" />
+                className={cn(
+                  "size-14 rounded-2xl flex items-center justify-center transition-all border-2 shrink-0",
+                  copied
+                    ? "bg-green-500 border-green-500 text-white shadow-lg shadow-green-500/30"
+                    : "bg-white border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600"
                 )}
+                title="Salin kode"
+              >
+                {copied ? <Check className="size-5" strokeWidth={3} /> : <Copy className="size-5" />}
               </button>
             </div>
           </div>
 
-          <div className="bg-blue-100 p-4 rounded-lg">
-            <p className="text-sm text-blue-900 font-semibold mb-2">Langkah-langkah:</p>
-            <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-              <li>Buka Telegram dan cari bot <strong>@{botUsername}</strong></li>
-              <li>Klik <strong>Start</strong> atau kirim <code>/start</code></li>
-              <li>Kirim kode verifikasi di atas ke bot</li>
-              <li>Tunggu konfirmasi dari bot</li>
+          {/* Steps */}
+          <div className="bg-slate-50 border border-slate-100 rounded-3xl p-5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Cara Menghubungkan</p>
+            <ol className="space-y-3">
+              {[
+                { step: 1, text: <>Buka Telegram dan cari bot <span className="font-black text-slate-900">@{botUsername}</span></> },
+                { step: 2, text: <>Klik <span className="font-black text-slate-900">Start</span> atau kirim <code className="bg-slate-200 px-1.5 py-0.5 rounded text-xs">/start</code></> },
+                { step: 3, text: <>Kirimkan kode verifikasi di atas ke bot</> },
+                { step: 4, text: <>Tunggu konfirmasi berhasil dari bot 🎉</> },
+              ].map(({ step, text }) => (
+                <li key={step} className="flex items-center gap-3 text-sm text-slate-600">
+                  <span className="size-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-[10px] font-black shrink-0">
+                    {step}
+                  </span>
+                  <span>{text}</span>
+                </li>
+              ))}
             </ol>
           </div>
 
-          <div className="flex gap-2">
+          {/* Actions */}
+          <div className="grid grid-cols-2 gap-3">
             <a
               href={`https://t.me/${botUsername}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-center"
+              className="h-12 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95"
             >
-              Buka Bot Telegram
+              <ExternalLink className="size-4" />
+              Buka Bot
             </a>
             <button
               onClick={generateCode}
               disabled={isGenerating}
-              className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium disabled:opacity-50"
+              className="h-12 bg-white border-2 border-slate-200 text-slate-600 rounded-2xl font-black text-sm hover:border-slate-300 transition-all flex items-center justify-center gap-2 active:scale-95"
             >
-              <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+              <RefreshCw className={cn("size-4", isGenerating && "animate-spin")} />
+              Perbarui Kode
             </button>
           </div>
         </div>
       )}
 
-      <p className="text-xs text-blue-600 mt-4 text-center">
-        Kode verifikasi berlaku selama 10 menit
+      <p className="text-center text-[11px] text-slate-400 font-medium">
+        🔒 Kode verifikasi berlaku selama 10 menit dan hanya bisa digunakan sekali
       </p>
     </div>
   )
