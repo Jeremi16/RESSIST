@@ -1,4 +1,4 @@
-package bot
+package telegram
 
 import (
 	"context"
@@ -12,24 +12,22 @@ import (
 	"gorm.io/gorm"
 )
 
+// Bot wraps telegram API with DB and config.
 type Bot struct {
 	api *tgbotapi.BotAPI
 	db  *gorm.DB
 	cfg *config.Config
 }
 
-func New(cfg *config.Config, db *gorm.DB) (*Bot, error) {
+// NewBot creates a new Telegram Bot instance.
+func NewBot(cfg *config.Config, db *gorm.DB) (*Bot, error) {
 	if cfg.TelegramBotToken == "" {
 		return nil, fmt.Errorf("telegram bot token is missing")
 	}
-
 	api, err := tgbotapi.NewBotAPI(cfg.TelegramBotToken)
 	if err != nil {
 		return nil, err
 	}
-
-	// api.Debug = cfg.Env != "production"
-
 	return &Bot{
 		api: api,
 		db:  db,
@@ -37,12 +35,12 @@ func New(cfg *config.Config, db *gorm.DB) (*Bot, error) {
 	}, nil
 }
 
+// Start begins polling for updates.
 func (b *Bot) Start(ctx context.Context) error {
 	log.Printf("authorized on account %s", b.api.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
-
 	updates := b.api.GetUpdatesChan(u)
 
 	for {
@@ -54,11 +52,9 @@ func (b *Bot) Start(ctx context.Context) error {
 			if update.Message == nil {
 				continue
 			}
-
 			if update.Message.IsCommand() {
 				b.handleCommand(update.Message)
 			} else {
-				// Handle plain text verification code
 				text := strings.TrimSpace(update.Message.Text)
 				if len(text) == 6 {
 					b.verifyCode(update.Message, text)
@@ -88,7 +84,6 @@ func (b *Bot) handleStartCommand(msg *tgbotapi.Message) {
 		b.api.Send(reply)
 		return
 	}
-
 	b.verifyCode(msg, code)
 }
 
@@ -96,7 +91,6 @@ func (b *Bot) verifyCode(msg *tgbotapi.Message, code string) {
 	var user models.User
 	chatIDStr := fmt.Sprintf("%d", msg.Chat.ID)
 
-	// Find user with valid code
 	err := b.db.Where("telegram_verify_code = ? AND telegram_verify_expires > NOW()", code).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -110,7 +104,6 @@ func (b *Bot) verifyCode(msg *tgbotapi.Message, code string) {
 		return
 	}
 
-	// Update user with chat ID
 	username := msg.From.UserName
 	updates := map[string]interface{}{
 		"telegram_chat_id":        &chatIDStr,
@@ -119,7 +112,6 @@ func (b *Bot) verifyCode(msg *tgbotapi.Message, code string) {
 		"telegram_verify_code":    nil,
 		"telegram_verify_expires": nil,
 	}
-
 	if err := b.db.Model(&user).Updates(updates).Error; err != nil {
 		log.Printf("error updating user telegram chat id: %v", err)
 		reply := tgbotapi.NewMessage(msg.Chat.ID, "⚠️ Gagal menghubungkan akun. Silakan coba lagi nanti.")

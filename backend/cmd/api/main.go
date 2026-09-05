@@ -9,12 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jeremi16/resisst-api/internal/auth"
-	"github.com/jeremi16/resisst-api/internal/bot"
+	"github.com/jeremi16/resisst-api/internal/app"
 	"github.com/jeremi16/resisst-api/internal/config"
 	"github.com/jeremi16/resisst-api/internal/database"
-	"github.com/jeremi16/resisst-api/internal/http/handlers"
-	"github.com/jeremi16/resisst-api/internal/http/router"
+	"github.com/jeremi16/resisst-api/internal/shared/router"
 )
 
 func main() {
@@ -28,43 +26,17 @@ func main() {
 		log.Fatalf("connect db: %v", err)
 	}
 
-	tokenSvc, err := auth.NewTokenService(
-		cfg.JWTAccessSecret,
-		cfg.AccessTokenTTLMinute,
-		"resisst-api",
-		"resisst-frontend",
-	)
+	container, err := app.New(cfg, db)
 	if err != nil {
-		log.Fatalf("init token service: %v", err)
+		log.Fatalf("init container: %v", err)
 	}
 
-	authSvc, err := auth.NewService(db, cfg, tokenSvc)
-	if err != nil {
-		log.Fatalf("init auth service: %v", err)
-	}
-
-	// Initialize Telegram Bot
-	telegramBot, err := bot.New(cfg, db)
-	if err != nil {
-		log.Printf("warning: failed to init telegram bot: %v", err)
-	}
-
-	userHandler := handlers.NewUserHandler(db)
-	calendarHandler := handlers.NewCalendarHandler(db, cfg)
-	courseHandler := handlers.NewCourseHandler(db)
-	authHandler := handlers.NewAuthHandler(cfg, authSvc, db, calendarHandler)
-	telegramHandler := handlers.NewTelegramHandler(db, telegramBot)
-	assignmentHandler := handlers.NewAssignmentHandler(db)
-	engine := router.New(cfg, authHandler, userHandler, calendarHandler, courseHandler, telegramHandler, assignmentHandler, authSvc, db, telegramBot)
-	if err != nil {
-		log.Printf("warning: failed to init telegram bot: %v", err)
-	}
+	engine := router.New(cfg, db, container.Auth, container.User, container.Calendar, container.Course, container.Telegram, container.Assignment)
 
 	requestTimeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second
 	if requestTimeout <= 0 {
 		requestTimeout = 15 * time.Second
 	}
-
 	shutdownTimeout := time.Duration(cfg.ShutdownTimeoutSeconds) * time.Second
 	if shutdownTimeout <= 0 {
 		shutdownTimeout = 20 * time.Second
@@ -86,23 +58,12 @@ func main() {
 		}
 	}()
 
-	// Start Telegram Bot in background
 	botCtx, cancelBot := context.WithCancel(context.Background())
 	defer cancelBot()
-	if telegramBot != nil {
-		go func() {
-			if err := telegramBot.Start(botCtx); err != nil && err != context.Canceled {
-				log.Printf("error: telegram bot unexpected stop: %v", err)
-			}
-		}()
-
-		// Start Telegram Scheduler
-		scheduler := bot.NewScheduler(telegramBot)
-		go func() {
-			if err := scheduler.Start(botCtx); err != nil && err != context.Canceled {
-				log.Printf("error: telegram scheduler unexpected stop: %v", err)
-			}
-		}()
+	if container.Telegram != nil {
+		if err := container.Telegram.Start(botCtx); err != nil {
+			log.Printf("warning: failed to start telegram: %v", err)
+		}
 	}
 
 	stop := make(chan os.Signal, 1)

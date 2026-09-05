@@ -1,4 +1,4 @@
-package handlers
+package telegram
 
 import (
 	"fmt"
@@ -7,27 +7,30 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jeremi16/resisst-api/internal/bot"
 	"github.com/jeremi16/resisst-api/internal/models"
+	"github.com/jeremi16/resisst-api/internal/pkg/classcode"
+	"github.com/jeremi16/resisst-api/internal/pkg/text"
+	"github.com/jeremi16/resisst-api/internal/shared/middleware"
 	"gorm.io/gorm"
 )
 
-type TelegramHandler struct {
+// Handler handles telegram HTTP requests.
+type Handler struct {
 	db  *gorm.DB
-	bot *bot.Bot
+	bot *Bot
 }
 
-func NewTelegramHandler(db *gorm.DB, telegramBot *bot.Bot) *TelegramHandler {
-	return &TelegramHandler{
+// NewHandler creates a new telegram Handler.
+func NewHandler(db *gorm.DB, telegramBot *Bot) *Handler {
+	return &Handler{
 		db:  db,
 		bot: telegramBot,
 	}
 }
 
-
-
-func (h *TelegramHandler) SendTestReminder(c *gin.Context) {
-	userID, ok := authenticatedUserID(c)
+// SendTestReminder sends a test reminder to the authenticated user.
+func (h *Handler) SendTestReminder(c *gin.Context) {
+	userID, ok := middleware.AuthenticatedUserID(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -38,7 +41,6 @@ func (h *TelegramHandler) SendTestReminder(c *gin.Context) {
 		return
 	}
 
-	// Try to find the closest upcoming assignment
 	var assignment models.Event
 	err := h.db.Where("user_id = ? AND deadline > ?", userID, time.Now()).Order("deadline asc").First(&assignment).Error
 
@@ -47,10 +49,9 @@ func (h *TelegramHandler) SendTestReminder(c *gin.Context) {
 
 	if err == nil {
 		title = assignment.Title
-		course = dereferenceString(assignment.Course, "N/A")
+		course = text.Dereference(assignment.Course, "N/A")
 		deadline = assignment.Deadline
 	} else {
-		// Fallback to dummy if no assignments found
 		title = "Tugas Contoh (DUMMY)"
 		course = "Kelas Contoh"
 		deadline = time.Now().Add(24 * time.Hour)
@@ -79,8 +80,9 @@ func (h *TelegramHandler) SendTestReminder(c *gin.Context) {
 	})
 }
 
-func (h *TelegramHandler) SendMorningBriefing(c *gin.Context) {
-	userID, ok := authenticatedUserID(c)
+// SendMorningBriefing sends a morning briefing to the authenticated user.
+func (h *Handler) SendMorningBriefing(c *gin.Context) {
+	userID, ok := middleware.AuthenticatedUserID(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
@@ -109,14 +111,13 @@ func (h *TelegramHandler) SendMorningBriefing(c *gin.Context) {
 
 	chatID, _ := strconv.ParseInt(*user.TelegramChatID, 10, 64)
 
-	// Fetch assignments for today and tomorrow
 	now := time.Now()
 	endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
 
 	var allAssignments []models.Event
 	h.db.Where("user_id = ? AND completed = ? AND deadline BETWEEN ? AND ?", userID, false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
 
-	assignments := FilterAssignments(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters)
+	assignments := classcode.Filter(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters)
 
 	message := buildMorningBriefingMessage(user.Name, assignments)
 	err = h.bot.SendMessage(chatID, message)
@@ -137,7 +138,7 @@ func (h *TelegramHandler) SendMorningBriefing(c *gin.Context) {
 func buildMorningBriefingMessage(userName string, assignments []models.Event) string {
 	wib := time.FixedZone("WIB", 7*3600)
 	now := time.Now().In(wib)
-	
+
 	message := fmt.Sprintf("☀️ *Selamat Pagi, %s!*\n\n", userName)
 	message += fmt.Sprintf("📅 %s\n\n", now.Format("Monday, 2 January 2006"))
 	message += "📚 *Tugas yang Belum Dikerjakan:*\n\n"
@@ -150,10 +151,7 @@ func buildMorningBriefingMessage(userName string, assignments []models.Event) st
 			if a.Course != nil {
 				course = *a.Course
 			}
-			
-			// Convert UTC to WIB for display
 			deadlineWIB := a.Deadline.In(wib)
-			
 			message += fmt.Sprintf("%d. *%s*\n", i+1, a.Title)
 			message += fmt.Sprintf("   📖 %s\n", course)
 			message += fmt.Sprintf("   ⏰ %s\n\n", deadlineWIB.Format("Monday, 2 Jan 15:04"))
