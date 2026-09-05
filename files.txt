@@ -1,8 +1,0 @@
-frontend/components/dashboard/ClassSettings.tsx
-frontend/components/dashboard/GeneralSettings.tsx
-frontend/components/dashboard/LMSConfig.tsx
-frontend/components/dashboard/MoodleConfig.tsx
-frontend/components/dashboard/ProfileSettings.tsx
-frontend/components/dashboard/TelegramConfig.tsx
-frontend/components/dashboard/TimelineFilter.tsx
-frontend/components/dashboard/WhatsAppConfig.tsx

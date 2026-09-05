@@ -23,6 +23,19 @@ whatsapp-auth/
 build_error.txt
 build_output.txt
 
+# Go binaries
+*.exe
+/api
+/resisst-api
+backend/api.exe
+backend/resisst-api.exe
+
+# Backup files
+*.backup
+
+# Editor
+.zed/
+
 # OS files
 .DS_Store
 Thumbs.db
