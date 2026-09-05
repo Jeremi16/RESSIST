@@ -2,9 +2,9 @@
   "name": "resisst-monorepo",
   "private": true,
   "scripts": {
-    "dev": "pnpm -r --parallel --stream --filter ./frontend --filter ./backend run dev",
-    "dev:frontend": "pnpm --dir frontend run dev",
-    "dev:backend": "pnpm --dir backend run dev",
-    "build": "pnpm --dir frontend run build && pnpm --dir backend run build"
+    "dev": "bun run dev:frontend & bun run dev:backend & wait",
+    "dev:frontend": "bun --cwd frontend run dev",
+    "dev:backend": "cd backend && go run ./cmd/api",
+    "build": "bun --cwd frontend run build && cd backend && go build ./..."
   }
 }

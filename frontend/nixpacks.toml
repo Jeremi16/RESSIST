@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs_20", "bun"]
 
 [phases.install]
-cmds = ["npm ci --include=dev --no-audit --no-fund"]
+cmds = ["bun install --frozen-lockfile --no-progress"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = ["bun run build"]
 
 [start]
-cmd = "npm run start"
+cmd = "bun run start"
