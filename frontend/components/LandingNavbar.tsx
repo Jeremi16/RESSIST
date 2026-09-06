@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
 import {
@@ -34,7 +34,7 @@ export function LandingNavbar({
     >
       <div className="container mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 sm:gap-3">
+        <Link to="/" className="flex items-center gap-2 sm:gap-3">
           <div className="size-8 sm:size-10 bg-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white text-lg sm:text-xl font-black rotate-3 shadow-lg shadow-blue-600/20">
             R
           </div>
@@ -51,7 +51,7 @@ export function LandingNavbar({
         {/* Navigation or Back Button */}
         {showBackButton ? (
           <Link
-            href={backHref}
+            to={backHref}
             className="flex items-center gap-2 group text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
           >
             <ChevronLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
@@ -63,7 +63,7 @@ export function LandingNavbar({
               <NavigationMenuList className="gap-2">
                 <NavigationMenuItem>
                   <Link
-                    href="/#features"
+                    to="/#features"
                     className={cn(
                       navigationMenuTriggerStyle(),
                       "bg-transparent hover:bg-slate-100/50 rounded-full transition-all",
@@ -74,7 +74,7 @@ export function LandingNavbar({
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <Link
-                    href="/#how-it-works"
+                    to="/#how-it-works"
                     className={cn(
                       navigationMenuTriggerStyle(),
                       "bg-transparent hover:bg-slate-100/50 rounded-full transition-all",
@@ -88,7 +88,7 @@ export function LandingNavbar({
 
             {/* Auth Button */}
             <Link
-              href="/login"
+              to="/login"
               className="bg-slate-900 text-white px-6 sm:px-6 py-3 sm:py-2.5 rounded-full font-bold text-sm sm:text-sm hover:bg-slate-800 shadow-xl shadow-slate-900/10 active:scale-95 transition-all"
             >
               Masuk

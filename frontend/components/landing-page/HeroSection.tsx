@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 export function HeroSection() {
@@ -104,7 +104,7 @@ export function HeroSection() {
                 className="w-full sm:w-auto"
               >
                 <Link
-                  href="/register"
+                  to="/register"
                   className={cn(
                     buttonVariants({ size: "lg" }),
                     "w-full sm:w-auto px-8 py-6 bg-slate-900 text-white rounded-2xl font-bold text-lg hover:bg-slate-800 hover:scale-[1.02] shadow-2xl shadow-slate-900/20 transition-all group inline-flex items-center justify-center",
