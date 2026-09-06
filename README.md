@@ -6,18 +6,23 @@ This repository is split into two services:
 - `backend/` - Go API (deploy to homeserver at `resisst-api.nodryx.com`)
 - `ops/` - operational scripts (backup, cron examples)
 
-## Frontend
+## Frontend (Vite + Bun, deploy Vercel)
 
 ```bash
 cd frontend
-npm install
-npm run dev
+bun install
+bun run dev        # Vite :5173 + BFF :3001 (butuh Go backend jalan)
 ```
+
+Vite SPA (`src/`, react-router-dom) + Hono BFF (`server/`, di-bundle ke Vercel
+Functions via `api/index.ts`). Detail: `frontend/README.md`.
 
 ### Vercel deploy
 
-Repository sudah punya `vercel.json` di root untuk memastikan Vercel build app Next.js dari `frontend/`.
-Jika project Vercel sudah terlanjur dibuat dari root, deploy tetap akan mengarah ke frontend.
+- Project **Root Directory = `frontend`** (root `vercel.json` sudah dihapus).
+- `frontend/vercel.json`: `framework: vite`, build `bun run build`, output `dist`,
+  rewrite `/api/*` → Functions, redirect 301 ID→EN (`/tentang`→`/about` dll),
+  fallback SPA `/index.html`.
 
 ## Backend
 

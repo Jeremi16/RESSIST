@@ -8,4 +8,6 @@ cmds = ["bun install --frozen-lockfile --no-progress"]
 cmds = ["bun run build"]
 
 [start]
-cmd = "bun run start"
+# Single-serve: Hono BFF + dist/ statis dalam 1 proses Bun.
+# (Mode utama = Vercel: static CDN + Functions, file ini tidak dipakai.)
+cmd = "SERVE_STATIC=1 bun run server/index.ts"

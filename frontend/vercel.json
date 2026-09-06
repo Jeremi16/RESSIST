@@ -1,5 +1,19 @@
 {
-  "framework": "nextjs",
+  "framework": "vite",
   "installCommand": "bun install --frozen-lockfile",
-  "buildCommand": "bun run build"
+  "buildCommand": "bun run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "redirects": [
+    { "source": "/tentang", "destination": "/about", "permanent": true },
+    { "source": "/kontak", "destination": "/contact", "permanent": true },
+    { "source": "/dokumentasi", "destination": "/documentation", "permanent": true },
+    { "source": "/fitur", "destination": "/features", "permanent": true },
+    { "source": "/bantuan", "destination": "/help", "permanent": true },
+    { "source": "/privasi", "destination": "/privacy", "permanent": true },
+    { "source": "/ketentuan", "destination": "/terms", "permanent": true }
+  ]
 }

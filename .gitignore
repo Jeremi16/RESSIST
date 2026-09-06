@@ -5,6 +5,9 @@ node_modules/
 .next/
 out/
 
+# Vite
+dist/
+
 # Build / cache
 *.log
 *.tsbuildinfo
