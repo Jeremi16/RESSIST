@@ -11,7 +11,7 @@ import {
   Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { EventPreview as EventType } from "@/app/api/test-calendar/route";
+import type { EventPreview as EventType } from "@/src/lib/api-types";
 
 interface OverdueTasksPopupProps {
   tasks: EventType[];

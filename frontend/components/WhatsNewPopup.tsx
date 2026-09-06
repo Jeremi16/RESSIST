@@ -13,8 +13,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface WhatsNewPopupProps {
   isOpen?: boolean;
@@ -111,7 +111,7 @@ export function WhatsNewPopup({
   onClose,
   showTrigger = true,
 }: WhatsNewPopupProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const isHomePage = pathname === "/";
   const [isOpen, setIsOpen] = useState(controlledIsOpen ?? false);
 
@@ -297,7 +297,7 @@ export function WhatsNewPopup({
                   {/* CTA Buttons */}
                   <div className="flex gap-3 pt-4">
                     <Link
-                      href="/version"
+                      to="/version"
                       onClick={handleClose}
                       className="flex-1 min-w-0 flex items-center justify-center gap-2 h-12 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-base font-semibold whitespace-nowrap transition-colors"
                     >

@@ -7,7 +7,7 @@ import {
   CheckCircle2,
   ExternalLink,
 } from "lucide-react";
-import { EventPreview as EventPreviewType } from "@/app/api/test-calendar/route";
+import type { EventPreview as EventPreviewType } from "@/src/lib/api-types";
 import { cn } from "@/lib/utils";
 import {
   Accordion,
