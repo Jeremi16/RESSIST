@@ -152,7 +152,10 @@ app.get("/auth/google/login", async (c) => {
   }
 
   const location = res.headers.get("location");
-  if (location) return c.redirect(location, 302);
+  if (location) {
+    console.log(`[auth/login] backend redirect_uri state set, location=${location.slice(0,150)} cookies=${getSetCookieHeaders(res).join("|").slice(0,200)}`);
+    return c.redirect(location, 302);
+  }
   // fallback: biarkan browser redirect langsung ke backend
   return c.redirect(backendUrl, 302);
 });
@@ -200,7 +203,12 @@ app.get("/auth/google/callback", async (c) => {
   }
 
   const location = res.headers.get("location");
-  if (location) return c.redirect(location, 302);
+  if (location) {
+    if (location.includes("state_mismatch")) {
+      console.error(`[auth/callback] state_mismatch: incoming cookie=${cookieHeader.slice(0,120)} backend_status=${res.status} forwarded_cookies=${getSetCookieHeaders(res).join("|").slice(0,300)}`);
+    }
+    return c.redirect(location, 302);
+  }
 
   // fallback kalau backend tidak redirect (mis. error json)
   try {
