@@ -44,6 +44,10 @@ func New(cfg *config.Config, db *gorm.DB) (*Module, error) {
 
 // Start launches bot and scheduler in background. Returns immediately.
 // Both respect ctx cancellation.
+//
+// DEPRECATED: do NOT call from resisst-api. Polling must run only in the
+// standalone resisst-bot service (replicas=1), otherwise Telegram returns
+// "Conflict: terminated by other getUpdates request". Kept for reference.
 func (m *Module) Start(ctx context.Context) error {
 	if m.Bot != nil {
 		go func() {

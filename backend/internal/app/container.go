@@ -7,6 +7,7 @@ import (
 	"github.com/jeremi16/resisst-api/internal/modules/auth"
 	"github.com/jeremi16/resisst-api/internal/modules/calendar"
 	"github.com/jeremi16/resisst-api/internal/modules/course"
+	"github.com/jeremi16/resisst-api/internal/modules/botservice"
 	"github.com/jeremi16/resisst-api/internal/modules/telegram"
 	"github.com/jeremi16/resisst-api/internal/modules/user"
 	"gorm.io/gorm"
@@ -19,7 +20,11 @@ type Container struct {
 	User             *user.Module
 	Calendar         *calendar.Module
 	Course           *course.Module
-	Telegram         *telegram.Module
+	Internal         *botservice.Module
+	// TelegramSender is sender-only (SendMessage for /v1/telegram/test-*).
+	// It NEVER polls: polling lives in resisst-bot. Sending via Bot API
+	// from multiple processes is allowed; only getUpdates is exclusive.
+	TelegramSender   *telegram.Module
 	Assignment       *assignment.Module
 	ApiKey           *apikey.Module
 }
@@ -44,7 +49,12 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	if err != nil {
 		return nil, err
 	}
-	telegramMod, err := telegram.New(cfg, db)
+	botSvcMod, err := botservice.New(db)
+	if err != nil {
+		return nil, err
+	}
+	// Sender-only: graceful nil Bot when TELEGRAM_BOT_TOKEN is empty.
+	telegramSender, err := telegram.New(cfg, db)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +74,8 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		User:       userMod,
 		Calendar:   calendarMod,
 		Course:     courseMod,
-		Telegram:   telegramMod,
+		Internal:   botSvcMod,
+		TelegramSender: telegramSender,
 		Assignment: assignmentMod,
 		ApiKey:     apiKeyMod,
 	}, nil

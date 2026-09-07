@@ -31,7 +31,7 @@ func main() {
 		log.Fatalf("init container: %v", err)
 	}
 
-	engine := router.New(cfg, db, container.Auth, container.User, container.Calendar, container.Course, container.Telegram, container.Assignment, container.ApiKey)
+	engine := router.New(cfg, db, container.Auth, container.User, container.Calendar, container.Course, container.Internal, container.Assignment, container.ApiKey, container.TelegramSender)
 
 	requestTimeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second
 	if requestTimeout <= 0 {
@@ -58,13 +58,9 @@ func main() {
 		}
 	}()
 
-	botCtx, cancelBot := context.WithCancel(context.Background())
-	defer cancelBot()
-	if container.Telegram != nil {
-		if err := container.Telegram.Start(botCtx); err != nil {
-			log.Printf("warning: failed to start telegram: %v", err)
-		}
-	}
+	// NOTE: Telegram polling intentionally NOT started here anymore.
+	// It lives in the standalone resisst-bot service (bot/) to avoid
+	// "Conflict: terminated by other getUpdates" when api scales to N replicas.
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
