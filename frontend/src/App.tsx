@@ -23,6 +23,7 @@ import KebijakanCookie from "@/app/kebijakan-cookie/page";
 import Panduan from "@/app/panduan/page";
 import Roadmap from "@/app/roadmap/page";
 import Status from "@/app/status/page";
+import Docs from "@/app/docs/page";
 
 import Login from "@/src/pages/Login";
 import Dashboard from "@/src/pages/Dashboard";
@@ -72,6 +73,7 @@ export const router = createBrowserRouter([
   { path: "/panduan", element: withProviders(<Panduan />) },
   { path: "/roadmap", element: withProviders(<Roadmap />) },
   { path: "/status", element: withProviders(<Status />) },
+  { path: "/docs", element: withProviders(<Docs />) },
   { path: "/login", element: withProviders(<Login />) },
   // app/register/page.tsx dulu redirect('/login') di server
   { path: "/register", element: <Navigate to="/login" replace /> },
