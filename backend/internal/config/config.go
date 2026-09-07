@@ -41,6 +41,11 @@ type Config struct {
 	TelegramBotToken string
 
 	AllowedOrigins []string
+
+	ApiKeyPrefix           string
+	ApiKeyMaxPerUser       int
+	ApiKeyRateLimitPerMinute int
+	ApiKeyRateLimitBurst     int
 }
 
 func Load() (*Config, error) {
@@ -80,6 +85,11 @@ func Load() (*Config, error) {
 		TelegramBotToken: getEnv("TELEGRAM_BOT_TOKEN", ""),
 
 		AllowedOrigins: getEnvAsList("ALLOWED_ORIGINS", "http://localhost:3000"),
+
+		ApiKeyPrefix:             getEnv("API_KEY_PREFIX", "rsk_"),
+		ApiKeyMaxPerUser:         getEnvAsInt("API_KEY_MAX_PER_USER", 5),
+		ApiKeyRateLimitPerMinute: getEnvAsInt("API_KEY_RATE_LIMIT_PER_MINUTE", 60),
+		ApiKeyRateLimitBurst:     getEnvAsInt("API_KEY_RATE_LIMIT_BURST", 20),
 	}
 
 	return cfg, nil
