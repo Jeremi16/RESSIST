@@ -13,6 +13,7 @@ import (
 	"github.com/jeremi16/resisst-api/internal/modules/auth"
 	"github.com/jeremi16/resisst-api/internal/modules/calendar"
 	"github.com/jeremi16/resisst-api/internal/modules/course"
+	"github.com/jeremi16/resisst-api/internal/modules/botservice"
 	"github.com/jeremi16/resisst-api/internal/modules/telegram"
 	"github.com/jeremi16/resisst-api/internal/modules/user"
 	"github.com/jeremi16/resisst-api/internal/shared/docs"
@@ -27,9 +28,10 @@ func New(
 	userModule *user.Module,
 	calendarModule *calendar.Module,
 	courseModule *course.Module,
-	telegramModule *telegram.Module,
+	internalModule *botservice.Module,
 	assignmentModule *assignment.Module,
 	apiKeyModule *apikey.Module,
+	telegramSender *telegram.Module,
 ) *gin.Engine {
 	if cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -115,16 +117,29 @@ func New(
 	courseGroup.Use(middleware.APIKeyOrJWT(tokenParser, apiKeyValidator), apiKeyRateLimit)
 	courseGroup.GET("", courseModule.Handler.GetAllCourses)
 
-	// Telegram
-	telegramGroup := v1.Group("/telegram")
-	telegramGroup.Use(middleware.AccessToken(tokenParser))
-	telegramGroup.POST("/test-reminder", telegramModule.Handler.SendTestReminder)
-	telegramGroup.POST("/test-briefing", telegramModule.Handler.SendMorningBriefing)
+	// Service-to-service endpoints for standalone resisst-bot (100% via API).
+	// Guarded by X-Bot-Token. No JWT needed. Bot impersonates users via
+	// X-Act-As-User on /v1/* below.
+	if internalModule != nil {
+		internalGroup := r.Group("/internal")
+		internalGroup.Use(middleware.RequireBotService(cfg.BotServiceToken))
+		botservice.RegisterRoutes(internalGroup, internalModule.Handler)
+	}
 
-	// Assignments — GET via API key, complete via JWT only
+	// Telegram test endpoints (sender-only, JWT). Used by the dashboard
+	// "test notification" buttons. Sending via Bot API is safe from N
+	// processes; only getUpdates polling (resisst-bot, replicas=1) is exclusive.
+	if telegramSender != nil {
+		telegramGroup := v1.Group("/telegram")
+		telegramGroup.Use(middleware.AccessToken(tokenParser))
+		telegramGroup.POST("/test-reminder", telegramSender.Handler.SendTestReminder)
+		telegramGroup.POST("/test-briefing", telegramSender.Handler.SendMorningBriefing)
+	}
+
+	// Assignments — GET via API key / JWT / bot service, complete via JWT / bot service
 	assignmentGroup := v1.Group("/assignments")
-	assignmentGroup.GET("", middleware.APIKeyOrJWT(tokenParser, apiKeyValidator), apiKeyRateLimit, assignmentModule.Handler.GetAssignments)
-	assignmentGroup.POST("/complete", middleware.AccessToken(tokenParser), assignmentModule.Handler.CompleteAssignment)
+	assignmentGroup.GET("", middleware.BotOrAPIKeyOrJWT(tokenParser, apiKeyValidator, cfg.BotServiceToken), apiKeyRateLimit, assignmentModule.Handler.GetAssignments)
+	assignmentGroup.POST("/complete", middleware.BotOrAccessToken(tokenParser, cfg.BotServiceToken), assignmentModule.Handler.CompleteAssignment)
 
 	return r
 }
