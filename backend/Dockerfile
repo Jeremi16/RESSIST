@@ -12,14 +12,16 @@ COPY go.mod go.sum* ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /resisst-api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-w -s" -o /resisst-api ./cmd/api
 
 FROM alpine:3.21
-RUN adduser -D -g '' appuser
+RUN apk add --no-cache ca-certificates tzdata wget && adduser -D -g '' appuser
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 USER appuser
 WORKDIR /home/appuser
 
 COPY --from=builder /resisst-api /usr/local/bin/resisst-api
 
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -qO- http://127.0.0.1:8080/livez || exit 1
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/resisst-api"]
