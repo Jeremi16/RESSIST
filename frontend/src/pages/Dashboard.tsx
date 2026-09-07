@@ -597,7 +597,11 @@ export default function Dashboard() {
           <header className="mb-6 flex items-center justify-between gap-4 border-b border-black/5 pb-6">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight text-black">
-                {activeTab === "overview" ? `Welcome back, ${userData?.name?.split(" ")[0] || "there"}` : TABS.find((t) => t.id === activeTab)?.label}
+                {activeTab === "overview"
+                  ? `Welcome back, ${userData?.name?.split(" ")[0] || "there"}`
+                  : activeTab === "lainnya"
+                    ? "Lainnya"
+                    : TABS.find((t) => t.id === activeTab)?.label}
               </h2>
               <p className="text-sm text-black/60 mt-1">
                 {activeTab === "overview" ? "Here's a quick overview of your workspace today." : "Sesuaikan pengaturan untuk pengalaman terbaik."}
@@ -758,12 +762,52 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {activeTab === "lainnya" && (
+                <div className="w-full">
+                  <div className="bg-white rounded-2xl border border-black/5 overflow-hidden">
+                    <div className="divide-y divide-black/5">
+                      <button
+                        onClick={() => setActiveTab("kelas")}
+                        className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-black/[0.02] transition-colors"
+                      >
+                        <GraduationCap className="size-5 text-black/70 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-black">Kelas</p>
+                          <p className="text-xs text-black/40 mt-0.5">Kelola kelas & mata kuliah</p>
+                        </div>
+                        <ChevronRight className="size-4 text-black/20 shrink-0" />
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("notifikasi")}
+                        className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-black/[0.02] transition-colors"
+                      >
+                        <Bell className="size-5 text-black/70 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-black">Bot & Notifikasi</p>
+                          <p className="text-xs text-black/40 mt-0.5">Telegram & pengaturan pengingat</p>
+                        </div>
+                        <ChevronRight className="size-4 text-black/20 shrink-0" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {(activeTab === "kelas" ||
                 activeTab === "lms" ||
                 activeTab === "notifikasi" ||
                 activeTab === "tugas" ||
                 activeTab === "profile") && (
                 <div className="w-full">
+                  {(activeTab === "kelas" || activeTab === "notifikasi") && (
+                    <button
+                      onClick={() => setActiveTab("lainnya")}
+                      className="lg:hidden flex items-center gap-1.5 text-sm text-black/60 mb-3 px-1"
+                    >
+                      <ChevronRight className="size-4 rotate-180" />
+                      Kembali ke Lainnya
+                    </button>
+                  )}
                   <div className="bg-white p-6 rounded-2xl border border-black/5">
                     {activeTab === "kelas" && (
                       <ClassSettings
