@@ -68,8 +68,7 @@ type TabType =
   | "tugas"
   | "kelas"
   | "lms"
-  | "bot"
-  | "general"
+  | "notifikasi"
   | "profile";
 const APP_VERSION = "v0.8.7";
 
@@ -470,8 +469,7 @@ export default function Dashboard() {
     { id: "tugas", label: "Tugas", icon: ListTodo },
     { id: "kelas", label: "Kelas", icon: GraduationCap },
     { id: "lms", label: "LMS", icon: BookOpen },
-    { id: "bot", label: "Bot", icon: Send },
-    { id: "general", label: "Notifikasi", icon: Bell },
+    { id: "notifikasi", label: "Bot & Notifikasi", icon: Bell },
   ];
 
   const activeSources = [
@@ -766,8 +764,7 @@ export default function Dashboard() {
 
               {(activeTab === "kelas" ||
                 activeTab === "lms" ||
-                activeTab === "bot" ||
-                activeTab === "general" ||
+                activeTab === "notifikasi" ||
                 activeTab === "tugas" ||
                 activeTab === "profile") && (
                 <div className="w-full">
@@ -837,51 +834,58 @@ export default function Dashboard() {
                         isTesting={isTesting}
                       />
                     )}
-                    {activeTab === "bot" && (
-                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 xl:gap-16">
-                        <TelegramConfig
-                          chatId={userData?.telegram_chat_id || ""}
-                          enabled={userData?.telegram_enabled || false}
-                          botUsername={
-                            userData?.telegram_bot_username || "resisst_bot"
-                          }
-                          onSave={handleUpdate}
-                          isLoading={isSaving}
-                        />
-                        <div className="xl:border-l xl:border-slate-100 xl:pl-16">
-                          <WhatsAppConfig />
+                    {activeTab === "notifikasi" && (
+                      <div className="space-y-8">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 xl:gap-16">
+                          <TelegramConfig
+                            chatId={userData?.telegram_chat_id || ""}
+                            enabled={userData?.telegram_enabled || false}
+                            botUsername={
+                              userData?.telegram_bot_username || "resisst_bot"
+                            }
+                            onSave={handleUpdate}
+                            isLoading={isSaving}
+                          />
+                          <div className="xl:border-l xl:border-slate-100 xl:pl-16">
+                            <WhatsAppConfig />
+                          </div>
+                        </div>
+                        <div className="h-px bg-black/5" />
+                        <div>
+                          <h3 className="text-sm font-semibold text-black mb-4 flex items-center gap-2">
+                            <Bell className="size-4" />
+                            Pengaturan Notifikasi
+                          </h3>
+                          <GeneralSettings
+                            reminderHours={(() => {
+                              try {
+                                const parsed = JSON.parse(
+                                  userData?.reminder_hours || "[24]",
+                                );
+                                return Array.isArray(parsed) ? parsed : [24];
+                              } catch {
+                                return [24];
+                              }
+                            })()}
+                            morningBriefing={userData?.morning_briefing || false}
+                            mutedCourses={(() => {
+                              try {
+                                const parsed = JSON.parse(
+                                  userData?.muted_courses || "[]",
+                                );
+                                return Array.isArray(parsed) ? parsed : [];
+                              } catch {
+                                return [];
+                              }
+                            })()}
+                            availableCourses={availableCourses}
+                            telegramConnected={!!userData?.telegram_chat_id}
+                            telegramEnabled={userData?.telegram_enabled || false}
+                            onSave={handleUpdate}
+                            isLoading={isSaving}
+                          />
                         </div>
                       </div>
-                    )}
-                    {activeTab === "general" && (
-                      <GeneralSettings
-                        reminderHours={(() => {
-                          try {
-                            const parsed = JSON.parse(
-                              userData?.reminder_hours || "[24]",
-                            );
-                            return Array.isArray(parsed) ? parsed : [24];
-                          } catch {
-                            return [24];
-                          }
-                        })()}
-                        morningBriefing={userData?.morning_briefing || false}
-                        mutedCourses={(() => {
-                          try {
-                            const parsed = JSON.parse(
-                              userData?.muted_courses || "[]",
-                            );
-                            return Array.isArray(parsed) ? parsed : [];
-                          } catch {
-                            return [];
-                          }
-                        })()}
-                        availableCourses={availableCourses}
-                        telegramConnected={!!userData?.telegram_chat_id}
-                        telegramEnabled={userData?.telegram_enabled || false}
-                        onSave={handleUpdate}
-                        isLoading={isSaving}
-                      />
                     )}
                     {activeTab === "profile" && userData && (
                       <ProfileSettings
