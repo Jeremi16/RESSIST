@@ -42,6 +42,11 @@ type Config struct {
 
 	AllowedOrigins []string
 
+	// BotServiceToken authenticates the standalone resisst-bot service.
+	// Bot calls /internal/* with X-Bot-Token and /v1/* with
+	// X-Bot-Token + X-Act-As-User. Empty = bot integration disabled.
+	BotServiceToken string
+
 	ApiKeyPrefix           string
 	ApiKeyMaxPerUser       int
 	ApiKeyRateLimitPerMinute int
@@ -85,6 +90,8 @@ func Load() (*Config, error) {
 		TelegramBotToken: getEnv("TELEGRAM_BOT_TOKEN", ""),
 
 		AllowedOrigins: getEnvAsList("ALLOWED_ORIGINS", "http://localhost:3000"),
+
+		BotServiceToken: getEnv("BOT_SERVICE_TOKEN", ""),
 
 		ApiKeyPrefix:             getEnv("API_KEY_PREFIX", "rsk_"),
 		ApiKeyMaxPerUser:         getEnvAsInt("API_KEY_MAX_PER_USER", 5),
