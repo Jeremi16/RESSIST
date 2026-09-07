@@ -22,6 +22,6 @@ WORKDIR /home/appuser
 
 COPY --from=builder /resisst-api /usr/local/bin/resisst-api
 
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -qO- http://127.0.0.1:8080/livez || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 --start-period=10s CMD sh -c 'wget -qO- http://127.0.0.1:${PORT:-8080}/livez || exit 1'
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/resisst-api"]

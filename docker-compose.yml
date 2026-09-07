@@ -47,10 +47,11 @@ services:
     ports:
       - "${API_PORT:-8080}:8080"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/livez"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:$${PORT:-8080}/livez || exit 1"]
       interval: 30s
       timeout: 3s
       retries: 3
+      start_period: 10s
     # Stateless: boleh scale. Contoh: docker compose up -d --scale api=2
     # (pastikan di depan ada load balancer / reverse proxy)
 
