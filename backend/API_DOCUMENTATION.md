@@ -10,7 +10,9 @@
 - OAuth login sets **HttpOnly cookie**: `refresh_token`
 - Access token is obtained from `POST /v1/auth/refresh`
 - Protected endpoints require header:
-  - `Authorization: Bearer <access_token>`
+  - `Authorization: Bearer <access_token>` (browser via BFF)
+  - **OR** `X-API-Key: rsk_...` (programmatic, tanpa buka website) — berlaku untuk `GET /v1/assignments`, `GET /v1/calendar/preview`, `GET /v1/courses`, `GET /v1/user`, `GET /v1/auth/me`
+  - Alternative header: `Authorization: ApiKey rsk_...`
 
 ## Common Headers
 
@@ -161,9 +163,48 @@ All user endpoints require `Authorization: Bearer <access_token>`.
 { "success": true }
 ```
 
+## API Keys (Programmatic Access)
+
+Tanpa buka website, cek tugas via `curl` / script pakai API key.
+
+### Manage via website (JWT required)
+- `POST /v1/api-keys` — buat key. Body: `{ "name": "curl laptop", "expires_in_days": 30 }` (opsional, 1-3650; omit = never). Response `201`:
+```json
+{
+  "id": "uuid",
+  "name": "curl laptop",
+  "prefix": "rsk_abc123",
+  "api_key": "rsk_... (hanya tampil sekali!)",
+  "expires_at": "2026-04-07T00:00:00Z",
+  "created_at": "2026-03-07T00:00:00Z"
+}
+```
+- `GET /v1/api-keys` — list keys (`{ "keys": [{ id, name, prefix, expires_at, last_used_at, revoked_at, created_at }] }`)
+- `DELETE /v1/api-keys/:id` — revoke key (`{ "success": true }`)
+- Max 5 key aktif/user. Rate limit 60/min per key (prefix bucket 15m TTL).
+
+### Pakai API key (tanpa login)
+```bash
+# buat key sekali via website (Dashboard -> API Keys)
+
+# cek tugas
+curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/assignments
+
+# alternatif header
+curl -H "Authorization: ApiKey rsk_xxx" https://resisst-api.nodryx.com/v1/assignments
+
+# kalender preview
+curl -H "X-API-Key: rsk_xxx" "https://resisst-api.nodryx.com/v1/calendar/preview?sort=deadline_asc"
+
+# courses & profile juga bisa
+curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/courses
+curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/user
+```
+BFF proxy: `GET/POST /api/api-keys` dan `DELETE /api/api-keys/:id` (frontend Dashboard tab API Keys).
+
 ## Calendar Endpoints
 
-All calendar endpoints require `Authorization: Bearer <access_token>`.
+Read endpoints support both auth methods: `Authorization: Bearer <access_token>` **or** `X-API-Key: rsk_...`.
 Current implementation is cache-based (reads `events` table only).
 
 ### `GET /v1/calendar/preview`
@@ -209,13 +250,15 @@ Current implementation is cache-based (reads `events` table only).
 { "error": "No LMS source configured for testing" }
 ```
 
-## Frontend BFF Proxy Endpoints (Next.js)
+## Frontend BFF Proxy Endpoints (Hono, Vercel Functions)
 
-Frontend (`frontend/app/api`) currently proxies key routes to backend:
+Frontend `frontend/server/app.ts` proxies key routes to backend:
 
 - `GET/PUT /api/user` -> `/v1/user`
 - `POST /api/user/google/disconnect` -> `/v1/user/google/disconnect`
 - `GET/POST /api/test-calendar` -> `/v1/calendar/preview|test`
 - `POST /api/auth/backend/sync` -> `/v1/auth/refresh` + `/v1/auth/me`
+- `GET/POST /api/api-keys` -> `/v1/api-keys`
+- `DELETE /api/api-keys/:id` -> `/v1/api-keys/:id`
 
-This is the recommended path for browser calls from frontend UI.
+This is the recommended path for browser calls from frontend UI. External programmatic consumers hit backend directly with `X-API-Key`.
