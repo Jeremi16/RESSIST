@@ -1,0 +1,95 @@
+# resisst — 3 deployable services (sejajar): frontend, backend (api), bot.
+# api stateless (replicas N ok). bot SINGLE replica (telegram long-polling).
+# Fix untuk "Conflict: terminated by other getUpdates": hanya container bot
+# yang memegang TELEGRAM_BOT_TOKEN + polling. api TIDAK polling lagi.
+name: resisst
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-resisst}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-resisst}
+      POSTGRES_DB: ${DB_NAME:-resisst}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENV: production
+      PORT: "8080"
+      DATABASE_URL: postgresql://${DB_USER:-resisst}:${DB_PASSWORD:-resisst}@db:5432/${DB_NAME:-resisst}?sslmode=disable
+      AUTO_MIGRATE: "true"
+      GIN_MODE: release
+      BOT_SERVICE_TOKEN: ${BOT_SERVICE_TOKEN:?set BOT_SERVICE_TOKEN in .env}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET in .env}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-}
+      ALLOWED_EMAIL_DOMAIN: ${ALLOWED_EMAIL_DOMAIN:-student.itera.ac.id}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
+      # Sender-only (POST /v1/telegram/test-*). Polling stays in bot.
+      # Sending from N processes is allowed; only getUpdates is exclusive.
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-resisst_bot}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/livez"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    # Stateless: boleh scale. Contoh: docker compose up -d --scale api=2
+    # (pastikan di depan ada load balancer / reverse proxy)
+
+  bot:
+    build: ./bot
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      ENV: production
+      BOT_PORT: "8081"
+      API_BASE_URL: http://api:8080
+      BOT_SERVICE_TOKEN: ${BOT_SERVICE_TOKEN:?set BOT_SERVICE_TOKEN in .env}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set TELEGRAM_BOT_TOKEN in .env}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-resisst_bot}
+    ports:
+      - "${BOT_PORT:-8081}:8081"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/livez"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    deploy:
+      replicas: 1
+    # JANGAN scale bot > 1. Satu poller saja, kalau tidak Telegram akan
+    # me-return "Conflict: terminated by other getUpdates request".
+
+  # Frontend (opsional di VPS; boleh deploy ke Vercel dan menunjuk ke api).
+  # Komentar: uncomment jika ingin serve frontend dari compose yang sama.
+  # frontend:
+  #   build: ./frontend
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - api
+  #   environment:
+  #     BACKEND_URL: http://api:8080
+  #   ports:
+  #     - "${FRONTEND_PORT:-3000}:3000"
+
+volumes:
+  pgdata:
