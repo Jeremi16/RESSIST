@@ -259,6 +259,16 @@ app.post("/auth/backend/sync", async (c) => {
   });
 });
 
+// ---------- api keys (manage via website, JWT only) ----------
+app.get("/api-keys", (c) => proxy(c, "/v1/api-keys", { method: "GET" }));
+app.post("/api-keys", async (c) => {
+  const body = await c.req.json();
+  return proxy(c, "/v1/api-keys", { method: "POST", body });
+});
+app.delete("/api-keys/:id", (c) =>
+  proxy(c, `/v1/api-keys/${c.req.param("id")}`, { method: "DELETE" }),
+);
+
 // ---------- debug (dev only) ----------
 app.get("/debug/cookies", (c) => {
   const cookieHeader = c.req.header("cookie") ?? "";
