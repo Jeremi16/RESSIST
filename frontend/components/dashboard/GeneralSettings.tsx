@@ -127,7 +127,7 @@ export function GeneralSettings({ reminderHours, morningBriefing, mutedCourses, 
                 <div className={cn('size-9 rounded-xl flex items-center justify-center shrink-0', canTest ? 'bg-black text-white' : 'bg-black/10 text-black/30')}>{testingBriefing ? <Loader2 className="size-4 animate-spin" /> : <Sunrise className="size-4" />}</div>
                 <div className="flex-1 min-w-0"><p className="text-sm font-medium text-black">Test Morning Briefing</p><p className="text-xs text-black/40 mt-0.5">{testingBriefing ? 'Mengirim...' : 'Kirim ringkasan pagi'}</p></div>
               </button>
-              {!canTest && <p className="text-center text-xs text-black/30 pt-1">Hubungkan & aktifkan Telegram di tab Bot terlebih dahulu</p>}
+              {!canTest && <p className="text-center text-xs text-black/30 pt-1">Hubungkan & aktifkan Telegram di bagian atas terlebih dahulu</p>}
             </div>
           </section>
 
