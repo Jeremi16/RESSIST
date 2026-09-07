@@ -14,7 +14,7 @@ import {
   clearSession,
   createSession,
 } from "./lib/session";
-import { getAppBaseUrl, getBackendBaseUrl, isProduction } from "./lib/env";
+import { getAppBaseUrl, getBackendBaseUrl, getCookieDomain, isProduction } from "./lib/env";
 
 export const app = new Hono().basePath("/api");
 
@@ -110,17 +110,106 @@ app.all("/test-telegram", (c) =>
 );
 
 // ---------- auth: google ----------
-app.get("/auth/google/login", (c) =>
-  c.redirect(`${getBackendBaseUrl()}/v1/auth/google/login`, 302),
-);
+// Beda domain (frontend vercel.app, backend railway.app) fix:
+// Backend set-cookie di domain backend tidak akan terbawa ke frontend.
+// Jadi login & callback di-proxy via BFF agar cookie di-set di domain frontend.
+// Lihat: handler.go:347 setCookie domain=COOKIE_DOMAIN -> butuh proxy.
 
-app.get("/auth/google/callback", (c) => {
+function getSetCookieHeaders(res: Response): string[] {
+  // Node 18+/Vercel: Headers.getSetCookie() ada; fallback ke get("set-cookie")
+  const anyHeaders = res.headers as unknown as { getSetCookie?: () => string[] };
+  if (typeof anyHeaders.getSetCookie === "function") {
+    return anyHeaders.getSetCookie();
+  }
+  const single = res.headers.get("set-cookie");
+  return single ? [single] : [];
+}
+
+app.get("/auth/google/login", async (c) => {
+  const backendUrl = `${getBackendBaseUrl()}/v1/auth/google/login`;
+  const res = await fetch(backendUrl, {
+    method: "GET",
+    redirect: "manual",
+    headers: {
+      "User-Agent": c.req.header("user-agent") || "resisst-frontend",
+      "X-Forwarded-For": c.req.header("x-forwarded-for") || "",
+    },
+  });
+
+  // Forward oauth_state cookie dari backend ke domain frontend
+  for (const sc of getSetCookieHeaders(res)) {
+    const m = sc.match(/oauth_state=([^;]+)/);
+    if (m?.[1]) {
+      setCookie(c, "oauth_state", m[1], {
+        httpOnly: true,
+        path: "/",
+        secure: isProduction(),
+        sameSite: "lax",
+        maxAge: 600,
+        ...(getCookieDomain() ? { domain: getCookieDomain() } : {}),
+      });
+    }
+  }
+
+  const location = res.headers.get("location");
+  if (location) return c.redirect(location, 302);
+  // fallback: biarkan browser redirect langsung ke backend
+  return c.redirect(backendUrl, 302);
+});
+
+app.get("/auth/google/callback", async (c) => {
   const target = new URL(`${getBackendBaseUrl()}/v1/auth/google/callback`);
   const incoming = new URL(c.req.url);
   incoming.searchParams.forEach((value, key) => {
     target.searchParams.append(key, value);
   });
-  return c.redirect(target.toString(), 302);
+
+  // Forward cookies (oauth_state) dari frontend ke backend
+  const cookieHeader = c.req.header("cookie") ?? "";
+  const res = await fetch(target.toString(), {
+    method: "GET",
+    redirect: "manual",
+    headers: {
+      Cookie: cookieHeader,
+      "User-Agent": c.req.header("user-agent") || "resisst-frontend",
+      "X-Forwarded-For": c.req.header("x-forwarded-for") || "",
+    },
+  });
+
+  // Capture refresh_token yang di-set backend, lalu set ulang di domain frontend
+  for (const sc of getSetCookieHeaders(res)) {
+    const refreshMatch = sc.match(/refresh_token=([^;]+)/);
+    if (refreshMatch?.[1]) {
+      setCookie(c, REFRESH_COOKIE_NAME, refreshMatch[1], {
+        httpOnly: true,
+        path: "/",
+        secure: isProduction(),
+        sameSite: "lax",
+        maxAge: 30 * 24 * 60 * 60,
+        ...(getCookieDomain() ? { domain: getCookieDomain() } : {}),
+      });
+    }
+    // oauth_state di-clear backend setelah validasi -> hapus juga di frontend
+    if (sc.includes("oauth_state=") && sc.match(/Max-Age=0|Expires=Thu, 01 Jan 1970/i)) {
+      const domain = getCookieDomain();
+      if (domain) {
+        // deleteCookie via setCookie maxAge 0 tidak ada di hono, pakai header manual
+        c.header("Set-Cookie", `oauth_state=; Path=/; Max-Age=0; ${domain ? `Domain=${domain}; ` : ""}SameSite=Lax`);
+      }
+    }
+  }
+
+  const location = res.headers.get("location");
+  if (location) return c.redirect(location, 302);
+
+  // fallback kalau backend tidak redirect (mis. error json)
+  try {
+    const body = (await res.text()) as string;
+    if (body) return c.html(body, res.status as 200);
+  } catch {
+    // ignore
+  }
+  return c.redirect(`${getAppBaseUrl()}/login`, 302);
 });
 
 // Alias lama /api/auth/google -> login
