@@ -63,22 +63,9 @@ export function LMSConfig({
     moodleUrlInput !== moodleUrl ||
     googleEnabledState !== googleEnabled;
 
-  const activeCount = [moodleEnabledState, googleEnabledState && googleConnected].filter(Boolean).length;
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-black">Sumber Tugas</h3>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-            activeCount > 0 ? "bg-black text-white" : "bg-black/5 text-black/40",
-          )}
-        >
-          <span className={cn("size-1.5 rounded-full", activeCount === 0 ? "bg-black/20" : "bg-emerald-400")} />
-          {activeCount} aktif
-        </span>
-      </div>
+      <h3 className="text-sm font-semibold text-black">Sumber Tugas</h3>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Moodle - simple */}
