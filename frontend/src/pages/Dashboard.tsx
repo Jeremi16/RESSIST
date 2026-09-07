@@ -27,6 +27,7 @@ import {
   ListTodo,
   Bell,
   MoreHorizontal,
+  KeyRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ import { useToast } from "@/components/ui/toast-provider";
 import { ProfileSettings } from "@/components/dashboard/ProfileSettings";
 import { ClassSettings } from "@/components/dashboard/ClassSettings";
 import { TimelineFilter } from "@/components/dashboard/TimelineFilter";
+import { ApiKeysSettings } from "@/components/dashboard/ApiKeysSettings";
 
 interface UserData {
   id: string;
@@ -65,6 +67,7 @@ type TabType =
   | "lms"
   | "notifikasi"
   | "profile"
+  | "api"
   | "lainnya";
 const APP_VERSION = "v0.8.7";
 
@@ -463,6 +466,7 @@ export default function Dashboard() {
     { id: "kelas", label: "Kelas", icon: GraduationCap },
     { id: "lms", label: "LMS", icon: BookOpen },
     { id: "notifikasi", label: "Bot & Notifikasi", icon: Bell },
+    { id: "api", label: "API Keys", icon: KeyRound },
   ];
 
   const activeSources = [
@@ -496,7 +500,7 @@ export default function Dashboard() {
         {(() => {
           const primaryIds: TabType[] = ["overview", "tugas", "lms", "profile"];
           const primaryTabs = primaryIds.map((id) => TABS.find((t) => t.id === id)!).filter(Boolean);
-          const lainnyaIds: TabType[] = ["kelas", "notifikasi", "lainnya"];
+          const lainnyaIds: TabType[] = ["kelas", "notifikasi", "api", "lainnya"];
           const isLainnyaActive = lainnyaIds.includes(activeTab);
           return (
             <>
@@ -784,18 +788,30 @@ export default function Dashboard() {
                         </div>
                         <ChevronRight className="size-4 text-black/20 shrink-0" />
                       </button>
+                      <button
+                        onClick={() => setActiveTab("api")}
+                        className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-black/[0.02] transition-colors"
+                      >
+                        <KeyRound className="size-5 text-black/70 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-black">API Keys</p>
+                          <p className="text-xs text-black/40 mt-0.5">Akses tugas via script / curl</p>
+                        </div>
+                        <ChevronRight className="size-4 text-black/20 shrink-0" />
+                      </button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {(activeTab === "kelas" ||
+                    {(activeTab === "kelas" ||
                 activeTab === "lms" ||
                 activeTab === "notifikasi" ||
                 activeTab === "tugas" ||
-                activeTab === "profile") && (
+                activeTab === "profile" ||
+                activeTab === "api") && (
                 <div className="w-full">
-                  {(activeTab === "kelas" || activeTab === "notifikasi") && (
+                    {(activeTab === "kelas" || activeTab === "notifikasi" || activeTab === "api") && (
                     <button
                       onClick={() => setActiveTab("lainnya")}
                       className="lg:hidden flex items-center gap-1.5 text-sm text-black/60 mb-3 px-1"
@@ -930,6 +946,7 @@ export default function Dashboard() {
                         isLoading={isSaving}
                       />
                     )}
+                    {activeTab === "api" && <ApiKeysSettings />}
                   </div>
                 </div>
               )}
