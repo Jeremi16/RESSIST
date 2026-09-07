@@ -14,27 +14,24 @@ export default function Panduan() {
       title="Panduan Memulai"
       subtitle="Mulai tingkatkan produktivitas akademik Anda hanya dalam 5 menit."
     >
-      <div className="space-y-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {STEPS.map((step, i) => (
-                <div key={i} className="p-10 rounded-[2.5rem] bg-slate-50 border border-slate-100 space-y-4">
-                    <div className="size-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-black text-sm">{i+1}</div>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight">{step.title}</h3>
-                    <p className="text-slate-500 font-medium text-sm leading-relaxed">{step.desc}</p>
-                </div>
-            ))}
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {STEPS.map((step, i) => (
+            <div key={i} className="p-6 rounded-2xl bg-white border border-black/5 space-y-3">
+              <div className="size-8 bg-black text-white rounded-full flex items-center justify-center text-sm font-medium">{i+1}</div>
+              <h3 className="text-base font-semibold text-black tracking-tight">{step.title}</h3>
+              <p className="text-sm text-black/60 leading-relaxed">{step.desc}</p>
+            </div>
+          ))}
         </div>
 
-        <section className="bg-blue-600 rounded-[2.5rem] p-12 text-white flex flex-col items-center text-center space-y-8">
-            <div className="size-20 bg-white/10 rounded-full flex items-center justify-center text-4xl">📚</div>
-            <div className="space-y-2">
-                <h3 className="text-3xl font-black tracking-tight">Butuh panduan lengkap?</h3>
-                <p className="text-blue-100 font-medium">Download PDF panduan penggunaan eksklusif untuk mahasiswa Itera.</p>
-            </div>
-            <button className="h-14 px-8 bg-white text-blue-600 rounded-2xl font-black uppercase tracking-widest transition-all hover:bg-blue-50">
-                Download PDF
-            </button>
-        </section>
+        <div className="bg-black rounded-2xl p-8 text-white flex flex-col items-center text-center space-y-4">
+          <h3 className="text-xl font-semibold tracking-tight">Butuh panduan lengkap?</h3>
+          <p className="text-sm text-white/60">Download PDF panduan penggunaan eksklusif untuk mahasiswa ITERA.</p>
+          <button className="h-10 px-6 bg-white text-black rounded-full text-sm font-medium">
+            Download PDF
+          </button>
+        </div>
       </div>
     </InfoLayout>
   )

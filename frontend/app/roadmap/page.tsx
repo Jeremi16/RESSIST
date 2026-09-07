@@ -12,21 +12,19 @@ export default function Roadmap() {
     <InfoLayout 
       category="Produk"
       title="Roadmap Pengembangan"
-      subtitle="Melihat rencana masa depan Resisst untuk mendukung prestasimu."
+      subtitle="Rencana masa depan Resisst untuk mendukung prestasimu."
     >
-      <div className="space-y-12">
-        <div className="relative space-y-8 before:absolute before:left-8 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
-            {MILESTONES.map((item, i) => (
-                <div key={i} className="relative pl-20 group">
-                    <div className={`absolute left-8 -translate-x-1/2 top-4 size-8 rounded-full border-4 border-white shadow-sm transition-all ${item.status === 'Done' ? 'bg-green-500' : item.status === 'In Progress' ? 'bg-blue-600 animate-pulse' : 'bg-slate-300'}`} />
-                    <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm transition-all group-hover:scale-[1.01] group-hover:shadow-md">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">{item.quarter} • {item.status}</span>
-                        <h3 className="text-xl font-black text-slate-900 mb-2">{item.title}</h3>
-                        <p className="text-sm text-slate-500 font-medium leading-relaxed">{item.desc}</p>
-                    </div>
-                </div>
-            ))}
-        </div>
+      <div className="relative space-y-4 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-black/5">
+        {MILESTONES.map((item, i) => (
+          <div key={i} className="relative pl-12">
+            <div className={`absolute left-4 -translate-x-1/2 top-5 size-3 rounded-full ${item.status === 'Done' ? 'bg-black' : item.status === 'In Progress' ? 'bg-black' : 'bg-black/20'}`} />
+            <div className="bg-white p-6 rounded-2xl border border-black/5">
+              <span className="text-xs text-black/40">{item.quarter} • {item.status}</span>
+              <h3 className="text-base font-semibold text-black mt-1 mb-1">{item.title}</h3>
+              <p className="text-sm text-black/60 leading-relaxed">{item.desc}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </InfoLayout>
   )
