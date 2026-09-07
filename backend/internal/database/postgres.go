@@ -36,7 +36,7 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 	sqlDB.SetConnMaxIdleTime(10 * time.Minute)
 
 	if autoMigrate {
-		if err := db.AutoMigrate(&models.User{}, &models.RefreshToken{}, &models.Event{}, &models.Course{}); err != nil {
+		if err := db.AutoMigrate(&models.User{}, &models.RefreshToken{}, &models.Event{}, &models.Course{}, &models.ApiKey{}); err != nil {
 			return nil, fmt.Errorf("auto migrate: %w", err)
 		}
 	}
