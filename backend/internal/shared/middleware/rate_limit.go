@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -76,6 +77,46 @@ func AuthRateLimit(perMinute int, burst int) gin.HandlerFunc {
 			return
 		}
 
+		c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+			"error":      "too many requests",
+			"request_id": GetRequestID(c),
+		})
+	}
+}
+
+func ApiKeyRateLimit(perMinute int, burst int) gin.HandlerFunc {
+	if perMinute <= 0 {
+		perMinute = 60
+	}
+	if burst <= 0 {
+		burst = 20
+	}
+	limiter := newIPRateLimiter(rate.Every(time.Minute/time.Duration(perMinute)), burst, 15*time.Minute)
+
+	return func(c *gin.Context) {
+		// Prefer per-key bucket if API key present, else IP
+		key := c.GetHeader("X-API-Key")
+		if key == "" {
+			auth := c.GetHeader("Authorization")
+			if strings.HasPrefix(auth, "ApiKey ") {
+				key = strings.TrimSpace(strings.TrimPrefix(auth, "ApiKey "))
+			} else if strings.HasPrefix(auth, "apikey ") {
+				key = strings.TrimSpace(strings.TrimPrefix(auth, "apikey "))
+			}
+		}
+		bucket := c.ClientIP()
+		if key != "" {
+			// use prefix to group (avoid storing raw in map key hash)
+			if len(key) > 12 {
+				bucket = "apikey:" + key[:12]
+			} else {
+				bucket = "apikey:" + key
+			}
+		}
+		if limiter.allow(bucket) {
+			c.Next()
+			return
+		}
 		c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
 			"error":      "too many requests",
 			"request_id": GetRequestID(c),

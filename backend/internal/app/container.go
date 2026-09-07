@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/jeremi16/resisst-api/internal/config"
+	"github.com/jeremi16/resisst-api/internal/modules/apikey"
 	"github.com/jeremi16/resisst-api/internal/modules/assignment"
 	"github.com/jeremi16/resisst-api/internal/modules/auth"
 	"github.com/jeremi16/resisst-api/internal/modules/calendar"
@@ -20,6 +21,7 @@ type Container struct {
 	Course           *course.Module
 	Telegram         *telegram.Module
 	Assignment       *assignment.Module
+	ApiKey           *apikey.Module
 }
 
 func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
@@ -50,6 +52,10 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	if err != nil {
 		return nil, err
 	}
+	apiKeyMod, err := apikey.New(db, cfg)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Container{
 		Config:     cfg,
@@ -60,5 +66,6 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		Course:     courseMod,
 		Telegram:   telegramMod,
 		Assignment: assignmentMod,
+		ApiKey:     apiKeyMod,
 	}, nil
 }

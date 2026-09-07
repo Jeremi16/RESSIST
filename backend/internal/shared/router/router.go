@@ -8,6 +8,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jeremi16/resisst-api/internal/config"
+	"github.com/jeremi16/resisst-api/internal/modules/apikey"
 	"github.com/jeremi16/resisst-api/internal/modules/assignment"
 	"github.com/jeremi16/resisst-api/internal/modules/auth"
 	"github.com/jeremi16/resisst-api/internal/modules/calendar"
@@ -28,6 +29,7 @@ func New(
 	courseModule *course.Module,
 	telegramModule *telegram.Module,
 	assignmentModule *assignment.Module,
+	apiKeyModule *apikey.Module,
 ) *gin.Engine {
 	if cfg.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -40,8 +42,8 @@ func New(
 	r.Use(middleware.HTTPMetrics())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.AllowedOrigins,
-		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodOptions},
-		AllowHeaders:     []string{"Authorization", "Content-Type", "X-Request-ID"},
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowHeaders:     []string{"Authorization", "Content-Type", "X-Request-ID", "X-API-Key"},
 		ExposeHeaders:    []string{"X-Request-ID"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -82,26 +84,35 @@ func New(
 	v1AuthGroup := v1.Group("/auth")
 	registerAuthRoutes(v1AuthGroup, authModule.Handler, tokenParser, authRateLimit)
 
-	// User
+	// API Keys management (JWT only — create/list/revoke via website)
+	if apiKeyModule != nil {
+		apiKeyGroup := v1.Group("/api-keys")
+		apikey.RegisterRoutes(apiKeyGroup, apiKeyModule.Handler, tokenParser)
+	}
+
+	// External read API — supports X-API-Key OR JWT (for programmatic access without website)
+	apiKeyValidator := apiKeyModule.Service
+	apiKeyRateLimit := middleware.ApiKeyRateLimit(cfg.ApiKeyRateLimitPerMinute, cfg.ApiKeyRateLimitBurst)
+
+	// User — GET allows API key, mutations JWT only
 	userGroup := v1.Group("/user")
-	userGroup.Use(middleware.AccessToken(tokenParser))
-	userGroup.GET("", userModule.Handler.GetCurrentUser)
-	userGroup.PUT("", userModule.Handler.UpdateCurrentUser)
-	userGroup.POST("/google/disconnect", userModule.Handler.DisconnectGoogleClassroom)
-	userGroup.GET("/course-aliases", userModule.Handler.GetCourseAliases)
-	userGroup.POST("/course-aliases", userModule.Handler.AddCourseAlias)
-	userGroup.DELETE("/course-aliases", userModule.Handler.DeleteCourseAlias)
-	userGroup.POST("/telegram/verify-code", userModule.Handler.GenerateTelegramVerifyCode)
+	userGroup.GET("", middleware.APIKeyOrJWT(tokenParser, apiKeyValidator), apiKeyRateLimit, userModule.Handler.GetCurrentUser)
+	userGroup.PUT("", middleware.AccessToken(tokenParser), userModule.Handler.UpdateCurrentUser)
+	userGroup.POST("/google/disconnect", middleware.AccessToken(tokenParser), userModule.Handler.DisconnectGoogleClassroom)
+	userGroup.GET("/course-aliases", middleware.AccessToken(tokenParser), userModule.Handler.GetCourseAliases)
+	userGroup.POST("/course-aliases", middleware.AccessToken(tokenParser), userModule.Handler.AddCourseAlias)
+	userGroup.DELETE("/course-aliases", middleware.AccessToken(tokenParser), userModule.Handler.DeleteCourseAlias)
+	userGroup.POST("/telegram/verify-code", middleware.AccessToken(tokenParser), userModule.Handler.GenerateTelegramVerifyCode)
 
 	// Calendar
 	calendarGroup := v1.Group("/calendar")
-	calendarGroup.Use(middleware.AccessToken(tokenParser))
+	calendarGroup.Use(middleware.APIKeyOrJWT(tokenParser, apiKeyValidator), apiKeyRateLimit)
 	calendarGroup.GET("/preview", calendarModule.Handler.GetPreview)
 	calendarGroup.POST("/test", calendarModule.Handler.TestPreview)
 
 	// Courses
 	courseGroup := v1.Group("/courses")
-	courseGroup.Use(middleware.AccessToken(tokenParser))
+	courseGroup.Use(middleware.APIKeyOrJWT(tokenParser, apiKeyValidator), apiKeyRateLimit)
 	courseGroup.GET("", courseModule.Handler.GetAllCourses)
 
 	// Telegram
@@ -110,11 +121,10 @@ func New(
 	telegramGroup.POST("/test-reminder", telegramModule.Handler.SendTestReminder)
 	telegramGroup.POST("/test-briefing", telegramModule.Handler.SendMorningBriefing)
 
-	// Assignments
+	// Assignments — GET via API key, complete via JWT only
 	assignmentGroup := v1.Group("/assignments")
-	assignmentGroup.Use(middleware.AccessToken(tokenParser))
-	assignmentGroup.GET("", assignmentModule.Handler.GetAssignments)
-	assignmentGroup.POST("/complete", assignmentModule.Handler.CompleteAssignment)
+	assignmentGroup.GET("", middleware.APIKeyOrJWT(tokenParser, apiKeyValidator), apiKeyRateLimit, assignmentModule.Handler.GetAssignments)
+	assignmentGroup.POST("/complete", middleware.AccessToken(tokenParser), assignmentModule.Handler.CompleteAssignment)
 
 	return r
 }

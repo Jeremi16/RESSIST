@@ -31,7 +31,7 @@ func main() {
 		log.Fatalf("init container: %v", err)
 	}
 
-	engine := router.New(cfg, db, container.Auth, container.User, container.Calendar, container.Course, container.Telegram, container.Assignment)
+	engine := router.New(cfg, db, container.Auth, container.User, container.Calendar, container.Course, container.Telegram, container.Assignment, container.ApiKey)
 
 	requestTimeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second
 	if requestTimeout <= 0 {
