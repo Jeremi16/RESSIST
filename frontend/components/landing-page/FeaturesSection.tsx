@@ -1,98 +1,70 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  Calendar,
-  Bell,
-  Shield,
-  Smartphone,
-  GraduationCap,
-  Send,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Calendar, Bell, GraduationCap, Send } from "lucide-react";
 
 const features = [
   {
     name: "Sinkronisasi Moodle",
     description: "Sinkronisasi instan dengan kalender Moodle ITERA.",
     icon: Calendar,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
   },
   {
     name: "Sinkronisasi Classroom",
     description: "Integrasi otomatis dengan Google Classroom.",
     icon: GraduationCap,
-    color: "text-orange-600",
-    bg: "bg-orange-50",
   },
   {
     name: "Bot Telegram",
     description: "Dapatkan notifikasi tugas langsung via Bot Telegram.",
     icon: Send,
-    color: "text-sky-600",
-    bg: "bg-sky-50",
   },
   {
     name: "Bot WhatsApp",
     description:
       "Pesan pengingat langsung ke WhatsApp pribadimu. Cara tercepat tetap update.",
     icon: Bell,
-    color: "text-green-600",
-    bg: "bg-green-50",
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section
-      id="features"
-      className="bg-white py-24 sm:py-32 relative overflow-hidden"
-    >
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-3xl mb-24">
+    <section id="features" className="bg-[#F5F0EB] px-4 lg:px-8 pb-8">
+      <div className="mx-auto max-w-[1280px] bg-white rounded-[24px] border border-black/5 px-6 lg:px-10 py-12 lg:py-16">
+        <div className="max-w-2xl mb-12">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.4 }}
           >
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-blue-600 mb-4">
-              Kemampuan Utama
+            <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight text-black leading-tight mb-4 text-balance">
+              Asisten studi terbaik untuk anak ITERA.
             </h2>
-            <p className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-6">
-              Asisten studi terbaik <br /> untuk anak ITERA.
-            </p>
-            <p className="text-lg text-slate-500 max-w-xl leading-relaxed">
+            <p className="text-sm lg:text-base text-black/60 leading-relaxed">
               Resisst bukan sekadar Website, Resisst adalah sistem produktivitas
-              yang dirancang untuk membantu deadliners stres akibat deadline
-              tugas.
+              yang dirancang untuk membantu deadliners mengelola deadline tugas.
             </p>
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {features.map((feature, index) => (
             <motion.div
               key={feature.name}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group p-8 rounded-[2rem] bg-white border border-slate-100 hover:border-blue-200 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] transition-all"
+              transition={{ duration: 0.4, delay: index * 0.06 }}
+              className="p-6 rounded-2xl bg-white border border-black/5 hover:border-black/10 transition-colors"
             >
-              <div
-                className={cn(
-                  "size-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110",
-                  feature.bg,
-                )}
-              >
-                <feature.icon className={cn("size-7", feature.color)} />
+              <div className="size-10 rounded-xl bg-black text-white flex items-center justify-center mb-5">
+                <feature.icon className="size-5" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">
+              <h3 className="text-[15px] font-semibold text-black tracking-tight mb-2">
                 {feature.name}
               </h3>
-              <p className="text-slate-500 leading-relaxed text-sm">
+              <p className="text-sm text-black/60 leading-relaxed">
                 {feature.description}
               </p>
             </motion.div>

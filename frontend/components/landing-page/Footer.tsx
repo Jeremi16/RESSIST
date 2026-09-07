@@ -1,18 +1,18 @@
 export function Footer() {
   return (
-    <footer className="bg-blue-600 text-white py-16 lg:py-12 mt-auto">
-      <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">
+    <footer className="bg-[#111111] text-white">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           <div className="lg:col-span-4">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="size-10 bg-white rounded-xl flex items-center justify-center text-blue-600 text-xl font-black rotate-3">
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="size-8 rounded-lg bg-white flex items-center justify-center text-black text-sm font-bold">
                 R
               </div>
-              <span className="text-2xl font-black tracking-tighter">
+              <span className="text-[15px] font-semibold tracking-tight">
                 Resisst
               </span>
             </div>
-            <p className="text-blue-100 max-w-xs leading-relaxed text-sm">
+            <p className="text-sm text-white/60 leading-relaxed max-w-xs">
               Membangun masa depan produktivitas akademik. Tetap teratur, tetap
               fokus, tetap unggul.
             </p>
@@ -51,15 +51,15 @@ export function Footer() {
                 },
               ].map((group) => (
                 <div key={group.title}>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-blue-100 mb-4">
+                  <h3 className="text-xs font-medium tracking-wide text-white/40 mb-4">
                     {group.title}
                   </h3>
-                  <ul className="space-y-3">
+                  <ul className="space-y-2.5">
                     {group.links.map((link) => (
                       <li key={link.name}>
                         <a
                           href={link.href}
-                          className="text-white/80 hover:text-white transition-colors text-sm font-medium"
+                          className="text-sm text-white/70 hover:text-white transition-colors"
                         >
                           {link.name}
                         </a>
@@ -72,8 +72,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-white/20 text-center">
-          <p className="text-blue-100 text-sm">
+        <div className="mt-10 pt-6 border-t border-white/10">
+          <p className="text-sm text-white/40">
             &copy; 2026 Resisst. Hak cipta dilindungi.
           </p>
         </div>

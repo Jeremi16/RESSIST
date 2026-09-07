@@ -29,48 +29,46 @@ const steps = [
 
 export function StepsSection() {
   return (
-    <section id="how-it-works" className="py-32 bg-white">
-      <div className="container mx-auto px-6">
-        <div className="text-center max-w-2xl mx-auto mb-20">
+    <section id="how-it-works" className="bg-[#F5F0EB] py-16 lg:py-20">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-14">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.4 }}
           >
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-blue-600 mb-4">
-              Alur Kerja
+            <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight text-black leading-tight text-balance">
+              Dari Deadliners jadi non-chalant.
             </h2>
-            <p className="text-4xl font-black text-slate-900 tracking-tight leading-tight">
-              Dari Deadliners jadi <br /> non-chalant.
-            </p>
           </motion.div>
         </div>
 
         <div className="relative">
-          {/* Connector Line (Desktop) */}
-          <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
+          <div className="hidden lg:block absolute top-6 left-[12%] right-[12%] h-px bg-black/5" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
             {steps.map((step, index) => (
               <motion.div
                 key={step.title}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="flex flex-col items-center text-center group"
+                transition={{ duration: 0.4, delay: index * 0.06 }}
+                className="flex flex-col items-center text-center"
               >
-                <div className="size-20 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-center mb-8 group-hover:bg-blue-600 group-hover:border-blue-500 transition-all duration-500 shadow-sm relative">
-                  <step.icon className="size-8 text-slate-400 group-hover:text-white transition-colors" />
-                  <div className="absolute -top-2 -right-2 size-8 bg-white rounded-full border border-slate-100 flex items-center justify-center text-xs font-black text-slate-900 shadow-lg">
-                    0{index + 1}
+                <div className="relative mb-5">
+                  <div className="size-12 rounded-xl bg-white border border-black/5 flex items-center justify-center">
+                    <step.icon className="size-5 text-black/70" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 size-6 bg-black rounded-full flex items-center justify-center text-[10px] font-semibold text-white">
+                    {index + 1}
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">
+                <h3 className="text-[15px] font-semibold text-black tracking-tight mb-1.5">
                   {step.title}
                 </h3>
-                <p className="text-slate-500 text-sm leading-relaxed max-w-[200px]">
+                <p className="text-sm text-black/60 leading-relaxed max-w-[200px] text-balance">
                   {step.description}
                 </p>
               </motion.div>
