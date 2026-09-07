@@ -6,6 +6,7 @@ import (
 )
 
 // RegisterRoutes registers telegram routes onto the given router group.
+// Deprecated: canonical routes live in router.go (/v1/telegram).
 func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, parser middleware.TokenParser) {
 	h.registerTelegramRoutes(rg, parser)
 }

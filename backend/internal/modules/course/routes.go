@@ -6,6 +6,8 @@ import (
 )
 
 // RegisterRoutes registers course routes onto the given router group.
+// Deprecated: canonical routes live in router.go (/v1/courses) with APIKeyOrJWT.
+// This helper stays JWT-only for isolated use.
 func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, parser middleware.TokenParser) {
 	h.registerCourseRoutes(rg, parser)
 }

@@ -6,6 +6,8 @@ import (
 )
 
 // RegisterRoutes registers assignment routes onto the given router group.
+// Deprecated: canonical routes live in router.go (/v1/assignments, GET supports API key).
+// This helper stays JWT-only for isolated use.
 func (h *Handler) RegisterRoutes(rg *gin.RouterGroup, parser middleware.TokenParser) {
 	h.registerAssignmentRoutes(rg, parser)
 }
