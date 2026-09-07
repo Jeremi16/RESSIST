@@ -14,12 +14,42 @@
     }
   ],
   "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Health check (alias livez)",
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+        }
+      }
+    },
     "/livez": {
       "get": {
         "summary": "Liveness probe",
         "responses": {
           "200": {
             "description": "Service is alive"
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Prometheus metrics",
+        "responses": {
+          "200": {
+            "description": "metrics"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "summary": "OpenAPI document",
+        "responses": {
+          "200": {
+            "description": "OpenAPI JSON"
           }
         }
       }
@@ -37,12 +67,150 @@
         }
       }
     },
-    "/v1/auth/google/login": {
+    "/v1/api-keys": {
       "get": {
-        "summary": "Start Google OAuth login",
+        "summary": "List API keys",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "307": {
-            "description": "Redirect to Google OAuth"
+          "200": {
+            "description": "List of API keys"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create API key",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Key label (1-64 chars)"
+                  },
+                  "expires_in_days": {
+                    "type": "integer",
+                    "description": "Null = never, 1-3650"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created - api_key shown once"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/api-keys/{id}": {
+      "delete": {
+        "summary": "Revoke API key",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/v1/assignments": {
+      "get": {
+        "summary": "Get assignments (supports API key)",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assignments"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/assignments/complete": {
+      "post": {
+        "summary": "Mark assignment complete",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "assignment_id"
+                ],
+                "properties": {
+                  "assignment_id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "marked complete"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "not found"
           }
         }
       }
@@ -57,15 +225,12 @@
         }
       }
     },
-    "/v1/auth/refresh": {
-      "post": {
-        "summary": "Refresh access token",
+    "/v1/auth/google/login": {
+      "get": {
+        "summary": "Start Google OAuth login",
         "responses": {
-          "200": {
-            "description": "Refreshed access token"
-          },
-          "401": {
-            "description": "Invalid refresh token"
+          "307": {
+            "description": "Redirect to Google OAuth"
           }
         }
       }
@@ -94,6 +259,19 @@
           },
           "401": {
             "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "summary": "Refresh access token",
+        "responses": {
+          "200": {
+            "description": "Refreshed access token"
+          },
+          "401": {
+            "description": "Invalid refresh token"
           }
         }
       }
@@ -165,295 +343,6 @@
           },
           "401": {
             "description": "Unauthorized"
-          }
-        }
-      }
-    },
-    "/v1/user": {
-      "get": {
-        "summary": "Get current user settings/profile",
-        "security": [
-          {
-            "bearerAuth": []
-          },
-          {
-            "apiKey": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Current user settings",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "avatar_url": {
-                      "type": "string"
-                    },
-                    "whatsapp_number": {
-                      "type": "string"
-                    },
-                    "whatsapp_enabled": {
-                      "type": "boolean"
-                    },
-                    "telegram_chat_id": {
-                      "type": "string"
-                    },
-                    "telegram_enabled": {
-                      "type": "boolean"
-                    },
-                    "moodle_enabled": {
-                      "type": "boolean"
-                    },
-                    "moodle_calendar_url": {
-                      "type": "string"
-                    },
-                    "google_classroom_enabled": {
-                      "type": "boolean"
-                    },
-                    "google_connected": {
-                      "type": "boolean"
-                    },
-                    "telegram_bot_username": {
-                      "type": "string"
-                    },
-                    "reminder_hours": {
-                      "type": "string"
-                    },
-                    "morning_briefing": {
-                      "type": "boolean"
-                    },
-                    "muted_courses": {
-                      "type": "string"
-                    },
-                    "course_aliases": {
-                      "type": "object"
-                    },
-                    "class_code": {
-                      "type": "string",
-                      "description": "User's class code for filtering assignments (e.g., RA, RB, RC)"
-                    },
-                    "created_at": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "summary": "Update current user settings/profile",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "whatsapp_number": {
-                    "type": "string"
-                  },
-                  "whatsapp_enabled": {
-                    "type": "boolean"
-                  },
-                  "telegram_chat_id": {
-                    "type": "string"
-                  },
-                  "telegram_enabled": {
-                    "type": "boolean"
-                  },
-                  "moodle_enabled": {
-                    "type": "boolean"
-                  },
-                  "moodle_calendar_url": {
-                    "type": "string"
-                  },
-                  "google_classroom_enabled": {
-                    "type": "boolean"
-                  },
-                  "reminder_hours": {
-                    "type": "string"
-                  },
-                  "morning_briefing": {
-                    "type": "boolean"
-                  },
-                  "muted_courses": {
-                    "type": "string"
-                  },
-                  "course_aliases": {
-                    "type": "string"
-                  },
-                  "class_code": {
-                    "type": "string",
-                    "description": "User's class code for filtering assignments (e.g., RA, RB, RC)"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated user settings"
-          }
-        }
-      }
-    },
-    "/v1/user/google/disconnect": {
-      "post": {
-        "summary": "Disconnect Google Classroom for current user",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Disconnected"
-          }
-        }
-      }
-    },
-    "/v1/user/course-aliases": {
-      "get": {
-        "summary": "Get all course aliases for current user",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Course aliases",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "aliases": {
-                      "type": "object",
-                      "description": "Map of original course names to aliases",
-                      "example": {
-                        "Mathematics 101": "Kalkulus",
-                        "Introduction to Programming": "Pemrograman Dasar"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Add or update a course alias",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "original_name",
-                  "alias"
-                ],
-                "properties": {
-                  "original_name": {
-                    "type": "string",
-                    "description": "Original course name from LMS"
-                  },
-                  "alias": {
-                    "type": "string",
-                    "description": "Custom alias for the course"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Alias added/updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "aliases": {
-                      "type": "object",
-                      "description": "Updated map of course aliases"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a course alias",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "original_name"
-                ],
-                "properties": {
-                  "original_name": {
-                    "type": "string",
-                    "description": "Original course name to remove alias"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Alias deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "aliases": {
-                      "type": "object",
-                      "description": "Updated map of course aliases"
-                    }
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -640,115 +529,6 @@
         }
       }
     },
-    "/v1/api-keys": {
-      "get": {
-        "summary": "List API keys",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of API keys"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      },
-      "post": {
-        "summary": "Create API key",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "name"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Key label (1-64 chars)"
-                  },
-                  "expires_in_days": {
-                    "type": "integer",
-                    "description": "Null = never, 1-3650"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created - api_key shown once"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
-    "/v1/api-keys/{id}": {
-      "delete": {
-        "summary": "Revoke API key",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Revoked"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
-    "/v1/assignments": {
-      "get": {
-        "summary": "Get assignments (supports API key)",
-        "security": [
-          {
-            "bearerAuth": []
-          },
-          {
-            "apiKey": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Assignments"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
     "/v1/courses": {
       "get": {
         "summary": "Get courses (supports API key)",
@@ -763,6 +543,359 @@
         "responses": {
           "200": {
             "description": "Courses"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/openapi.json": {
+      "get": {
+        "summary": "OpenAPI document (versioned)",
+        "responses": {
+          "200": {
+            "description": "OpenAPI JSON"
+          }
+        }
+      }
+    },
+    "/v1/telegram/test-briefing": {
+      "post": {
+        "summary": "Send Telegram morning briefing",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "sent"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/telegram/test-reminder": {
+      "post": {
+        "summary": "Send Telegram test reminder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "sent"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/user": {
+      "get": {
+        "summary": "Get current user settings/profile",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current user settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "avatar_url": {
+                      "type": "string"
+                    },
+                    "whatsapp_number": {
+                      "type": "string"
+                    },
+                    "whatsapp_enabled": {
+                      "type": "boolean"
+                    },
+                    "telegram_chat_id": {
+                      "type": "string"
+                    },
+                    "telegram_enabled": {
+                      "type": "boolean"
+                    },
+                    "moodle_enabled": {
+                      "type": "boolean"
+                    },
+                    "moodle_calendar_url": {
+                      "type": "string"
+                    },
+                    "google_classroom_enabled": {
+                      "type": "boolean"
+                    },
+                    "google_connected": {
+                      "type": "boolean"
+                    },
+                    "telegram_bot_username": {
+                      "type": "string"
+                    },
+                    "reminder_hours": {
+                      "type": "string"
+                    },
+                    "morning_briefing": {
+                      "type": "boolean"
+                    },
+                    "muted_courses": {
+                      "type": "string"
+                    },
+                    "course_aliases": {
+                      "type": "object"
+                    },
+                    "class_code": {
+                      "type": "string",
+                      "description": "User's class code for filtering assignments (e.g., RA, RB, RC)"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update current user settings/profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "whatsapp_number": {
+                    "type": "string"
+                  },
+                  "whatsapp_enabled": {
+                    "type": "boolean"
+                  },
+                  "telegram_chat_id": {
+                    "type": "string"
+                  },
+                  "telegram_enabled": {
+                    "type": "boolean"
+                  },
+                  "moodle_enabled": {
+                    "type": "boolean"
+                  },
+                  "moodle_calendar_url": {
+                    "type": "string"
+                  },
+                  "google_classroom_enabled": {
+                    "type": "boolean"
+                  },
+                  "reminder_hours": {
+                    "type": "string"
+                  },
+                  "morning_briefing": {
+                    "type": "boolean"
+                  },
+                  "muted_courses": {
+                    "type": "string"
+                  },
+                  "course_aliases": {
+                    "type": "string"
+                  },
+                  "class_code": {
+                    "type": "string",
+                    "description": "User's class code for filtering assignments (e.g., RA, RB, RC)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated user settings"
+          }
+        }
+      }
+    },
+    "/v1/user/course-aliases": {
+      "get": {
+        "summary": "Get all course aliases for current user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Course aliases",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "aliases": {
+                      "type": "object",
+                      "description": "Map of original course names to aliases",
+                      "example": {
+                        "Mathematics 101": "Kalkulus",
+                        "Introduction to Programming": "Pemrograman Dasar"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add or update a course alias",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "original_name",
+                  "alias"
+                ],
+                "properties": {
+                  "original_name": {
+                    "type": "string",
+                    "description": "Original course name from LMS"
+                  },
+                  "alias": {
+                    "type": "string",
+                    "description": "Custom alias for the course"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Alias added/updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "aliases": {
+                      "type": "object",
+                      "description": "Updated map of course aliases"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a course alias",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "original_name"
+                ],
+                "properties": {
+                  "original_name": {
+                    "type": "string",
+                    "description": "Original course name to remove alias"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Alias deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "aliases": {
+                      "type": "object",
+                      "description": "Updated map of course aliases"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/user/google/disconnect": {
+      "post": {
+        "summary": "Disconnect Google Classroom for current user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Disconnected"
+          }
+        }
+      }
+    },
+    "/v1/user/telegram/verify-code": {
+      "post": {
+        "summary": "Generate Telegram verify code",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "code generated"
           },
           "401": {
             "description": "Unauthorized"

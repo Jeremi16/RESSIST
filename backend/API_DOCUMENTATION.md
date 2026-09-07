@@ -103,7 +103,7 @@ Recommended: use `/v1/auth/*`.
 
 ## User Endpoints
 
-All user endpoints require `Authorization: Bearer <access_token>`.
+`GET /v1/user` mendukung `Bearer` atau `X-API-Key`; sisanya `Bearer` only (via BFF).
 
 ### `GET /v1/user`
 - Get current user profile + settings.
@@ -162,6 +162,40 @@ All user endpoints require `Authorization: Bearer <access_token>`.
 ```json
 { "success": true }
 ```
+
+### `POST /v1/user/telegram/verify-code`
+- Generate 6-char verify code untuk Telegram (valid 10 menit). `Bearer` only.
+- Response `200`:
+```json
+{ "code": "ABCDEFG1", "expires_at": "2026-03-13T10:10:00Z" }
+```
+
+### `GET /v1/user/course-aliases` / `POST` / `DELETE`
+- CRUD alias mata kuliah. `Bearer` only. Body `{"original_name","alias"}`.
+
+## Assignment Endpoints
+
+### `GET /v1/assignments`
+- Daftar tugas terfilter (muted/class/keyword), ordered deadline ASC. Mendukung `X-API-Key` atau `Bearer`.
+
+### `POST /v1/assignments/complete`
+- Tandai tugas selesai. `Bearer` only. Body `{"assignment_id":"uuid"}`. Response `200`:
+```json
+{ "success": true, "message": "Assignment marked as completed", "completed_at": "2026-03-13T10:00:00Z" }
+```
+
+## Course Endpoints
+
+### `GET /v1/courses`
+- Daftar matkul unik dari events. Mendukung `X-API-Key` atau `Bearer`.
+
+## Telegram Endpoints
+
+### `POST /v1/telegram/test-reminder`
+- Kirim test reminder Telegram. `Bearer` only.
+
+### `POST /v1/telegram/test-briefing`
+- Kirim morning briefing Telegram. `Bearer` only.
 
 ## API Keys (Programmatic Access)
 
@@ -254,10 +288,16 @@ Current implementation is cache-based (reads `events` table only).
 
 Frontend `frontend/server/app.ts` proxies key routes to backend:
 
+- `GET /api/assignments` -> `/v1/assignments`
+- `POST /api/assignments/complete` -> `/v1/assignments/complete`
+- `GET /api/courses` -> `/v1/courses`
 - `GET/PUT /api/user` -> `/v1/user`
 - `POST /api/user/google/disconnect` -> `/v1/user/google/disconnect`
-- `GET/POST /api/test-calendar` -> `/v1/calendar/preview|test`
-- `POST /api/auth/backend/sync` -> `/v1/auth/refresh` + `/v1/auth/me`
+- `POST /api/user/telegram/verify-code` -> `/v1/user/telegram/verify-code`
+- `GET/POST /api/test-calendar` -> `/v1/calendar/preview|test` (query `?force&sort`)
+- `POST /api/telegram/test-reminder` -> `/v1/telegram/test-reminder`
+- `POST /api/telegram/test-briefing` -> `/v1/telegram/test-briefing`
+- `POST /api/auth/backend/sync` -> `/v1/auth/refresh` + `/v1/auth/me` + `/v1/auth/sync`
 - `GET/POST /api/api-keys` -> `/v1/api-keys`
 - `DELETE /api/api-keys/:id` -> `/v1/api-keys/:id`
 
