@@ -75,18 +75,16 @@ const APP_VERSION = "v0.8.7";
 
 // Skeleton Components
 function Skeleton({ className }: { className?: string }) {
-  return (
-    <div className={cn("animate-pulse bg-slate-200 rounded", className)} />
-  );
+  return <div className={cn("animate-pulse bg-black/5 rounded", className)} />;
 }
 
 function StatsCardSkeleton() {
   return (
-    <div className="bg-white p-5 sm:p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4 sm:gap-6">
-      <Skeleton className="size-12 sm:size-14 rounded-2xl shrink-0" />
+    <div className="bg-white p-4 rounded-2xl border border-black/5 flex items-center gap-4">
+      <Skeleton className="size-10 rounded-xl shrink-0" />
       <div className="space-y-2 flex-1 min-w-0">
-        <Skeleton className="h-3 w-16 sm:w-20" />
-        <Skeleton className="h-6 sm:h-8 w-20 sm:w-24" />
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-5 w-20" />
       </div>
     </div>
   );
@@ -94,22 +92,16 @@ function StatsCardSkeleton() {
 
 function CalendarSkeleton() {
   return (
-    <div className="bg-white p-5 sm:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-3">
-          <Skeleton className="size-6 rounded" />
-          <Skeleton className="h-6 w-32 sm:w-40" />
-        </div>
-        <Skeleton className="h-8 w-1/3 sm:w-24 rounded-full" />
+    <div className="bg-white p-5 rounded-2xl border border-black/5">
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-7 w-20 rounded-full" />
       </div>
-      <div className="space-y-4">
-        <Skeleton className="h-10 sm:h-12 w-full" />
-        <div className="grid grid-cols-7 gap-1 sm:gap-2">
+      <div className="space-y-3">
+        <Skeleton className="h-8 w-full rounded-xl" />
+        <div className="grid grid-cols-7 gap-1.5">
           {Array.from({ length: 14 }).map((_, i) => (
-            <Skeleton
-              key={i}
-              className="h-12 sm:h-16 w-full rounded-lg sm:rounded-xl"
-            />
+            <Skeleton key={i} className="h-12 w-full rounded-xl" />
           ))}
         </div>
       </div>
@@ -119,59 +111,37 @@ function CalendarSkeleton() {
 
 function TimelineSkeleton() {
   return (
-    <div className="bg-white p-1 rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-      <div className="p-6 sm:p-8 pb-4">
-        <Skeleton className="h-7 w-32" />
-      </div>
-      <div className="p-3 sm:p-4 space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="p-5 sm:p-6 rounded-[2rem] border border-slate-100"
-          >
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-3 flex-1">
-                <div className="flex gap-2">
-                  <Skeleton className="h-5 w-16 sm:w-20 rounded-lg" />
-                  <Skeleton className="h-5 w-14 sm:w-16 rounded-lg" />
-                </div>
-                <Skeleton className="h-6 w-full sm:w-3/4" />
-                <Skeleton className="h-4 w-32 sm:w-40" />
-              </div>
-              <div className="space-y-2 flex flex-col items-end sm:items-start group md:items-end">
-                <Skeleton className="h-3 w-10 sm:w-12 ml-auto sm:ml-0 md:ml-auto" />
-                <Skeleton className="h-8 w-20 sm:w-24 rounded-xl" />
-              </div>
-            </div>
+    <div className="bg-white p-4 rounded-2xl border border-black/5 space-y-3">
+      <Skeleton className="h-5 w-24" />
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="p-4 rounded-2xl border border-black/5 flex justify-between gap-4">
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-20" />
           </div>
-        ))}
-      </div>
+          <Skeleton className="h-7 w-16 rounded-full" />
+        </div>
+      ))}
     </div>
   );
 }
 
 function StatusCardSkeleton() {
   return (
-    <div className="bg-slate-900 p-6 sm:p-8 rounded-3xl shadow-2xl overflow-hidden relative">
-      <div className="absolute top-0 right-0 p-4 opacity-20">
-        <Skeleton className="size-16 rounded-full bg-slate-700" />
-      </div>
-      <Skeleton className="h-6 w-32 mb-8 bg-slate-700" />
-      <div className="space-y-6">
+    <div className="bg-black p-6 rounded-2xl">
+      <Skeleton className="h-5 w-28 mb-6 bg-white/10" />
+      <div className="space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
-              <Skeleton className="size-8 rounded-lg bg-slate-700 shrink-0" />
-              <div className="space-y-1 flex-1">
-                <Skeleton className="h-3 w-20 bg-slate-700" />
-                <Skeleton className="h-2 w-12 bg-slate-700/50" />
-              </div>
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-8 rounded-lg bg-white/10 shrink-0" />
+              <Skeleton className="h-3 w-16 bg-white/10" />
             </div>
-            <Skeleton className="size-2.5 rounded-full bg-slate-700" />
+            <Skeleton className="size-2 rounded-full bg-white/10" />
           </div>
         ))}
       </div>
-      <Skeleton className="h-12 w-full mt-10 rounded-xl bg-slate-700" />
+      <Skeleton className="h-9 w-full mt-6 rounded-full bg-white/10" />
     </div>
   );
 }
@@ -452,42 +422,41 @@ export default function Dashboard() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen bg-slate-50 flex">
-        <aside className="fixed left-0 top-0 bottom-0 w-72 bg-white border-r border-slate-100 hidden lg:flex flex-col p-8 z-30">
-          <div className="flex items-center gap-3 mb-10">
-            <Skeleton className="size-10 rounded-xl" />
-            <Skeleton className="h-8 w-24" />
+      <div className="min-h-screen bg-[#F5F0EB] flex">
+        <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-black/5 hidden lg:flex flex-col p-6 z-30">
+          <div className="flex items-center gap-2.5 mb-8">
+            <Skeleton className="size-8 rounded-lg" />
+            <Skeleton className="h-5 w-20" />
           </div>
-          <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full rounded-2xl" />
+          <div className="space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-9 w-full rounded-xl" />
             ))}
           </div>
-          <div className="mt-auto pt-8">
-            <Skeleton className="h-20 w-full rounded-3xl" />
-            <Skeleton className="h-12 w-full rounded-2xl mt-4" />
+          <div className="mt-auto pt-6 border-t border-black/5">
+            <Skeleton className="h-10 w-full rounded-xl" />
           </div>
         </aside>
-        <main className="flex-1 lg:ml-72 min-h-screen p-4 sm:p-6 lg:ml-72 lg:p-12">
+        <main className="flex-1 lg:ml-64 min-h-screen p-4 sm:p-6 lg:p-8">
           <div className="lg:hidden flex items-center justify-between mb-6">
-            <Skeleton className="h-10 w-32 rounded-xl" />
-            <Skeleton className="size-10 rounded-xl" />
+            <Skeleton className="h-8 w-28 rounded-xl" />
+            <Skeleton className="size-9 rounded-xl" />
           </div>
-          <Skeleton className="h-8 sm:h-10 w-48 sm:w-64 mb-2" />
-          <Skeleton className="h-4 sm:h-6 w-full max-w-[384px] mb-8 sm:mb-12" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-80 mb-8" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <StatsCardSkeleton />
             <StatsCardSkeleton />
             <StatsCardSkeleton />
             <StatsCardSkeleton />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8 space-y-8">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <div className="xl:col-span-8 space-y-6">
               <CalendarSkeleton />
-              <TimelineSkeleton />
             </div>
-            <div className="lg:col-span-4 space-y-8">
+            <div className="xl:col-span-4 space-y-6">
               <StatusCardSkeleton />
-              <Skeleton className="h-48 w-full rounded-[2.5rem]" />
+              <Skeleton className="h-48 w-full rounded-2xl" />
             </div>
           </div>
         </main>
@@ -511,25 +480,18 @@ export default function Dashboard() {
   ].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      <div className="fixed top-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur border-b border-slate-100">
+    <div className="min-h-screen bg-[#F5F0EB] flex">
+      <div className="fixed top-0 left-0 right-0 z-40 lg:hidden bg-[#F5F0EB]/80 backdrop-blur-sm border-b border-black/5">
         <div className="h-16 px-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-black rotate-3">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white text-sm font-bold">
               R
             </div>
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm sm:text-lg font-black tracking-tight text-slate-900">
-                Resisst
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-600">
-                {APP_VERSION}
-              </span>
-            </div>
+            <span className="text-[15px] font-semibold tracking-tight text-black">Resisst</span>
           </Link>
           <button
             onClick={() => setIsMobileSidebarOpen((prev) => !prev)}
-            className="size-10 rounded-xl border border-slate-200 bg-white text-slate-700 flex items-center justify-center"
+            className="size-9 rounded-xl border border-black/10 bg-white text-black/60 flex items-center justify-center"
             aria-label="Buka menu"
           >
             <Menu className="size-5" />
@@ -554,55 +516,31 @@ export default function Dashboard() {
               transition={{ type: "spring", stiffness: 340, damping: 32 }}
               className="fixed top-0 right-0 bottom-0 w-72 max-w-[85vw] bg-white border-l border-slate-100 p-6 z-50 lg:hidden flex flex-col"
             >
-              <div className="flex items-center justify-between mb-8">
-                <Link to="/" className="flex items-center gap-2.5">
-                  <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-black rotate-3 shadow-lg shadow-blue-600/20">
-                    R
-                  </div>
-                  <div className="flex flex-col leading-tight">
-                    <span className="text-sm sm:text-lg font-black tracking-tight text-slate-900">
-                      Resisst
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-600">
-                      {APP_VERSION}
-                    </span>
-                  </div>
+              <div className="flex items-center justify-between mb-6">
+                <Link to="/" className="flex items-center gap-2">
+                  <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white text-sm font-bold">R</div>
+                  <span className="text-[15px] font-semibold tracking-tight text-black">Resisst</span>
                 </Link>
-                <button
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                  className="size-9 rounded-lg border border-slate-200 text-slate-500 flex items-center justify-center"
-                  aria-label="Tutup menu"
-                >
-                  <X className="size-5" />
+                <button onClick={() => setIsMobileSidebarOpen(false)} className="size-8 rounded-lg border border-black/10 text-black/40 flex items-center justify-center" aria-label="Tutup menu">
+                  <X className="size-4" />
                 </button>
               </div>
 
-              <nav className="space-y-2 flex-1">
+              <nav className="space-y-1.5 flex-1">
                 {TABS.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => {
-                      setActiveTab(item.id as TabType);
-                      setIsMobileSidebarOpen(false);
-                    }}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all",
-                      activeTab === item.id
-                        ? "bg-slate-900 text-white"
-                        : "text-slate-500 bg-slate-50",
-                    )}
+                    onClick={() => { setActiveTab(item.id as TabType); setIsMobileSidebarOpen(false); }}
+                    className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", activeTab === item.id ? "bg-black text-white" : "text-black/60 hover:bg-black/[0.04] hover:text-black")}
                   >
-                    <item.icon className="size-5" />
+                    <item.icon className="size-4.5" />
                     {item.label}
                   </button>
                 ))}
               </nav>
 
-              <div className="pt-6 border-t border-slate-100">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest text-red-500 bg-red-50 border border-red-100"
-                >
+              <div className="pt-4 border-t border-black/5">
+                <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-black/60 hover:bg-black/[0.04] transition-colors">
                   <LogOut className="size-4" />
                   Keluar
                 </button>
@@ -629,93 +567,53 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-72 bg-white border-r border-slate-100 hidden lg:flex flex-col p-8 z-30">
-        <Link to="/" className="flex items-center gap-2 sm:gap-3 mb-10">
-          <div className="size-8 sm:size-10 bg-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center text-white text-lg sm:text-xl font-black rotate-3 shadow-lg shadow-blue-600/20">
-            R
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm sm:text-lg font-black tracking-tight text-slate-900">
-              Resisst
-            </span>
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-blue-600">
-              v0.5.1
-            </span>
-          </div>
+      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-black/5 hidden lg:flex flex-col p-6 z-30">
+        <Link to="/" className="flex items-center gap-2 mb-8">
+          <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white text-sm font-bold">R</div>
+          <span className="text-[15px] font-semibold tracking-tight text-black">Resisst</span>
         </Link>
 
-        <nav className="flex-1 space-y-1.5 overflow-y-auto custom-scrollbar pr-2">
+        <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
           {TABS.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as TabType)}
-              className={cn(
-                "w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all group",
-                activeTab === item.id
-                  ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10"
-                  : "text-slate-400 hover:bg-slate-50 hover:text-slate-900",
-              )}
+              className={cn("w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", activeTab === item.id ? "bg-black text-white" : "text-black/60 hover:bg-black/[0.04] hover:text-black")}
             >
               <div className="flex items-center gap-3">
-                <item.icon
-                  className={cn(
-                    "size-5",
-                    activeTab === item.id
-                      ? "text-blue-400"
-                      : "text-slate-400 group-hover:text-slate-900",
-                  )}
-                />
+                <item.icon className="size-4.5" />
                 {item.label}
               </div>
-              {activeTab === item.id && (
-                <ChevronRight className="size-4 text-blue-400" />
-              )}
+              {activeTab === item.id && <ChevronRight className="size-4 text-white/60" />}
             </button>
           ))}
         </nav>
 
-        <div className="mt-8 pt-8 border-t border-slate-100">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all"
-          >
-            <LogOut className="size-5" />
+        <div className="mt-6 pt-6 border-t border-black/5">
+          <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-black/60 hover:bg-black/[0.04] transition-colors">
+            <LogOut className="size-4" />
             Keluar
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-72 min-h-screen pt-16 lg:pt-0">
-        <div className="px-4 sm:px-6 lg:px-12 py-6 sm:py-12 max-w-[1600px] mx-auto">
-          <header className="mb-8 sm:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 border-b border-slate-100 pb-6 sm:pb-8">
+      <main className="flex-1 lg:ml-64 min-h-screen pt-16 lg:pt-0">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto">
+          <header className="mb-6 flex items-center justify-between gap-4 border-b border-black/5 pb-6">
             <div>
-              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-                {activeTab === "overview"
-                  ? `Halo, ${userData?.name?.split(" ")[0] || "Ressistent"}! 👋`
-                  : TABS.find((t) => t.id === activeTab)?.label}
+              <h2 className="text-2xl font-semibold tracking-tight text-black">
+                {activeTab === "overview" ? `Welcome back, ${userData?.name?.split(" ")[0] || "there"}` : TABS.find((t) => t.id === activeTab)?.label}
               </h2>
-              <p className="text-sm sm:text-base lg:text-lg text-slate-500 font-medium mt-3">
-                {activeTab === "overview"
-                  ? "Pantau tugasmu dari berbagai sumber dalam satu tempat."
-                  : "Sesuaikan pengaturan untuk pengalaman terbaik."}
+              <p className="text-sm text-black/60 mt-1">
+                {activeTab === "overview" ? "Here's a quick overview of your workspace today." : "Sesuaikan pengaturan untuk pengalaman terbaik."}
               </p>
+            </div>
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-xs text-black/40 hidden lg:inline">Today</span>
+              <div className="h-8 px-3 rounded-full bg-white border border-black/5 text-xs font-medium text-black/60 flex items-center">Today</div>
             </div>
           </header>
-
-          {/* Telegram Ready Banner */}
-          <div className="mb-6 rounded-2xl border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 flex items-start gap-3">
-            <CheckCircle2 className="size-5 text-blue-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-black text-blue-900">
-                Telegram Bot Sudah Tersedia! 🎉
-              </p>
-              <p className="text-xs sm:text-sm text-blue-700 font-medium">
-                Hubungkan Telegram di tab Bot untuk menerima notifikasi tugas
-                real-time. Versi {APP_VERSION}.
-              </p>
-            </div>
-          </div>
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -747,134 +645,55 @@ export default function Dashboard() {
                     totalCount={allAssignments.length}
                   />
 
-                  {/* Main Grid: Resisst v2 Wide Layout */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-6 sm:gap-8">
-                    {/* Left Column: Calendar & Content */}
-                    <div className="lg:col-span-12 xl:col-span-8 space-y-6 sm:space-y-8">
-                      <div className="bg-white p-4 sm:p-8 rounded-3xl border border-slate-100 shadow-sm">
-                        <div className="flex items-center justify-between mb-6 sm:mb-8">
-                          <h3 className="font-heading text-lg font-black text-slate-900 tracking-tight flex items-center gap-3">
-                            <CalendarIcon className="size-5 text-blue-600" />
-                            Kalender
-                          </h3>
+                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                    <div className="xl:col-span-8 space-y-4">
+                      <div className="bg-white rounded-2xl border border-black/5 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-semibold text-black">Kalender</h3>
+                          <span className="text-xs text-black/40">View tasks and project deadlines</span>
                         </div>
-                        <CalendarView
-                          events={previewEvents.length > 0 ? previewEvents : []}
-                        />
+                        <CalendarView events={previewEvents.length > 0 ? previewEvents : []} />
                       </div>
                     </div>
 
-                    {/* Right Column(s): Status & Telegram */}
-                    <div className="lg:col-span-12 xl:col-span-4 space-y-6 sm:space-y-8">
-                      {/* Side by Side Status & Test on larger screens if possible, or stacked */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6 sm:gap-8">
-                        {/* Status Card */}
-                        <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
-                          <div className="absolute top-0 right-0 p-6 sm:p-8 opacity-10 group-hover:scale-110 transition-transform">
-                            <Zap className="size-20" />
-                          </div>
+                    <div className="xl:col-span-4 space-y-4">
+                      <div className="bg-black text-white rounded-2xl p-6">
+                        <h3 className="text-sm font-semibold mb-6">Status Koneksi</h3>
+                        <ul className="space-y-4">
+                          <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={cn("size-8 rounded-lg flex items-center justify-center text-xs font-medium", userData?.moodle_enabled ? "bg-white text-black" : "bg-white/10 text-white/40")}>M</div>
+                              <span className="text-sm text-white/80">Moodle</span>
+                            </div>
+                            <div className={cn("size-2 rounded-full", userData?.moodle_enabled ? "bg-emerald-500" : "bg-white/20")} />
+                          </li>
+                          <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={cn("size-8 rounded-lg flex items-center justify-center text-xs font-medium", userData?.google_classroom_enabled ? "bg-white text-black" : "bg-white/10 text-white/40")}>G</div>
+                              <span className="text-sm text-white/80">Classroom</span>
+                            </div>
+                            <div className={cn("size-2 rounded-full", userData?.google_classroom_enabled ? "bg-emerald-500" : "bg-white/20")} />
+                          </li>
+                          <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="size-8 bg-white text-black rounded-lg flex items-center justify-center"><Send className="size-4" /></div>
+                              <span className="text-sm text-white/80">Bot</span>
+                            </div>
+                            <div className={cn("size-2 rounded-full", userData?.telegram_enabled ? "bg-emerald-500" : "bg-red-500")} />
+                          </li>
+                          <li className="flex items-center justify-between opacity-60">
+                            <div className="flex items-center gap-3">
+                              <div className="size-8 bg-white/10 text-white/60 rounded-lg flex items-center justify-center"><MessageSquare className="size-4" /></div>
+                              <span className="text-sm text-white/60">WhatsApp</span>
+                            </div>
+                            <span className="text-xs text-white/30">Soon</span>
+                          </li>
+                        </ul>
+                        <button onClick={() => setActiveTab("lms")} className="w-full h-9 bg-white text-black rounded-full text-sm font-medium mt-6 hover:bg-white/90 transition-colors">Kelola Koneksi</button>
+                      </div>
 
-                          <h3 className="font-heading text-lg font-black tracking-tight mb-8 relative z-10">
-                            Status Koneksi
-                          </h3>
-                          <ul className="space-y-6 relative z-10">
-                            <li className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div
-                                  className={cn(
-                                    "size-8 rounded-lg flex items-center justify-center text-xs font-black",
-                                    userData?.moodle_enabled
-                                      ? "bg-orange-500 text-white"
-                                      : "bg-slate-700 text-slate-400",
-                                  )}
-                                >
-                                  M
-                                </div>
-                                <span className="text-sm font-bold text-slate-300">
-                                  Moodle
-                                </span>
-                              </div>
-                              <div
-                                className={cn(
-                                  "size-3 rounded-full",
-                                  userData?.moodle_enabled
-                                    ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.8)]"
-                                    : "bg-slate-600",
-                                )}
-                              />
-                            </li>
-                            <li className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div
-                                  className={cn(
-                                    "size-8 rounded-lg flex items-center justify-center text-xs font-black",
-                                    userData?.google_classroom_enabled
-                                      ? "bg-green-500 text-white"
-                                      : "bg-slate-700 text-slate-400",
-                                  )}
-                                >
-                                  G
-                                </div>
-                                <span className="text-sm font-bold text-slate-300">
-                                  Classroom
-                                </span>
-                              </div>
-                              <div
-                                className={cn(
-                                  "size-3 rounded-full",
-                                  userData?.google_classroom_enabled
-                                    ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.8)]"
-                                    : "bg-slate-600",
-                                )}
-                              />
-                            </li>
-                            <li className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="size-8 bg-blue-500 text-white rounded-lg flex items-center justify-center">
-                                  <Send className="size-4" />
-                                </div>
-                                <span className="text-sm font-bold text-slate-300">
-                                  Bot
-                                </span>
-                              </div>
-                              <div
-                                className={cn(
-                                  "size-3 rounded-full",
-                                  userData?.telegram_enabled
-                                    ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.8)]"
-                                    : "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.4)]",
-                                )}
-                              />
-                            </li>
-                            <li className="flex items-center justify-between opacity-50">
-                              <div className="flex items-center gap-3">
-                                <div className="size-8 bg-green-500 text-white rounded-lg flex items-center justify-center">
-                                  <MessageSquare className="size-4" />
-                                </div>
-                                <span className="text-sm font-bold text-slate-300">
-                                  WhatsApp
-                                </span>
-                              </div>
-                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                Soon
-                              </span>
-                            </li>
-                          </ul>
-                          <button
-                            onClick={() => setActiveTab("lms")}
-                            className="w-full h-12 bg-white/10 hover:bg-white/20 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest mt-10 transition-all relative z-10 active:scale-95"
-                          >
-                            Kelola Koneksi
-                          </button>
-                        </div>
-
-                        {/* Telegram Test */}
-                        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                          <TelegramVerify
-                            chatId={userData?.telegram_chat_id}
-                            botUsername={userData?.telegram_bot_username}
-                          />
-                        </div>
+                      <div className="bg-white rounded-2xl border border-black/5 p-5">
+                        <TelegramVerify chatId={userData?.telegram_chat_id} botUsername={userData?.telegram_bot_username} />
                       </div>
                     </div>
                   </div>
@@ -882,160 +701,62 @@ export default function Dashboard() {
               )}
 
               {activeTab === "tugas" && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                        Timeline Tugas
-                      </h3>
-                      <p className="text-slate-500 text-sm font-medium mt-1">
-                        Daftar tugas yang diatur dalam tiga kelompok utama.
-                      </p>
+                      <h3 className="text-xl font-semibold tracking-tight text-black">Timeline Tugas</h3>
+                      <p className="text-sm text-black/60 mt-1">Daftar tugas dalam tiga kelompok.</p>
                     </div>
-                    <button
-                      onClick={fetchAssignments}
-                      disabled={isLoadingAssignments}
-                      className="flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 shadow-lg shadow-slate-900/10"
-                    >
-                      <RefreshCw
-                        className={cn(
-                          "size-4",
-                          isLoadingAssignments && "animate-spin",
-                        )}
-                      />
+                    <button onClick={fetchAssignments} disabled={isLoadingAssignments} className="h-9 px-5 bg-black text-white rounded-full text-sm font-medium inline-flex items-center gap-2 hover:bg-black/90 disabled:opacity-50 transition-colors">
+                      <RefreshCw className={cn("size-4", isLoadingAssignments && "animate-spin")} />
                       {isLoadingAssignments ? "Menyinkronkan..." : "Sinkronkan"}
                     </button>
                   </div>
 
                   {isLoadingAssignments && allAssignments.length === 0 ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <TimelineSkeleton />
                       <TimelineSkeleton />
                       <TimelineSkeleton />
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                      {/* Section: Terlewat */}
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between px-2">
-                          <div className="flex items-center gap-3">
-                            <div className="size-9 bg-red-50 text-red-600 rounded-xl flex items-center justify-center border border-red-100/50">
-                              <AlertTriangle className="size-4.5" />
-                            </div>
-                            <h4 className="font-black text-slate-900 tracking-tight">
-                              Terlewat
-                            </h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                          <div className="flex items-center gap-2">
+                            <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><AlertTriangle className="size-3.5" /></div>
+                            <h4 className="text-sm font-semibold text-black">Terlewat</h4>
                           </div>
-                          <span className="text-[10px] font-black px-2.5 py-1 bg-red-50 text-red-600 rounded-lg border border-red-100/50">
-                            {
-                              allAssignments.filter(
-                                (t) =>
-                                  !t.completed &&
-                                  new Date(t.deadline) < new Date(),
-                              ).length
-                            }
-                          </span>
+                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => !t.completed && new Date(t.deadline) < new Date()).length}</span>
                         </div>
-                        <div className="space-y-4">
-                          {allAssignments.filter(
-                            (t) =>
-                              !t.completed && new Date(t.deadline) < new Date(),
-                          ).length === 0 ? (
-                            <EmptyTasksState message="Tidak ada tugas terlewat" />
-                          ) : (
-                            allAssignments
-                              .filter(
-                                (t) =>
-                                  !t.completed &&
-                                  new Date(t.deadline) < new Date(),
-                              )
-                              .map((task) => (
-                                <TaskCard
-                                  key={task.id}
-                                  task={task}
-                                  onComplete={markAssignmentComplete}
-                                />
-                              ))
-                          )}
+                        <div className="space-y-3">
+                          {allAssignments.filter((t) => !t.completed && new Date(t.deadline) < new Date()).length === 0 ? <EmptyTasksState message="Tidak ada tugas terlewat" /> : allAssignments.filter((t) => !t.completed && new Date(t.deadline) < new Date()).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
                         </div>
                       </div>
 
-                      {/* Section: Mendatang */}
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between px-2">
-                          <div className="flex items-center gap-3">
-                            <div className="size-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100/50">
-                              <Clock className="size-4.5" />
-                            </div>
-                            <h4 className="font-black text-slate-900 tracking-tight">
-                              Mendatang
-                            </h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                          <div className="flex items-center gap-2">
+                            <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><Clock className="size-3.5" /></div>
+                            <h4 className="text-sm font-semibold text-black">Mendatang</h4>
                           </div>
-                          <span className="text-[10px] font-black px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg border border-blue-100/50">
-                            {
-                              allAssignments.filter(
-                                (t) =>
-                                  !t.completed &&
-                                  new Date(t.deadline) >= new Date(),
-                              ).length
-                            }
-                          </span>
+                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => !t.completed && new Date(t.deadline) >= new Date()).length}</span>
                         </div>
-                        <div className="space-y-4">
-                          {allAssignments.filter(
-                            (t) =>
-                              !t.completed &&
-                              new Date(t.deadline) >= new Date(),
-                          ).length === 0 ? (
-                            <EmptyTasksState message="Tidak ada tugas mendatang" />
-                          ) : (
-                            allAssignments
-                              .filter(
-                                (t) =>
-                                  !t.completed &&
-                                  new Date(t.deadline) >= new Date(),
-                              )
-                              .map((task) => (
-                                <TaskCard
-                                  key={task.id}
-                                  task={task}
-                                  onComplete={markAssignmentComplete}
-                                />
-                              ))
-                          )}
+                        <div className="space-y-3">
+                          {allAssignments.filter((t) => !t.completed && new Date(t.deadline) >= new Date()).length === 0 ? <EmptyTasksState message="Tidak ada tugas mendatang" /> : allAssignments.filter((t) => !t.completed && new Date(t.deadline) >= new Date()).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
                         </div>
                       </div>
 
-                      {/* Section: Selesai */}
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between px-2">
-                          <div className="flex items-center gap-3">
-                            <div className="size-9 bg-green-50 text-green-600 rounded-xl flex items-center justify-center border border-green-100/50">
-                              <CheckCircle2 className="size-4.5" />
-                            </div>
-                            <h4 className="font-black text-slate-900 tracking-tight">
-                              Selesai
-                            </h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                          <div className="flex items-center gap-2">
+                            <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><CheckCircle2 className="size-3.5" /></div>
+                            <h4 className="text-sm font-semibold text-black">Selesai</h4>
                           </div>
-                          <span className="text-[10px] font-black px-2.5 py-1 bg-green-50 text-green-600 rounded-lg border border-green-100/50">
-                            {allAssignments.filter((t) => t.completed).length}
-                          </span>
+                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => t.completed).length}</span>
                         </div>
-                        <div className="space-y-4">
-                          {allAssignments.filter((t) => t.completed).length ===
-                          0 ? (
-                            <EmptyTasksState message="Belum ada tugas selesai" />
-                          ) : (
-                            allAssignments
-                              .filter((t) => t.completed)
-                              .map((task) => (
-                                <TaskCard
-                                  key={task.id}
-                                  task={task}
-                                  onComplete={markAssignmentComplete}
-                                />
-                              ))
-                          )}
+                        <div className="space-y-3">
+                          {allAssignments.filter((t) => t.completed).length === 0 ? <EmptyTasksState message="Belum ada tugas selesai" /> : allAssignments.filter((t) => t.completed).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
                         </div>
                       </div>
                     </div>
@@ -1049,8 +770,8 @@ export default function Dashboard() {
                 activeTab === "general" ||
                 activeTab === "tugas" ||
                 activeTab === "profile") && (
-                <div className="w-full transition-all duration-300">
-                  <div className="bg-white p-5 sm:p-8 md:p-12 rounded-3xl border border-slate-100 shadow-sm">
+                <div className="w-full">
+                  <div className="bg-white p-6 rounded-2xl border border-black/5">
                     {activeTab === "kelas" && (
                       <ClassSettings
                         classCode={userData?.class_code}
@@ -1182,13 +903,8 @@ export default function Dashboard() {
 
 function EmptyTasksState({ message }: { message: string }) {
   return (
-    <div className="p-8 text-center bg-white rounded-3xl border border-slate-100 border-dashed">
-      <div className="size-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-        <span className="text-xl">📋</span>
-      </div>
-      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-relaxed font-bold">
-        {message}
-      </p>
+    <div className="p-6 text-center bg-white rounded-2xl border border-black/5 border-dashed">
+      <p className="text-sm text-black/40">{message}</p>
     </div>
   );
 }
@@ -1204,77 +920,26 @@ function TaskCard({
   const isSelesai = task.completed;
 
   return (
-    <div
-      className={cn(
-        "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all group relative overflow-hidden active:scale-[0.98] hover:shadow-md",
-        isSelesai && "opacity-75 grayscale-[0.2]",
-      )}
-    >
-      <div className="space-y-3.5">
-        <div className="flex justify-between items-start gap-4">
+    <div className={cn("bg-white p-4 rounded-2xl border border-black/5", isSelesai && "opacity-60")}>
+      <div className="space-y-3">
+        <div className="flex justify-between items-start gap-3">
           <div className="space-y-1.5 flex-1 min-w-0">
-            <h5
-              className={cn(
-                "font-bold text-slate-900 leading-tight transition-colors line-clamp-2",
-                isSelesai && "line-through text-slate-400",
-              )}
-            >
-              {task.title}
-            </h5>
-            <div className="flex items-center gap-2 overflow-hidden">
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 truncate max-w-full">
-                {task.course}
-              </span>
-            </div>
+            <h5 className={cn("text-sm font-medium text-black leading-tight line-clamp-2", isSelesai && "line-through text-black/40")}>{task.title}</h5>
+            <span className="inline-flex text-xs text-black/40 bg-[#F5F0EB] px-2 py-1 rounded-full truncate max-w-full">{task.course}</span>
           </div>
-          {!isSelesai && (
-            <button
-              onClick={() => onComplete(task.id)}
-              className="size-10 bg-slate-50 text-slate-400 hover:text-green-600 hover:bg-green-50 border border-slate-100 rounded-2xl flex items-center justify-center transition-all shrink-0 shadow-sm"
-              title="Tandai Selesai"
-            >
-              <CheckCircle2 className="size-5" />
+          {!isSelesai ? (
+            <button onClick={() => onComplete(task.id)} className="size-8 bg-black text-white rounded-full flex items-center justify-center shrink-0 hover:bg-black/90 transition-colors" title="Tandai Selesai">
+              <CheckCircle2 className="size-4" />
             </button>
-          )}
-          {isSelesai && (
-            <div className="size-10 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center shrink-0 border border-green-100">
-              <CheckCircle2 className="size-5" />
-            </div>
+          ) : (
+            <div className="size-8 bg-black/10 text-black/40 rounded-full flex items-center justify-center shrink-0"><CheckCircle2 className="size-4" /></div>
           )}
         </div>
-
-        <div className="flex items-center justify-between pt-1 border-t border-slate-50 mt-1">
-          <div className="flex items-center gap-1.5">
-            <Clock
-              className={cn(
-                "size-3.5",
-                isOverdue ? "text-red-500" : "text-slate-400",
-              )}
-            />
-            <span
-              className={cn(
-                "text-[11px] font-bold",
-                isOverdue ? "text-red-500" : "text-slate-500",
-              )}
-            >
-              {new Date(task.deadline).toLocaleString("id-ID", {
-                day: "numeric",
-                month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}{" "}
-              WIB
-            </span>
-          </div>
-          {task.url && (
-            <a
-              href={task.url}
-              target="_blank"
-              className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 bg-blue-50/50 px-3 py-1.5 rounded-xl transition-colors border border-blue-100/30"
-            >
-              Link
-            </a>
-          )}
+        <div className="flex items-center justify-between pt-2 border-t border-black/5">
+          <span className={cn("text-xs", isOverdue ? "text-red-500 font-medium" : "text-black/40")}>
+            {new Date(task.deadline).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} WIB
+          </span>
+          {task.url && <a href={task.url} target="_blank" className="text-xs font-medium text-black hover:text-black/60 transition-colors">Link →</a>}
         </div>
       </div>
     </div>
