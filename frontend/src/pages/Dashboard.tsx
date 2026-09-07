@@ -24,14 +24,13 @@ import {
   GraduationCap,
   BookOpen,
   RefreshCw,
-  Menu,
-  X,
   AlertTriangle,
   ArrowUpDown,
   MessageSquare,
   CheckCircle2,
   ListTodo,
   Bell,
+  MoreHorizontal,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -69,7 +68,8 @@ type TabType =
   | "kelas"
   | "lms"
   | "notifikasi"
-  | "profile";
+  | "profile"
+  | "lainnya";
 const APP_VERSION = "v0.8.7";
 
 // Skeleton Components
@@ -159,7 +159,6 @@ export default function Dashboard() {
   >([]);
   const [previewError, setPreviewError] = useState<string>("");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<string>("deadline_asc");
   const [allAssignments, setAllAssignments] = useState<any[]>([]);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
@@ -182,13 +181,6 @@ export default function Dashboard() {
     fetchCourses();
     fetchAssignments();
   }, []);
-
-  useEffect(() => {
-    document.body.style.overflow = isMobileSidebarOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isMobileSidebarOpen]);
 
   const fetchCourses = async () => {
     try {
@@ -436,11 +428,7 @@ export default function Dashboard() {
             <Skeleton className="h-10 w-full rounded-xl" />
           </div>
         </aside>
-        <main className="flex-1 lg:ml-64 min-h-screen p-4 sm:p-6 lg:p-8">
-          <div className="lg:hidden flex items-center justify-between mb-6">
-            <Skeleton className="h-8 w-28 rounded-xl" />
-            <Skeleton className="size-9 rounded-xl" />
-          </div>
+        <main className="flex-1 lg:ml-64 min-h-screen p-4 sm:p-6 lg:p-8 pt-14 pb-24 lg:pt-8 lg:pb-8">
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-4 w-80 mb-8" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -459,6 +447,15 @@ export default function Dashboard() {
             </div>
           </div>
         </main>
+        {/* Mobile Bottom Bar Skeleton - 4 primary + Lainnya */}
+        <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-white border-t border-black/5 px-1 pt-2 pb-3 flex items-center justify-around">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5 flex-1 px-1">
+              <Skeleton className="size-7 rounded-xl" />
+              <Skeleton className="h-2 w-10 rounded-full" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -479,8 +476,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#F5F0EB] flex">
-      <div className="fixed top-0 left-0 right-0 z-40 lg:hidden bg-[#F5F0EB]/80 backdrop-blur-sm border-b border-black/5">
-        <div className="h-16 px-4 flex items-center justify-between">
+      {/* Mobile Top Bar */}
+      <div className="fixed top-0 left-0 right-0 z-30 lg:hidden bg-white/80 backdrop-blur-md border-b border-black/5">
+        <div className="h-14 px-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white text-sm font-bold">
               R
@@ -488,65 +486,63 @@ export default function Dashboard() {
             <span className="text-[15px] font-semibold tracking-tight text-black">Resisst</span>
           </Link>
           <button
-            onClick={() => setIsMobileSidebarOpen((prev) => !prev)}
-            className="size-9 rounded-xl border border-black/10 bg-white text-black/60 flex items-center justify-center"
-            aria-label="Buka menu"
+            onClick={handleLogout}
+            className="size-8 rounded-full bg-black text-white flex items-center justify-center"
+            aria-label="Keluar"
           >
-            <Menu className="size-5" />
+            <LogOut className="size-4" />
           </button>
         </div>
       </div>
 
-      <AnimatePresence>
-        {isMobileSidebarOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
-            />
-            <motion.aside
-              initial={{ x: 320 }}
-              animate={{ x: 0 }}
-              exit={{ x: 320 }}
-              transition={{ type: "spring", stiffness: 340, damping: 32 }}
-              className="fixed top-0 right-0 bottom-0 w-72 max-w-[85vw] bg-white border-l border-slate-100 p-6 z-50 lg:hidden flex flex-col"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <Link to="/" className="flex items-center gap-2">
-                  <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white text-sm font-bold">R</div>
-                  <span className="text-[15px] font-semibold tracking-tight text-black">Resisst</span>
-                </Link>
-                <button onClick={() => setIsMobileSidebarOpen(false)} className="size-8 rounded-lg border border-black/10 text-black/40 flex items-center justify-center" aria-label="Tutup menu">
-                  <X className="size-4" />
-                </button>
-              </div>
-
-              <nav className="space-y-1.5 flex-1">
-                {TABS.map((item) => (
+      {/* Mobile Bottom Bar - 4 primary + Lainnya (halaman, bukan sheet) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-white border-t border-black/5 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] flex items-center">
+        {(() => {
+          const primaryIds: TabType[] = ["overview", "tugas", "lms", "profile"];
+          const primaryTabs = primaryIds.map((id) => TABS.find((t) => t.id === id)!).filter(Boolean);
+          const lainnyaIds: TabType[] = ["kelas", "notifikasi", "lainnya"];
+          const isLainnyaActive = lainnyaIds.includes(activeTab);
+          return (
+            <>
+              {primaryTabs.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
                   <button
                     key={item.id}
-                    onClick={() => { setActiveTab(item.id as TabType); setIsMobileSidebarOpen(false); }}
-                    className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", activeTab === item.id ? "bg-black text-white" : "text-black/60 hover:bg-black/[0.04] hover:text-black")}
+                    onClick={() => setActiveTab(item.id as TabType)}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 flex-1 min-w-0 px-1 py-1 rounded-xl transition-colors",
+                      isActive ? "text-black" : "text-black/40",
+                    )}
                   >
-                    <item.icon className="size-4.5" />
-                    {item.label}
+                    <div
+                      className={cn(
+                        "size-7 rounded-xl flex items-center justify-center transition-colors",
+                        isActive ? "bg-black text-white" : "bg-transparent",
+                      )}
+                    >
+                      <item.icon className="size-4" />
+                    </div>
+                    <span className="text-[10px] font-medium leading-none truncate max-w-full">{item.label}</span>
                   </button>
-                ))}
-              </nav>
-
-              <div className="pt-4 border-t border-black/5">
-                <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-black/60 hover:bg-black/[0.04] transition-colors">
-                  <LogOut className="size-4" />
-                  Keluar
-                </button>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+                );
+              })}
+              <button
+                onClick={() => setActiveTab("lainnya")}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 flex-1 min-w-0 px-1 py-1 rounded-xl transition-colors",
+                  isLainnyaActive ? "text-black" : "text-black/40",
+                )}
+              >
+                <div className={cn("size-7 rounded-xl flex items-center justify-center transition-colors", isLainnyaActive ? "bg-black text-white" : "bg-black/5 text-black/40")}>
+                  <MoreHorizontal className="size-4" />
+                </div>
+                <span className="text-[10px] font-medium leading-none truncate max-w-full">Lainnya</span>
+              </button>
+            </>
+          );
+        })()}
+      </nav>
 
       {/* Overdue Tasks Popup */}
       <AnimatePresence>
@@ -596,7 +592,7 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 min-h-screen pt-16 lg:pt-0">
+      <main className="flex-1 lg:ml-64 min-h-screen pt-14 pb-24 lg:pt-0 lg:pb-0">
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto">
           <header className="mb-6 flex items-center justify-between gap-4 border-b border-black/5 pb-6">
             <div>
