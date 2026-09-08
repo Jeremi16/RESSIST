@@ -298,6 +298,7 @@ func (h *Handler) fetchProviderAssignments(ctx context.Context, provider string,
 				Deadline:    r.Deadline,
 				ExternalID:  r.ExternalID,
 				Source:      r.Source,
+				IsCompleted: r.IsCompleted,
 			}
 		}
 		return out, nil
@@ -374,22 +375,32 @@ func (h *Handler) convertEventsToPreviews(events []models.Event, aliases map[str
 	for _, event := range events {
 		originalCourse := text.Dereference(event.Course, "Unknown Course")
 		course := coursealias.Apply(originalCourse, aliases)
+		status := event.Status
+		if status == "" {
+			if event.Completed {
+				status = "completed"
+			} else {
+				status = "pending"
+			}
+		}
 		previews = append(previews, calendarEventPreview{
-			ID:             event.ID,
-			Title:          event.Title,
-			FullTitle:      event.Title,
-			Course:         course,
-			OriginalCourse: originalCourse,
-			CourseID:       event.CourseID,
-			ClassCode:      event.ClassCode,
-			Description:    event.Description,
-			URL:            event.URL,
-			Deadline:       event.Deadline.UTC().Format(time.RFC3339),
-			TimeRemaining:  formatTimeRemaining(event.Deadline),
-			DeadlineDate:   event.Deadline,
-			Source:         event.Source,
-			Completed:      event.Completed,
-			CompletedAt:    event.CompletedAt,
+			ID:              event.ID,
+			Title:           event.Title,
+			FullTitle:       event.Title,
+			Course:          course,
+			OriginalCourse:  originalCourse,
+			CourseID:        event.CourseID,
+			ClassCode:       event.ClassCode,
+			Description:     event.Description,
+			URL:             event.URL,
+			Deadline:        event.Deadline.UTC().Format(time.RFC3339),
+			TimeRemaining:   formatTimeRemaining(event.Deadline),
+			DeadlineDate:    event.Deadline,
+			Source:          event.Source,
+			Completed:       event.Completed,
+			CompletedAt:     event.CompletedAt,
+			Status:          status,
+			StatusUpdatedAt: event.StatusUpdatedAt,
 		})
 	}
 	return previews
@@ -423,7 +434,7 @@ func (h *Handler) calculateNextRefreshAt(user *models.User) *time.Time {
 	return &next
 }
 
-// loadCachedEvents loads events from database. Excludes completed tasks so calendar mirrors Moodle (done tasks disappear).
+// loadCachedEvents loads events from database. Excludes completed/missed tasks so calendar only shows pending.
 func (h *Handler) loadCachedEvents(c *gin.Context, userID string, providers []string, sortBy string) ([]models.Event, error) {
 	if len(providers) == 0 {
 		return []models.Event{}, nil
@@ -434,7 +445,7 @@ func (h *Handler) loadCachedEvents(c *gin.Context, userID string, providers []st
 
 	var events []models.Event
 	err := h.db.WithContext(c.Request.Context()).
-		Where("user_id = ? AND source IN ? AND deadline > ? AND deadline <= ? AND (completed IS NULL OR completed = ?)", userID, providers, now, cutoff, false).
+		Where("user_id = ? AND source IN ? AND deadline > ? AND deadline <= ? AND (status = ? OR (status IS NULL OR status = '') AND (completed IS NULL OR completed = ?))", userID, providers, now, cutoff, "pending", false).
 		Order(sortutil.OrderClause(sortBy)).
 		Find(&events).Error
 	if err != nil {

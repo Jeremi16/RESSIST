@@ -97,13 +97,16 @@ func (s *SyncService) PersistAssignments(
 			}
 
 			// Update existing if changed
-			if s.needsUpdate(&existing, assignment, courseValue, sourceIDValue, courseIDValue) {
+			if s.needsUpdate(&existing, assignment, provider, courseValue, sourceIDValue, courseIDValue) {
 				if err := s.updateAssignment(tx, existing.ID, assignment, provider, courseValue, sourceIDValue, courseIDValue); err != nil {
 					return err
 				}
 			}
 		}
 
+		if provider == "moodle" {
+			return s.markStaleAsMissed(tx, userID, provider, keys, now)
+		}
 		return s.markStaleAsCompleted(tx, userID, provider, keys, now)
 	})
 
@@ -141,9 +144,13 @@ func (s *SyncService) createAssignment(
 ) error {
 	completed := assignment.IsCompleted
 	var completedAt *time.Time
+	status := "pending"
+	var statusUpdatedAt *time.Time
 	if completed {
 		t := time.Now().UTC()
 		completedAt = &t
+		statusUpdatedAt = &t
+		status = "completed"
 	}
 	event := models.Event{
 		ID:              uuid.NewString(),
@@ -160,13 +167,17 @@ func (s *SyncService) createAssignment(
 		SyncKey:         key,
 		Completed:       completed,
 		CompletedAt:     completedAt,
+		Status:          status,
+		StatusUpdatedAt: statusUpdatedAt,
 		Reminder24HSent: false,
 		RemindersSent:   "[]",
 	}
 	return tx.Create(&event).Error
 }
 
-// updateAssignment updates an existing assignment, resurrecting completed tasks.
+// updateAssignment updates an existing assignment with per-provider semantics.
+// Moodle: monotonik false->true, tidak pernah revert completed=true ke false. Missed yang muncul lagi di-resurrect ke pending.
+// Classroom: full source of truth, completed mengikuti assignment.IsCompleted bidirectional.
 func (s *SyncService) updateAssignment(
 	tx *gorm.DB,
 	eventID string,
@@ -174,34 +185,78 @@ func (s *SyncService) updateAssignment(
 	provider string,
 	courseValue, sourceIDValue, courseIDValue *string,
 ) error {
-	completed := assignment.IsCompleted
-	var completedAt interface{}
-	if completed {
-		t := time.Now().UTC()
-		completedAt = t
-	} else {
-		completedAt = nil
+	var existing models.Event
+	if err := tx.Where("id = ?", eventID).First(&existing).Error; err != nil {
+		return err
 	}
+
 	updateData := map[string]interface{}{
-		"title":        assignment.Title,
-		"course":       courseValue,
-		"course_id":    courseIDValue,
-		"class_code":   assignment.ClassCode,
-		"description":  assignment.Description,
-		"url":          assignment.URL,
-		"deadline":     assignment.Deadline.UTC(),
-		"source":       provider,
-		"source_id":    sourceIDValue,
-		"completed":    completed,
-		"completed_at": completedAt,
+		"title":       assignment.Title,
+		"course":      courseValue,
+		"course_id":   courseIDValue,
+		"class_code":  assignment.ClassCode,
+		"description": assignment.Description,
+		"url":         assignment.URL,
+		"deadline":    assignment.Deadline.UTC(),
+		"source":      provider,
+		"source_id":   sourceIDValue,
 	}
+
+	if provider == "moodle" {
+		// Moodle: never revert completed, only allow pending->completed or missed->pending resurrection
+		if existing.Status == "missed" {
+			// Resurrect: task reappeared in ICS
+			if assignment.IsCompleted {
+				updateData["completed"] = true
+				t := time.Now().UTC()
+				updateData["completed_at"] = t
+				updateData["status"] = "completed"
+				updateData["status_updated_at"] = t
+			} else {
+				updateData["status"] = "pending"
+				updateData["status_updated_at"] = time.Now().UTC()
+				// keep completed as is (false)
+			}
+		} else if !existing.Completed && assignment.IsCompleted {
+			t := time.Now().UTC()
+			updateData["completed"] = true
+			updateData["completed_at"] = t
+			updateData["status"] = "completed"
+			updateData["status_updated_at"] = t
+		} else {
+			// No status/completed change for moodle (prevent revert)
+			// still update other fields above
+		}
+	} else {
+		// Classroom: full source of truth bidirectional
+		completed := assignment.IsCompleted
+		var completedAt interface{}
+		var status string
+		var statusUpdatedAt interface{}
+		if completed {
+			t := time.Now().UTC()
+			completedAt = t
+			status = "completed"
+			statusUpdatedAt = t
+		} else {
+			completedAt = nil
+			status = "pending"
+			statusUpdatedAt = time.Now().UTC()
+		}
+		updateData["completed"] = completed
+		updateData["completed_at"] = completedAt
+		updateData["status"] = status
+		updateData["status_updated_at"] = statusUpdatedAt
+	}
+
 	return tx.Model(&models.Event{}).Where("id = ?", eventID).Updates(updateData).Error
 }
 
-// needsUpdate checks if assignment data has changed.
+// needsUpdate checks if assignment data has changed with per-provider completed semantics.
 func (s *SyncService) needsUpdate(
 	existing *models.Event,
 	assignment AssignmentRecord,
+	provider string,
 	courseValue, sourceIDValue, courseIDValue *string,
 ) bool {
 	if existing.Title != assignment.Title {
@@ -228,38 +283,70 @@ func (s *SyncService) needsUpdate(
 	if !stringsEqual(existing.SourceID, sourceIDValue) {
 		return true
 	}
-	if existing.Completed != assignment.IsCompleted {
-		return true
+	if provider == "moodle" {
+		// Moodle: only pending->completed or missed resurrection triggers update
+		if existing.Status == "missed" {
+			return true
+		}
+		if !existing.Completed && assignment.IsCompleted {
+			return true
+		}
+		// true->false must not trigger (prevent revert)
+	} else {
+		if existing.Completed != assignment.IsCompleted {
+			return true
+		}
+		// Also check status divergence for classroom
+		expectedStatus := "pending"
+		if assignment.IsCompleted {
+			expectedStatus = "completed"
+		}
+		if existing.Status != expectedStatus && existing.Status != "" {
+			return true
+		}
 	}
 	return false
 }
 
-// markStaleAsCompleted marks assignments that no longer exist in source as completed (instead of deleting).
-// This makes Moodle-done tasks disappear from calendar (filtered) but appear in "Selesai" tab.
-// Now also handles overdue stale: tasks whose deadline <= now but missing from ICS are also marked completed.
+// markStaleAsCompleted marks assignments that no longer exist in source as completed (for Classroom).
 func (s *SyncService) markStaleAsCompleted(
 	tx *gorm.DB,
 	userID, provider string,
 	keys []string,
 	now time.Time,
 ) error {
-	// Guard: FetchAssignments now returns error on partial failure, but empty assignment list
-	// can still be legit (user has 0 tasks). Only skip wipe if this is truly an error case;
-	// caller already aborts on fetch error, so reaching here with empty keys means legit 0.
-	// We keep NOT IN only when keys > 0 to avoid wiping all on legit empty.
-	// No additional guard needed because partial failures no longer reach Persist.
 	query := tx.Model(&models.Event{}).
-		Where("user_id = ? AND source = ? AND (completed IS NULL OR completed = ?)", userID, provider, false)
+		Where("user_id = ? AND source = ?", userID, provider).
+		Where("(status = ? OR status IS NULL OR status = '') AND (completed IS NULL OR completed = ?)", "pending", false)
 	if len(keys) > 0 {
 		query = query.Where("sync_key NOT IN ?", keys)
-	} else {
-		// If legit 0 tasks, wipe all tasks for this provider (user cleared assignments).
-		// This is intentional; if fetch had error, we would not be here.
 	}
 	return query.Updates(map[string]interface{}{
-		"completed":    true,
-		"completed_at": now,
-		"updated_at":   now,
+		"completed":         true,
+		"completed_at":      now,
+		"status":            "completed",
+		"status_updated_at": now,
+		"updated_at":        now,
+	}).Error
+}
+
+// markStaleAsMissed marks pending Moodle assignments that disappeared from ICS as missed (terlewat).
+func (s *SyncService) markStaleAsMissed(
+	tx *gorm.DB,
+	userID, provider string,
+	keys []string,
+	now time.Time,
+) error {
+	query := tx.Model(&models.Event{}).
+		Where("user_id = ? AND source = ?", userID, provider).
+		Where("(status = ? OR status IS NULL OR status = '') AND (completed IS NULL OR completed = ?)", "pending", false)
+	if len(keys) > 0 {
+		query = query.Where("sync_key NOT IN ?", keys)
+	}
+	return query.Updates(map[string]interface{}{
+		"status":            "missed",
+		"status_updated_at": now,
+		"updated_at":        now,
 	}).Error
 }
 
