@@ -5,7 +5,7 @@ export default function Ketentuan() {
     <InfoLayout
       category="Legal"
       title="Syarat & Ketentuan"
-      subtitle="Aturan main penggunaan Resisst agar tetap nyaman buat semua pejuang IPK."
+      subtitle="Aturan main penggunaan Ressist agar tetap nyaman buat semua pejuang IPK."
     >
       <div className="space-y-6 sm:space-y-8">
         <section className="space-y-3 sm:space-y-4">
@@ -13,7 +13,7 @@ export default function Ketentuan() {
             Penggunaan Layanan
           </h3>
           <p className="text-slate-600 text-sm sm:text-base font-medium leading-relaxed">
-            Resisst adalah alat bantu pengingat. Tanggung jawab akademik tetap
+            Ressist adalah alat bantu pengingat. Tanggung jawab akademik tetap
             berada di tangan masing-masing mahasiswa. Kami tidak bertanggung
             jawab atas keterlambatan pengumpulan tugas akibat kendala teknis
             pihak ketiga (misalnya server Moodle down).

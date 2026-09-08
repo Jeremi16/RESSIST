@@ -13,7 +13,7 @@ export default function Status() {
     <InfoLayout 
       category="Sumber Daya"
       title="Status Sistem"
-      subtitle="Pantau performa layanan Resisst secara real-time."
+      subtitle="Pantau performa layanan Ressist secara real-time."
     >
       <div className="space-y-8">
         <div className="p-6 rounded-2xl bg-black text-white flex items-center justify-between">

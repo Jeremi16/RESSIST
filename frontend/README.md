@@ -1,7 +1,7 @@
-# Resisst Frontend — Vite + Bun
+# Ressist Frontend — Vite + Bun
 
 SPA React (Vite) + Mini BFF Hono (Bun/Node). Backend utama = Go API di `backend/`
-(deploy Coolify `resisst-api.nodryx.com`).
+(deploy Coolify `ressist-api.nodryx.com`).
 
 ## Arsitektur
 
@@ -67,7 +67,7 @@ api/index.ts          # entry Vercel Functions (Node, tanpa API Bun.*)
 - Dashboard Vercel → project **Root Directory = `frontend`**.
 - `vercel.json` sudah set: `framework: vite`, build `bun run build`, output `dist`,
   rewrite `/api/*` → Functions, redirect 301 ID→EN, SPA fallback `index.html`.
-- Env di Vercel: `VITE_APP_URL`, `VITE_API_URL=https://resisst-api.nodryx.com`,
+- Env di Vercel: `VITE_APP_URL`, `VITE_API_URL=https://ressist-api.nodryx.com`,
   `BACKEND_API_URL` (sama), `SESSION_SECRET`, `COOKIE_DOMAIN` (bila custom domain).
 - Go di Coolify: `CORS_ALLOWED_ORIGINS=https://<vercel-app>` (+ `SESSION_SECRET` sinkron).
 

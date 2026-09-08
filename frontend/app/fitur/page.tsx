@@ -17,7 +17,7 @@ export default function Fitur() {
               Sinkronisasi Moodle Otomatis
             </h3>
             <p className="text-sm text-black/60 leading-relaxed">
-              Tidak perlu cek Moodle manual setiap jam. Resisst
+              Tidak perlu cek Moodle manual setiap jam. Ressist
               memantau kalender Moodle dan mengupdate jadwal real-time.
             </p>
           </div>
@@ -40,7 +40,7 @@ export default function Fitur() {
             Lebih dari sekadar pengingat
           </h2>
           <p className="text-sm text-black/60 leading-relaxed">
-            Resisst dikembangkan memahami struggle mahasiswa. Fitur Morning Briefing setiap jam 7 pagi membantu Anda
+            Ressist dikembangkan memahami struggle mahasiswa. Fitur Morning Briefing setiap jam 7 pagi membantu Anda
             bangun dengan gambaran tugas yang menanti hari ini.
           </p>
         </section>

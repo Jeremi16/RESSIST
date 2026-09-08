@@ -133,7 +133,7 @@ app.get("/auth/google/login", async (c) => {
     method: "GET",
     redirect: "manual",
     headers: {
-      "User-Agent": c.req.header("user-agent") || "resisst-frontend",
+      "User-Agent": c.req.header("user-agent") || "ressist-frontend",
       "X-Forwarded-For": c.req.header("x-forwarded-for") || "",
     },
   });
@@ -176,7 +176,7 @@ app.get("/auth/google/callback", async (c) => {
     redirect: "manual",
     headers: {
       Cookie: cookieHeader,
-      "User-Agent": c.req.header("user-agent") || "resisst-frontend",
+      "User-Agent": c.req.header("user-agent") || "ressist-frontend",
       "X-Forwarded-For": c.req.header("x-forwarded-for") || "",
     },
   });
@@ -276,7 +276,7 @@ app.post("/auth/backend/sync", async (c) => {
     method: "POST",
     headers: {
       Cookie: `${REFRESH_COOKIE_NAME}=${incomingRefresh}`,
-      "User-Agent": c.req.header("user-agent") || "resisst-frontend",
+      "User-Agent": c.req.header("user-agent") || "ressist-frontend",
       "X-Forwarded-For": c.req.header("x-forwarded-for") || "",
     },
   });

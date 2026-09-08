@@ -9,7 +9,7 @@ export function Footer() {
                 R
               </div>
               <span className="text-[15px] font-semibold tracking-tight">
-                Resisst
+                Ressist
               </span>
             </div>
             <p className="text-sm text-white/60 leading-relaxed max-w-xs">
@@ -74,7 +74,7 @@ export function Footer() {
 
         <div className="mt-10 pt-6 border-t border-white/10">
           <p className="text-sm text-white/40">
-            &copy; 2026 Resisst. Hak cipta dilindungi.
+            &copy; 2026 Ressist. Hak cipta dilindungi.
           </p>
         </div>
       </div>

@@ -5,13 +5,13 @@ export default function Dokumentasi() {
     <InfoLayout
       category="Sumber Daya"
       title="Dokumentasi"
-      subtitle="Pelajari cara kerja Resisst dan bagaimana mengoptimalkan penggunaannya."
+      subtitle="Pelajari cara kerja Ressist dan bagaimana mengoptimalkan penggunaannya."
     >
       <div className="space-y-6">
         <div className="space-y-2">
           <h3 className="text-base font-semibold text-black">Pengenalan</h3>
           <p className="text-sm text-black/60 leading-relaxed">
-            Resisst adalah bot asisten akademik yang menghubungkan Moodle ITERA
+            Ressist adalah bot asisten akademik yang menghubungkan Moodle ITERA
             dengan Telegram dan WhatsApp melalui fitur Export Calendar.
           </p>
         </div>
@@ -30,7 +30,7 @@ export default function Dokumentasi() {
             Penting
           </h4>
           <p className="text-sm text-white/70 leading-relaxed">
-            Resisst tidak melakukan scraping langsung ke Moodle, sehingga akun
+            Ressist tidak melakukan scraping langsung ke Moodle, sehingga akun
             Anda tetap aman dari risiko deteksi bot oleh admin kampus.
           </p>
         </div>

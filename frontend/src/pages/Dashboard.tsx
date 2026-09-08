@@ -184,7 +184,7 @@ export default function Dashboard() {
     fetchAssignments();
     // Tampilkan toast jika login-sync menemukan tugas baru (tiap login)
     try {
-      const raw = sessionStorage.getItem("resisst.sync.new-assignments");
+      const raw = sessionStorage.getItem("ressist.sync.new-assignments");
       if (raw) {
         const parsed = JSON.parse(raw) as { count?: number };
         if (parsed?.count && parsed.count > 0) {
@@ -194,7 +194,7 @@ export default function Dashboard() {
             variant: "success",
           });
         }
-        sessionStorage.removeItem("resisst.sync.new-assignments");
+        sessionStorage.removeItem("ressist.sync.new-assignments");
       }
     } catch {
       // ignore
@@ -541,7 +541,7 @@ export default function Dashboard() {
             <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white text-sm font-bold">
               R
             </div>
-            <span className="text-[15px] font-semibold tracking-tight text-black">Resisst</span>
+            <span className="text-[15px] font-semibold tracking-tight text-black">Ressist</span>
           </Link>
           <button
             onClick={handleLogout}
@@ -622,7 +622,7 @@ export default function Dashboard() {
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-black/5 hidden lg:flex flex-col p-6 z-30">
         <Link to="/" className="flex items-center gap-2 mb-8">
           <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white text-sm font-bold">R</div>
-          <span className="text-[15px] font-semibold tracking-tight text-black">Resisst</span>
+          <span className="text-[15px] font-semibold tracking-tight text-black">Ressist</span>
         </Link>
 
         <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
@@ -966,7 +966,7 @@ export default function Dashboard() {
                             chatId={userData?.telegram_chat_id || ""}
                             enabled={userData?.telegram_enabled || false}
                             botUsername={
-                              userData?.telegram_bot_username || "resisst_bot"
+                              userData?.telegram_bot_username || "ressist_bot"
                             }
                             onSave={handleUpdate}
                             isLoading={isSaving}

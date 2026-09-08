@@ -145,10 +145,10 @@ export function ApiKeysSettings() {
             <div className="bg-white rounded-xl p-3 space-y-2 overflow-hidden">
               <p className="text-xs font-medium text-black">Cara pakai:</p>
               <code className="block text-xs font-mono bg-black text-white rounded-lg px-3 py-2 break-all whitespace-pre-wrap [overflow-wrap:anywhere] overflow-hidden">
-                curl -H &quot;X-API-Key: {rawKey}&quot; https://resisst-api.nodryx.com/v1/assignments
+                curl -H &quot;X-API-Key: {rawKey}&quot; https://ressist-api.nodryx.com/v1/assignments
               </code>
               <button
-                onClick={() => copy(`curl -H "X-API-Key: ${rawKey}" https://resisst-api.nodryx.com/v1/assignments`, "curl")}
+                onClick={() => copy(`curl -H "X-API-Key: ${rawKey}" https://ressist-api.nodryx.com/v1/assignments`, "curl")}
                 className="text-xs px-2.5 py-1 bg-black text-white rounded-full"
               >
                 {copied === "curl" ? "Tersalin" : "Salin curl"}

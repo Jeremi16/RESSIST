@@ -5,7 +5,7 @@ export default function Harga() {
     <InfoLayout 
       category="Produk"
       title="Sederhana & Transparan"
-      subtitle="Resisst berkomitmen untuk membantu pendidikan. Gunakan fitur dasar secara gratis selamanya."
+      subtitle="Ressist berkomitmen untuk membantu pendidikan. Gunakan fitur dasar secara gratis selamanya."
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="p-8 rounded-2xl bg-white border border-black/5 space-y-6">

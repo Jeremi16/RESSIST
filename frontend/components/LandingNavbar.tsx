@@ -29,7 +29,7 @@ export function LandingNavbar({
             R
           </div>
           <span className="text-[15px] font-semibold tracking-tight text-black">
-            Resisst
+            Ressist
           </span>
         </Link>
 

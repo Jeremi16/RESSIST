@@ -3,7 +3,7 @@ import { InfoLayout } from '@/components/InfoLayout'
 export default function Panduan() {
   const STEPS = [
     { title: "Daftar Akun", desc: "Gunakan email institusi (@student.itera.ac.id) untuk keamanan ekstra." },
-    { title: "Hubungkan Moodle", desc: "Salin link export calendar dari Moodle Itera ke Dashboard Resisst." },
+    { title: "Hubungkan Moodle", desc: "Salin link export calendar dari Moodle Itera ke Dashboard Ressist." },
     { title: "Set Up Telegram", desc: "Buka bot kami di Telegram dan masukkan Chat ID Anda." },
     { title: "Santai!", desc: "Bot akan otomatis mengirimkan reminder sesuai jadwal yang Anda tentukan." },
   ]

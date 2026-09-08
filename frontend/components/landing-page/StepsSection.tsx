@@ -22,7 +22,7 @@ const steps = [
   {
     title: "Fokus Belajar",
     description:
-      "Biarkan Resisst yang memantau deadline sementara kamu fokus belajar.",
+      "Biarkan Ressist yang memantau deadline sementara kamu fokus belajar.",
     icon: Coffee,
   },
 ];

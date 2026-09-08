@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 
 interface TelegramVerifyProps { chatId?: string | null; botUsername?: string; onConnect?: () => void }
 
-export function TelegramVerify({ chatId, botUsername = 'resisst_bot', onConnect }: TelegramVerifyProps) {
+export function TelegramVerify({ chatId, botUsername = 'ressist_bot', onConnect }: TelegramVerifyProps) {
   const [verifyCode, setVerifyCode] = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)

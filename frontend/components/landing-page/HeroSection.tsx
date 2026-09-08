@@ -19,7 +19,7 @@ export function HeroSection() {
           >
             <h1 className="text-[40px] sm:text-5xl lg:text-[56px] font-semibold leading-[0.95] tracking-tight text-black mb-6 text-balance">
               Taklukkan semestermu dengan{" "}
-              <span className="text-blue-600">Resisst</span>
+              <span className="text-blue-600">Ressist</span>
             </h1>
 
             <p className="text-base lg:text-lg text-black/60 leading-relaxed max-w-xl mb-8 text-balance">

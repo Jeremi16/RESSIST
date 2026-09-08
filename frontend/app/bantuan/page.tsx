@@ -7,7 +7,7 @@ import { Search, Book, HelpCircle, LifeBuoy } from "lucide-react";
 export default function Bantuan() {
   const FAQS = [
     {
-      q: "Apakah Resisst berbayar?",
+      q: "Apakah Ressist berbayar?",
       a: "Fitur utama seperti Sinkronisasi Moodle dan Telegram 100% gratis selamanya untuk mahasiswa ITERA.",
     },
     {

@@ -2,7 +2,7 @@ import { InfoLayout } from '@/components/InfoLayout'
 
 export default function Roadmap() {
   const MILESTONES = [
-    { quarter: "Q1 2024", title: "Resisst Launch", desc: "Peluncuran perdana dengan dukungan Moodle ITERA dan Telegram.", status: "Done" },
+    { quarter: "Q1 2024", title: "Ressist Launch", desc: "Peluncuran perdana dengan dukungan Moodle ITERA dan Telegram.", status: "Done" },
     { quarter: "Q2 2024", title: "WhatsApp Integration", desc: "Mendatangkan pengingat langsung ke aplikasi chat terpopuler.", status: "In Progress" },
     { quarter: "Q3 2024", title: "Google Classroom", desc: "Mendukung sinkronisasi tugas dari platform Google.", status: "Planned" },
     { quarter: "Q4 2024", title: "Smart Scheduling", desc: "Prediksi waktu yang dibutuhkan untuk mengerjakan tugas berbasis AI.", status: "Research" },
@@ -12,7 +12,7 @@ export default function Roadmap() {
     <InfoLayout 
       category="Produk"
       title="Roadmap Pengembangan"
-      subtitle="Rencana masa depan Resisst untuk mendukung prestasimu."
+      subtitle="Rencana masa depan Ressist untuk mendukung prestasimu."
     >
       <div className="relative space-y-4 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-black/5">
         {MILESTONES.map((item, i) => (

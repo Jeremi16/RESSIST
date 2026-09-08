@@ -3,7 +3,7 @@ import { InfoLayout } from '@/components/InfoLayout'
 export default function Blog() {
   const POSTS = [
     { title: "Tips Mengatur Waktu bagi Mahasiswa Semester 5", date: "12 Mar 2024", tag: "Produktivitas" },
-    { title: "Resisst v2.0: Kini Lebih Cepat & Mendukung WhatsApp", date: "10 Mar 2024", tag: "Update" },
+    { title: "Ressist v2.0: Kini Lebih Cepat & Mendukung WhatsApp", date: "10 Mar 2024", tag: "Update" },
     { title: "Panduan Integrasi Moodle ITERA yang Benar", date: "05 Mar 2024", tag: "Tutorial" },
   ]
 
@@ -11,7 +11,7 @@ export default function Blog() {
     <InfoLayout 
       category="Perusahaan"
       title="Blog & Berita"
-      subtitle="Wawasan seputar dunia perkuliahan dan update terbaru dari tim Resisst."
+      subtitle="Wawasan seputar dunia perkuliahan dan update terbaru dari tim Ressist."
     >
       <div className="space-y-3">
         {POSTS.map((post, i) => (

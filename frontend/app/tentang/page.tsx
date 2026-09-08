@@ -4,7 +4,7 @@ export default function Tentang() {
   return (
     <InfoLayout
       category="Perusahaan"
-      title="Tentang Resisst"
+      title="Tentang Ressist"
       subtitle="Dari Mahasiswa ITERA, Untuk Mahasiswa ITERA."
     >
       <div className="space-y-10">
@@ -13,7 +13,7 @@ export default function Tentang() {
             Misi Kami
           </h2>
           <p className="text-base text-black/60 leading-relaxed">
-            Resisst lahir dari keresahan mahasiswa ITERA dalam
+            Ressist lahir dari keresahan mahasiswa ITERA dalam
             mengelola deadline tugas yang menumpuk di Moodle. Kami percaya
             bahwa teknologi harus membantu mahasiswa fokus belajar, bukan
             pusing menghafal deadline dari berbagai platform.

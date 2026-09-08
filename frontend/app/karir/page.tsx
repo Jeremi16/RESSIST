@@ -11,7 +11,7 @@ export default function Karir() {
     >
       <div className="space-y-8">
         <p className="text-sm text-black/60 leading-relaxed max-w-2xl">
-          Resisst adalah proyek berbasis komunitas mahasiswa ITERA. Kami membuka kesempatan bagi Anda yang ingin belajar membangun produk nyata.
+          Ressist adalah proyek berbasis komunitas mahasiswa ITERA. Kami membuka kesempatan bagi Anda yang ingin belajar membangun produk nyata.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -26,7 +26,7 @@ export default function Karir() {
           </div>
           <div className="p-6 rounded-2xl bg-white border border-black/5 space-y-3">
             <h3 className="text-base font-semibold text-black">Design & UX</h3>
-            <p className="text-sm text-black/60 leading-relaxed">Mendefinisikan visual brand Resisst dan memastikan pengalaman user tak terlupakan.</p>
+            <p className="text-sm text-black/60 leading-relaxed">Mendefinisikan visual brand Ressist dan memastikan pengalaman user tak terlupakan.</p>
             <div className="flex flex-wrap gap-2 pt-2">
               <span className="px-2.5 py-1 bg-[#F5F0EB] rounded-full text-xs font-medium text-black/60">Figma</span>
               <span className="px-2.5 py-1 bg-[#F5F0EB] rounded-full text-xs font-medium text-black/60">Branding</span>
@@ -38,7 +38,7 @@ export default function Karir() {
         <div className="bg-black rounded-2xl p-8 text-center space-y-3">
           <h3 className="text-lg font-semibold text-white">Tertarik Berkolaborasi?</h3>
           <p className="text-sm text-white/60">Kirimkan portofolio atau ide gilamu ke email kami.</p>
-          <a href="mailto:careers@resisst.com" className="inline-flex h-10 px-6 bg-white text-black rounded-full text-sm font-medium items-center">
+          <a href="mailto:careers@ressist.com" className="inline-flex h-10 px-6 bg-white text-black rounded-full text-sm font-medium items-center">
             Kirim Portofolio
           </a>
         </div>

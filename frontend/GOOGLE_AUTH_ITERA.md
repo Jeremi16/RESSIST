@@ -119,7 +119,7 @@ AUTH_JWT_SECRET="..."
 4. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
 5. Configure OAuth consent screen:
    - User Type: External
-   - App name: Resisst
+   - App name: Ressist
    - User support email: your-email
    - Developer contact: your-email
 6. Add scopes:

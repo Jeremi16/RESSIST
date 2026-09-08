@@ -94,7 +94,7 @@ export default function Docs() {
             <BookOpen className="size-4" /> Pengenalan
           </h3>
           <p className="text-sm text-black/60 leading-relaxed">
-            Resisst menyediakan API untuk cek tugas programmatic via <code className="px-1.5 py-0.5 bg-[#F5F0EB] rounded text-xs">X-API-Key</code>. Cocok untuk
+            Ressist menyediakan API untuk cek tugas programmatic via <code className="px-1.5 py-0.5 bg-[#F5F0EB] rounded text-xs">X-API-Key</code>. Cocok untuk
             script <code className="px-1.5 py-0.5 bg-[#F5F0EB] rounded text-xs">curl</code>, bot pribadi, atau integrasi kampus. Berbeda dengan login website yang
             pakai cookie <code className="px-1.5 py-0.5 bg-[#F5F0EB] rounded text-xs">refresh_token</code> + JWT 15 menit, API Key bersifat stateless, panjang
             umur, dan tidak butuh browser.
@@ -124,7 +124,7 @@ export default function Docs() {
             <Link2 className="size-4" /> Base URL & Header Umum
           </h3>
           <div className="space-y-2">
-            <CopyBlock text="https://resisst-api.nodryx.com" label="Production" />
+            <CopyBlock text="https://ressist-api.nodryx.com" label="Production" />
             <CopyBlock text="http://localhost:8080" label="Local" />
           </div>
           <div className="bg-[#F5F0EB] rounded-xl p-3 flex items-start gap-2">
@@ -198,7 +198,7 @@ export default function Docs() {
               </span>
               <div className="flex-1 min-w-0 space-y-2">
                 <p className="text-sm font-medium text-black">Cek tugas via curl</p>
-                <CopyBlock text={'curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/assignments'} />
+                <CopyBlock text={'curl -H "X-API-Key: rsk_xxx" https://ressist-api.nodryx.com/v1/assignments'} />
               </div>
             </li>
             <li className="flex gap-3">
@@ -208,10 +208,10 @@ export default function Docs() {
               <div className="flex-1 min-w-0 space-y-2">
                 <p className="text-sm font-medium text-black">Coba endpoint lain</p>
                 <CopyBlock
-                  text={'curl -H "X-API-Key: rsk_xxx" "https://resisst-api.nodryx.com/v1/calendar/preview?sort=deadline_asc"'}
+                  text={'curl -H "X-API-Key: rsk_xxx" "https://ressist-api.nodryx.com/v1/calendar/preview?sort=deadline_asc"'}
                 />
-                <CopyBlock text={'curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/courses'} />
-                <CopyBlock text={'curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/user'} />
+                <CopyBlock text={'curl -H "X-API-Key: rsk_xxx" https://ressist-api.nodryx.com/v1/courses'} />
+                <CopyBlock text={'curl -H "X-API-Key: rsk_xxx" https://ressist-api.nodryx.com/v1/user'} />
               </div>
             </li>
           </ol>
@@ -329,11 +329,11 @@ export default function Docs() {
             text={`# simpan key di env
 export API_KEY="rsk_xxx"
 # tugas mendatang
-curl -s -H "X-API-Key: $API_KEY" https://resisst-api.nodryx.com/v1/assignments | jq '.[].title'
+curl -s -H "X-API-Key: $API_KEY" https://ressist-api.nodryx.com/v1/assignments | jq '.[].title'
 # kalender terlewat vs mendatang (via assignment deadline)
-curl -s -H "X-API-Key: $API_KEY" https://resisst-api.nodryx.com/v1/calendar/preview | jq .events
+curl -s -H "X-API-Key: $API_KEY" https://ressist-api.nodryx.com/v1/calendar/preview | jq .events
 # alternatif header
-curl -s -H "Authorization: ApiKey $API_KEY" https://resisst-api.nodryx.com/v1/courses | jq`}
+curl -s -H "Authorization: ApiKey $API_KEY" https://ressist-api.nodryx.com/v1/courses | jq`}
           />
           <div className="bg-black text-white rounded-2xl p-5 space-y-2">
             <p className="text-sm font-semibold">Butuh bantuan?</p>

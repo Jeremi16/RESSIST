@@ -204,7 +204,7 @@ const VERSION_HISTORY: VersionEntry[] = [
     highlights: [
       "Tombol 'Buka Tugas' langsung di timeline dashboard",
       "Navigasi antar tugas yang lebih efisien",
-      "Penyelarasan visual identitas Resisst",
+      "Penyelarasan visual identitas Ressist",
     ],
     fixes: ["Pembersihan redundansi header badge di semua tab"],
   },
@@ -430,7 +430,7 @@ export default function Version() {
     <InfoLayout
       category="Changelog"
       title="Perjalanan Versi"
-      subtitle="Ikuti perkembangan Resisst dari awal hingga sekarang."
+      subtitle="Ikuti perkembangan Ressist dari awal hingga sekarang."
     >
       <div className="space-y-10">
         {/* Current Version Banner */}

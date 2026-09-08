@@ -5,7 +5,7 @@ export default function Keamanan() {
     <InfoLayout 
       category="Produk"
       title="Standar Keamanan"
-      subtitle="Data akademik Anda aman bersama Resisst dengan enkripsi tingkat tinggi."
+      subtitle="Data akademik Anda aman bersama Ressist dengan enkripsi tingkat tinggi."
     >
       <div className="space-y-6">
         <p className="text-sm text-black/60 leading-relaxed">

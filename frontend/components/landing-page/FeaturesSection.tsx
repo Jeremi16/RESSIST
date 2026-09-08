@@ -42,7 +42,7 @@ export function FeaturesSection() {
               Asisten studi terbaik untuk anak ITERA.
             </h2>
             <p className="text-sm lg:text-base text-black/60 leading-relaxed">
-              Resisst bukan sekadar Website, Resisst adalah sistem produktivitas
+              Ressist bukan sekadar Website, Ressist adalah sistem produktivitas
               yang dirancang untuk membantu deadliners mengelola deadline tugas.
             </p>
           </motion.div>

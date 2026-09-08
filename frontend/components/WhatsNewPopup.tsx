@@ -73,7 +73,7 @@ export function WhatsNewPopup({ isOpen: controlledIsOpen, onClose, showTrigger =
                 </div>
 
                 <div className="p-6 space-y-6">
-                  <p className="text-sm text-black/60 leading-relaxed"><strong className="text-black font-medium">Resisst {WHATS_NEW_VERSION}</strong> — filter, sort, dan notifikasi tugas baru kini tersedia.</p>
+                  <p className="text-sm text-black/60 leading-relaxed"><strong className="text-black font-medium">Ressist {WHATS_NEW_VERSION}</strong> — filter, sort, dan notifikasi tugas baru kini tersedia.</p>
 
                   <div className="space-y-3">
                     <h3 className="text-xs font-medium tracking-wide text-black/40">Fitur Utama</h3>
@@ -100,7 +100,7 @@ export function WhatsNewPopup({ isOpen: controlledIsOpen, onClose, showTrigger =
                     <Link to="/version" onClick={handleClose} className="flex-1 h-10 bg-black text-white rounded-full text-sm font-medium inline-flex items-center justify-center gap-1.5">Lihat Detail <ExternalLink className="size-3.5" /></Link>
                     <button onClick={handleClose} className="flex-1 h-10 bg-[#F5F0EB] border border-black/5 rounded-full text-sm font-medium text-black">Tutup</button>
                   </div>
-                  <p className="text-center text-xs text-black/30">Terima kasih telah menggunakan Resisst!</p>
+                  <p className="text-center text-xs text-black/30">Terima kasih telah menggunakan Ressist!</p>
                 </div>
               </div>
             </motion.div>

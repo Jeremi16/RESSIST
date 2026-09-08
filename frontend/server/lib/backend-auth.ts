@@ -75,7 +75,7 @@ async function refreshAccessToken(
         method: "POST",
         headers: {
           Cookie: `${REFRESH_COOKIE_NAME}=${refreshToken}`,
-          "User-Agent": c.req.header("user-agent") || "resisst-frontend",
+          "User-Agent": c.req.header("user-agent") || "ressist-frontend",
           "X-Forwarded-For": c.req.header("x-forwarded-for") || "",
         },
       });

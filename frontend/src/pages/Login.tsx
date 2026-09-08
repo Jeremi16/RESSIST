@@ -72,7 +72,7 @@ function LoginContent() {
         const payload = (await response.json()) as { synced?: boolean; newAssignmentsCount?: number; newAssignments?: unknown[]; error?: string };
         if (payload.error) console.warn("[login-sync] sync error:", payload.error);
         if ((payload.newAssignmentsCount ?? 0) > 0) {
-          sessionStorage.setItem("resisst.sync.new-assignments", JSON.stringify({ count: payload.newAssignmentsCount ?? 0, items: Array.isArray(payload.newAssignments) ? payload.newAssignments : [] }));
+          sessionStorage.setItem("ressist.sync.new-assignments", JSON.stringify({ count: payload.newAssignmentsCount ?? 0, items: Array.isArray(payload.newAssignments) ? payload.newAssignments : [] }));
         }
         if (payload.synced === false) {
           console.warn("[login-sync] synced=false — LMS belum terkonfigurasi atau gagal");
@@ -107,7 +107,7 @@ function LoginContent() {
               <GraduationCap className="size-6 text-white" />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-black mb-2">Selamat Datang</h1>
-            <p className="text-sm text-black/60">Masuk ke Resisst dengan akun Google ITERA Anda</p>
+            <p className="text-sm text-black/60">Masuk ke Ressist dengan akun Google ITERA Anda</p>
           </div>
 
           {error && (

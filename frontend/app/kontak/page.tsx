@@ -17,7 +17,7 @@ export default function Kontak() {
               <h3 className="text-base font-semibold text-black">Email Dukungan</h3>
               <p className="text-sm text-black/40 mt-1">Sapa kami di email operasional</p>
             </div>
-            <p className="text-sm font-medium text-black break-all">support@resisst.com</p>
+            <p className="text-sm font-medium text-black break-all">support@ressist.com</p>
           </div>
           <div className="p-6 rounded-2xl bg-white border border-black/5 space-y-4">
             <div className="size-10 bg-black rounded-xl flex items-center justify-center text-xs font-medium text-white">WA</div>
