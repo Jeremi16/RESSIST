@@ -762,10 +762,25 @@ export default function Dashboard() {
                     <div>
                       <h3 className="text-xl font-semibold tracking-tight text-black">Timeline Tugas</h3>
                       <p className="text-sm text-black/60 mt-1">Daftar tugas dalam tiga kelompok.</p>
+                      {(() => {
+                        const lastSyncedRaw = userData?.moodle_last_synced_at || userData?.lms_last_synced_at || null;
+                        if (!lastSyncedRaw) return null;
+                        const last = new Date(lastSyncedRaw);
+                        if (isNaN(last.getTime())) return null;
+                        const diffMs = Date.now() - last.getTime();
+                        const diffH = diffMs / 3600000;
+                        const stale = diffH > 6;
+                        return (
+                          <p className={cn("text-xs mt-1", stale ? "text-amber-600" : "text-black/40")}>
+                            Terakhir sinkron: {last.toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} WIB
+                            {stale && " · Data mungkin tertinggal dari Moodle, klik Sinkronkan"}
+                          </p>
+                        );
+                      })()}
                     </div>
-                    <button onClick={fetchAssignments} disabled={isLoadingAssignments} className="h-9 px-5 bg-black text-white rounded-full text-sm font-medium inline-flex items-center gap-2 hover:bg-black/90 disabled:opacity-50 transition-colors">
-                      <RefreshCw className={cn("size-4", isLoadingAssignments && "animate-spin")} />
-                      {isLoadingAssignments ? "Menyinkronkan..." : "Sinkronkan"}
+                    <button onClick={handleSyncTasks} disabled={isLoadingAssignments || isLoadingCalendar} className="h-9 px-5 bg-black text-white rounded-full text-sm font-medium inline-flex items-center gap-2 hover:bg-black/90 disabled:opacity-50 transition-colors">
+                      <RefreshCw className={cn("size-4", (isLoadingAssignments || isLoadingCalendar) && "animate-spin")} />
+                      {isLoadingAssignments || isLoadingCalendar ? "Menyinkronkan..." : "Sinkronkan"}
                     </button>
                   </div>
 

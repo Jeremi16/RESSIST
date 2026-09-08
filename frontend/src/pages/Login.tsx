@@ -65,12 +65,19 @@ function LoginContent() {
     const syncBackendSession = async () => {
       try {
         const response = await fetch("/api/auth/backend/sync", { method: "POST" });
-        if (!response.ok) return;
-        const payload = (await response.json()) as { newAssignmentsCount?: number; newAssignments?: unknown[] };
+        if (!response.ok) {
+          console.warn("[login-sync] backend/sync failed:", response.status);
+          return;
+        }
+        const payload = (await response.json()) as { synced?: boolean; newAssignmentsCount?: number; newAssignments?: unknown[]; error?: string };
+        if (payload.error) console.warn("[login-sync] sync error:", payload.error);
         if ((payload.newAssignmentsCount ?? 0) > 0) {
           sessionStorage.setItem("resisst.sync.new-assignments", JSON.stringify({ count: payload.newAssignmentsCount ?? 0, items: Array.isArray(payload.newAssignments) ? payload.newAssignments : [] }));
         }
-      } catch (err) { if (!cancelled) console.error(err); }
+        if (payload.synced === false) {
+          console.warn("[login-sync] synced=false — LMS belum terkonfigurasi atau gagal");
+        }
+      } catch (err) { if (!cancelled) console.error("[login-sync] exception:", err); }
     };
     const syncAndRedirect = async () => {
       setIsSyncing(true);
