@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math/rand"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -20,12 +19,22 @@ import (
 
 // Handler handles user HTTP requests.
 type Handler struct {
-	db *gorm.DB
+	db                  *gorm.DB
+	telegramBotUsername string
 }
 
 // NewHandler creates a new user Handler.
 func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{db: db}
+	return &Handler{db: db, telegramBotUsername: "ressist_bot"}
+}
+
+// NewHandlerWithConfig creates a new user Handler with injected config.
+func NewHandlerWithConfig(db *gorm.DB, telegramBotUsername string) *Handler {
+	username := strings.TrimSpace(telegramBotUsername)
+	if username == "" {
+		username = "ressist_bot"
+	}
+	return &Handler{db: db, telegramBotUsername: username}
 }
 
 // GetCurrentUser returns the current authenticated user's profile.
@@ -42,7 +51,7 @@ func (h *Handler) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, buildUserResponse(user))
+	c.JSON(http.StatusOK, h.buildUserResponse(user))
 }
 
 // UpdateCurrentUser updates the current user's settings.
@@ -89,7 +98,7 @@ func (h *Handler) UpdateCurrentUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, buildUserResponse(updatedUser))
+	c.JSON(http.StatusOK, h.buildUserResponse(updatedUser))
 }
 
 // DisconnectGoogleClassroom disconnects Google Classroom integration.
@@ -336,8 +345,11 @@ func (h *Handler) updateCourseAliases(c *gin.Context, userID string, aliases map
 		Update("course_aliases", jsonStr).Error
 }
 
-func buildUserResponse(user *models.User) userResponse {
-	telegramBotUsername := text.DefaultString(os.Getenv("TELEGRAM_BOT_USERNAME"), "ressist_bot")
+func (h *Handler) buildUserResponse(user *models.User) userResponse {
+	telegramBotUsername := h.telegramBotUsername
+	if strings.TrimSpace(telegramBotUsername) == "" {
+		telegramBotUsername = "ressist_bot"
+	}
 
 	return userResponse{
 		ID:                           user.ID,

@@ -14,3 +14,11 @@ func New(db *gorm.DB) (*Module, error) {
 		Handler: handler,
 	}, nil
 }
+
+// NewWithConfig creates a new user Module with injected telegram username.
+func NewWithConfig(db *gorm.DB, telegramBotUsername string) (*Module, error) {
+	handler := NewHandlerWithConfig(db, telegramBotUsername)
+	return &Module{
+		Handler: handler,
+	}, nil
+}

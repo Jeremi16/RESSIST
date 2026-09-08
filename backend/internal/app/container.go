@@ -42,7 +42,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	authMod.SetCalendarProvider(calendarMod.Service)
 	authMod.SetSyncService(calendarMod.SyncService)
 
-	userMod, err := user.New(db)
+	userMod, err := user.NewWithConfig(db, cfg.TelegramBotUsername)
 	if err != nil {
 		return nil, err
 	}
