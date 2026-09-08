@@ -35,6 +35,8 @@ type User struct {
 	ClassCode              *string    `gorm:"column:class_code"`
 	AvailableClassCodes    string     `gorm:"column:available_class_codes;default:'[]'"`
 	LMSLastSyncedAt        *time.Time `gorm:"column:lms_last_synced_at"`
+	MoodleLastSyncedAt     *time.Time `gorm:"column:moodle_last_synced_at;index"`
+	GoogleLastSyncedAt     *time.Time `gorm:"column:google_classroom_last_synced_at;index"`
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 }
