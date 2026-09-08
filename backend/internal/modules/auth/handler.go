@@ -573,7 +573,7 @@ func (s *syncService) needsUpdate(existing *models.Event, assignment AssignmentR
 
 func (s *syncService) markStaleAsCompleted(tx *gorm.DB, userID, provider string, keys []string, now time.Time) error {
 	query := tx.Model(&models.Event{}).
-		Where("user_id = ? AND source = ? AND deadline > ? AND (completed IS NULL OR completed = ?)", userID, provider, now, false)
+		Where("user_id = ? AND source = ? AND (completed IS NULL OR completed = ?)", userID, provider, false)
 	if len(keys) > 0 {
 		query = query.Where("sync_key NOT IN ?", keys)
 	}

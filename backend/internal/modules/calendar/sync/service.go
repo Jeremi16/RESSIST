@@ -219,6 +219,7 @@ func (s *SyncService) needsUpdate(
 
 // markStaleAsCompleted marks assignments that no longer exist in source as completed (instead of deleting).
 // This makes Moodle-done tasks disappear from calendar (filtered) but appear in "Selesai" tab.
+// Now also handles overdue stale: tasks whose deadline <= now but missing from ICS are also marked completed.
 func (s *SyncService) markStaleAsCompleted(
 	tx *gorm.DB,
 	userID, provider string,
@@ -231,11 +232,11 @@ func (s *SyncService) markStaleAsCompleted(
 	// We keep NOT IN only when keys > 0 to avoid wiping all on legit empty.
 	// No additional guard needed because partial failures no longer reach Persist.
 	query := tx.Model(&models.Event{}).
-		Where("user_id = ? AND source = ? AND deadline > ? AND (completed IS NULL OR completed = ?)", userID, provider, now, false)
+		Where("user_id = ? AND source = ? AND (completed IS NULL OR completed = ?)", userID, provider, false)
 	if len(keys) > 0 {
 		query = query.Where("sync_key NOT IN ?", keys)
 	} else {
-		// If legit 0 tasks, wipe all future tasks for this provider (user cleared assignments).
+		// If legit 0 tasks, wipe all tasks for this provider (user cleared assignments).
 		// This is intentional; if fetch had error, we would not be here.
 	}
 	return query.Updates(map[string]interface{}{
