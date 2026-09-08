@@ -16,6 +16,7 @@ import (
 	"github.com/jeremi16/resisst-api/internal/models"
 	"github.com/jeremi16/resisst-api/internal/modules/calendar/sync"
 	"github.com/jeremi16/resisst-api/internal/pkg/coursealias"
+	"github.com/jeremi16/resisst-api/internal/pkg/synckey"
 	"github.com/jeremi16/resisst-api/internal/pkg/text"
 	"github.com/jeremi16/resisst-api/internal/pkg/urlutil"
 	"github.com/jeremi16/resisst-api/internal/shared/middleware"
@@ -232,8 +233,11 @@ func (h *Handler) SyncAfterLogin(c *gin.Context) {
 		return
 	}
 
-	now := time.Now().UTC()
-	h.db.WithContext(ctx).Model(&models.User{}).Where("id = ?", user.ID).Update("lms_last_synced_at", now)
+	// Per-provider timestamps updated inside syncUserLMS; keep global for compat only if at least one succeeded
+	if result.TotalEvents > 0 || len(result.NewAssignments) > 0 {
+		now := time.Now().UTC()
+		h.db.WithContext(ctx).Model(&models.User{}).Where("id = ?", user.ID).Update("lms_last_synced_at", now)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"synced":              true,
@@ -250,25 +254,47 @@ func (h *Handler) syncUserLMS(ctx context.Context, user *models.User, providers 
 	result := &loginSyncResult{
 		NewAssignments: make([]loginNewAssignment, 0),
 	}
-
+	successPerProvider := make(map[string]bool)
 	for _, provider := range providers {
 		assignments, err := h.calendar.FetchProviderAssignments(ctx, provider, user)
 		if err != nil {
+			log.Printf("[auth] FetchProviderAssignments failed provider=%s user=%s err=%v", provider, user.ID, err)
 			continue
 		}
 
 		if h.syncSvc == nil {
 			result.TotalEvents += len(assignments)
+			successPerProvider[provider] = true
 			continue
 		}
 
 		newAssignments, err := h.syncSvc.PersistAssignments(ctx, user.ID, provider, assignments, user.CourseAliases)
 		if err != nil {
+			log.Printf("[auth] PersistAssignments failed provider=%s user=%s err=%v", provider, user.ID, err)
 			continue
 		}
 
 		result.TotalEvents += len(assignments)
 		result.NewAssignments = append(result.NewAssignments, convertToLoginAssignments(newAssignments)...)
+		successPerProvider[provider] = true
+	}
+
+	// Update per-provider timestamps
+	if len(successPerProvider) > 0 {
+		now := time.Now().UTC()
+		updates := make(map[string]interface{})
+		if successPerProvider["moodle"] {
+			updates["moodle_last_synced_at"] = now
+		}
+		if successPerProvider["google_classroom"] {
+			updates["google_classroom_last_synced_at"] = now
+		}
+		if len(updates) > 0 {
+			updates["lms_last_synced_at"] = now
+			if err := h.db.WithContext(ctx).Model(&models.User{}).Where("id = ?", user.ID).Updates(updates).Error; err != nil {
+				log.Printf("[auth] failed to update per-provider timestamps user=%s err=%v", user.ID, err)
+			}
+		}
 	}
 
 	return result, nil
@@ -499,15 +525,17 @@ func (s *syncService) createAssignment(tx *gorm.DB, assignment AssignmentRecord,
 
 func (s *syncService) updateAssignment(tx *gorm.DB, eventID string, assignment AssignmentRecord, provider string, courseValue, sourceIDValue, courseIDValue *string) error {
 	updateData := map[string]interface{}{
-		"title":       assignment.Title,
-		"course":      courseValue,
-		"course_id":   courseIDValue,
-		"class_code":  assignment.ClassCode,
-		"description": assignment.Description,
-		"url":         assignment.URL,
-		"deadline":    assignment.Deadline.UTC(),
-		"source":      provider,
-		"source_id":   sourceIDValue,
+		"title":        assignment.Title,
+		"course":       courseValue,
+		"course_id":    courseIDValue,
+		"class_code":   assignment.ClassCode,
+		"description":  assignment.Description,
+		"url":          assignment.URL,
+		"deadline":     assignment.Deadline.UTC(),
+		"source":       provider,
+		"source_id":    sourceIDValue,
+		"completed":    false,
+		"completed_at": nil,
 	}
 	return tx.Model(&models.Event{}).Where("id = ?", eventID).Updates(updateData).Error
 }
@@ -535,6 +563,9 @@ func (s *syncService) needsUpdate(existing *models.Event, assignment AssignmentR
 		return true
 	}
 	if !stringsEqual(existing.SourceID, sourceIDValue) {
+		return true
+	}
+	if existing.Completed {
 		return true
 	}
 	return false
@@ -570,8 +601,5 @@ func stringsEqual(a, b *string) bool {
 }
 
 func buildAssignmentSyncKey(provider, externalID, course, title string) string {
-	if strings.TrimSpace(externalID) != "" {
-		return provider + ":" + strings.TrimSpace(externalID)
-	}
-	return provider + ":" + text.Normalize(course) + ":" + text.Normalize(title)
+	return synckey.Build(provider, externalID, course, title)
 }

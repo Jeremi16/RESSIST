@@ -157,7 +157,7 @@ func (s *SyncService) createAssignment(
 	return tx.Create(&event).Error
 }
 
-// updateAssignment updates an existing assignment.
+// updateAssignment updates an existing assignment, resurrecting completed tasks.
 func (s *SyncService) updateAssignment(
 	tx *gorm.DB,
 	eventID string,
@@ -166,15 +166,17 @@ func (s *SyncService) updateAssignment(
 	courseValue, sourceIDValue, courseIDValue *string,
 ) error {
 	updateData := map[string]interface{}{
-		"title":       assignment.Title,
-		"course":      courseValue,
-		"course_id":   courseIDValue,
-		"class_code":  assignment.ClassCode,
-		"description": assignment.Description,
-		"url":         assignment.URL,
-		"deadline":    assignment.Deadline.UTC(),
-		"source":      provider,
-		"source_id":   sourceIDValue,
+		"title":        assignment.Title,
+		"course":       courseValue,
+		"course_id":    courseIDValue,
+		"class_code":   assignment.ClassCode,
+		"description":  assignment.Description,
+		"url":          assignment.URL,
+		"deadline":     assignment.Deadline.UTC(),
+		"source":       provider,
+		"source_id":    sourceIDValue,
+		"completed":    false,
+		"completed_at": nil,
 	}
 	return tx.Model(&models.Event{}).Where("id = ?", eventID).Updates(updateData).Error
 }
@@ -209,6 +211,9 @@ func (s *SyncService) needsUpdate(
 	if !stringsEqual(existing.SourceID, sourceIDValue) {
 		return true
 	}
+	if existing.Completed {
+		return true
+	}
 	return false
 }
 
@@ -220,10 +225,18 @@ func (s *SyncService) markStaleAsCompleted(
 	keys []string,
 	now time.Time,
 ) error {
+	// Guard: FetchAssignments now returns error on partial failure, but empty assignment list
+	// can still be legit (user has 0 tasks). Only skip wipe if this is truly an error case;
+	// caller already aborts on fetch error, so reaching here with empty keys means legit 0.
+	// We keep NOT IN only when keys > 0 to avoid wiping all on legit empty.
+	// No additional guard needed because partial failures no longer reach Persist.
 	query := tx.Model(&models.Event{}).
 		Where("user_id = ? AND source = ? AND deadline > ? AND (completed IS NULL OR completed = ?)", userID, provider, now, false)
 	if len(keys) > 0 {
 		query = query.Where("sync_key NOT IN ?", keys)
+	} else {
+		// If legit 0 tasks, wipe all future tasks for this provider (user cleared assignments).
+		// This is intentional; if fetch had error, we would not be here.
 	}
 	return query.Updates(map[string]interface{}{
 		"completed":    true,
