@@ -53,12 +53,27 @@ func (h *Handler) CompleteAssignment(c *gin.Context) {
 		return
 	}
 
+	// Classroom tasks are read-only (full source of truth from Classroom)
+	var existingSource struct {
+		Source string `gorm:"column:source"`
+		Status string `gorm:"column:status"`
+	}
+	if err := h.db.Table("events").Select("source, status").Where("id = ? AND user_id = ?", req.AssignmentID, userID).Scan(&existingSource).Error; err == nil {
+		if existingSource.Source == "google_classroom" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Classroom tasks are read-only, status follows Classroom"})
+			return
+		}
+		if existingSource.Status == "missed" {
+			// Allow completing a missed task, but mark as completed
+		}
+	}
+
 	now := time.Now()
 	result := h.db.Exec(`
 		UPDATE events 
-		SET completed = true, completed_at = ?, updated_at = ?
+		SET completed = true, completed_at = ?, status = 'completed', status_updated_at = ?, updated_at = ?
 		WHERE id = ? AND user_id = ?
-	`, now, now, req.AssignmentID, userID)
+	`, now, now, now, req.AssignmentID, userID)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update assignment"})
@@ -86,18 +101,20 @@ func (h *Handler) GetAssignments(c *gin.Context) {
 	}
 
 	type declType struct {
-		ID             string     `json:"id"`
-		Title          string     `json:"title"`
-		FullTitle      string     `json:"full_title"`
-		Course         *string    `json:"course"`
-		OriginalCourse *string    `json:"original_course"`
-		ClassCode      *string    `json:"class_code"`
-		Deadline       time.Time  `json:"deadline"`
-		Completed      bool       `json:"completed"`
-		CompletedAt    *time.Time `json:"completed_at"`
-		Source         string     `json:"source"`
-		Description    *string    `json:"description"`
-		URL            *string    `json:"url"`
+		ID              string     `json:"id"`
+		Title           string     `json:"title"`
+		FullTitle       string     `json:"full_title"`
+		Course          *string    `json:"course"`
+		OriginalCourse  *string    `json:"original_course"`
+		ClassCode       *string    `json:"class_code"`
+		Deadline        time.Time  `json:"deadline"`
+		Completed       bool       `json:"completed"`
+		CompletedAt     *time.Time `json:"completed_at"`
+		Status          string     `json:"status"`
+		StatusUpdatedAt *time.Time `json:"status_updated_at"`
+		Source          string     `json:"source"`
+		Description     *string    `json:"description"`
+		URL             *string    `json:"url"`
 	}
 	var assignments []declType
 
@@ -114,7 +131,7 @@ func (h *Handler) GetAssignments(c *gin.Context) {
 	if err := h.db.Raw(`
 		SELECT id, title, title as full_title, course, course as original_course, 
 		       class_code, deadline, COALESCE(completed, false) as completed, 
-		       completed_at, source, description, url
+		       completed_at, COALESCE(status,'pending') as status, status_updated_at, source, description, url
 		FROM events
 		WHERE user_id = ?
 		ORDER BY deadline ASC
