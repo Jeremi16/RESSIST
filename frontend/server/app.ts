@@ -84,6 +84,8 @@ app.post("/test-calendar", async (c) => {
   return proxy(c, "/v1/calendar/test", { method: "POST", body });
 });
 
+app.get("/calendar/raw", (c) => proxy(c, "/v1/calendar/raw", { method: "GET" }));
+
 // ---------- telegram ----------
 app.post("/telegram/test-briefing", (c) =>
   proxy(c, "/v1/telegram/test-briefing", { method: "POST" }),

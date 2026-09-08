@@ -12,6 +12,7 @@ import (
 	"github.com/jeremi16/resisst-api/internal/config"
 	"github.com/jeremi16/resisst-api/internal/models"
 	"github.com/jeremi16/resisst-api/internal/modules/calendar/google"
+	"github.com/jeremi16/resisst-api/internal/modules/calendar/ics"
 	"github.com/jeremi16/resisst-api/internal/modules/calendar/moodle"
 	"github.com/jeremi16/resisst-api/internal/modules/calendar/sync"
 	"github.com/jeremi16/resisst-api/internal/pkg/classcode"
@@ -59,6 +60,33 @@ func NewHandlerWithService(db *gorm.DB, cfg *config.Config, svc *Service) *Handl
 		moodleClient: svc.MoodleClient(),
 		svc:          svc,
 	}
+}
+
+// GetRaw returns raw Moodle ICS for debugging parser (Opsi A).
+func (h *Handler) GetRaw(c *gin.Context) {
+	userID, ok := middleware.AuthenticatedUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	user, err := h.findUser(c, userID)
+	if err != nil {
+		h.respondUserLookupError(c, err)
+		return
+	}
+	if user.MoodleCalendarURL == nil || text.Dereference(user.MoodleCalendarURL, "") == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "moodle calendar URL not configured"})
+		return
+	}
+	raw, err := h.moodleClient.FetchMoodleCalendar(c.Request.Context(), *user.MoodleCalendarURL)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "failed to fetch moodle calendar", "details": err.Error()})
+		return
+	}
+	// Also parse to count, for quick sanity
+	parsed := ics.ParseMoodleICS(raw)
+	c.Header("X-Event-Count", strconv.Itoa(len(parsed)))
+	c.Data(http.StatusOK, "text/calendar; charset=utf-8", []byte(raw))
 }
 
 // GetPreview returns calendar preview (cached or fresh).

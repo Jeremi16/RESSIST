@@ -18,6 +18,7 @@ func (h *Handler) registerCalendarRoutes(rg *gin.RouterGroup, parser middleware.
 		protected.Use(middleware.AccessToken(parser))
 	}
 	protected.GET("/preview", h.GetPreview)
+	protected.GET("/raw", h.GetRaw)
 	protected.POST("/test", h.TestPreview)
 }
 

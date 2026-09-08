@@ -110,6 +110,7 @@ func New(
 	calendarGroup := v1.Group("/calendar")
 	calendarGroup.Use(middleware.APIKeyOrJWT(tokenParser, apiKeyValidator), apiKeyRateLimit)
 	calendarGroup.GET("/preview", calendarModule.Handler.GetPreview)
+	calendarGroup.GET("/raw", calendarModule.Handler.GetRaw)
 	calendarGroup.POST("/test", calendarModule.Handler.TestPreview)
 
 	// Courses
