@@ -9,11 +9,11 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jeremi16/resisst-bot/internal/client"
-	"github.com/jeremi16/resisst-bot/internal/config"
+	"github.com/jeremi16/ressist-bot/internal/client"
+	"github.com/jeremi16/ressist-bot/internal/config"
 )
 
-// Bot polls Telegram and serves assignment queries 100% via resisst-api.
+// Bot polls Telegram and serves assignment queries 100% via ressist-api.
 type Bot struct {
 	api    *tgbotapi.BotAPI
 	client *client.Client
@@ -90,7 +90,7 @@ func (b *Bot) handleCommand(msg *tgbotapi.Message) {
 			return
 		}
 		b.reply(msg.Chat.ID, fmt.Sprintf(
-			"Halo! Selamat datang di Resisst Bot. 🎓\n\nUntuk menghubungkan akun, buka Dashboard Resisst di website dan salin kode verifikasi Telegram Anda, lalu kirim di sini atau via `/start KODE`.\n\nContoh: `/start ABCD12`\n\nSetelah terhubung, coba `/tugas` untuk cek tugas.\n\nBot: @%s",
+			"Halo! Selamat datang di Ressist Bot. 🎓\n\nUntuk menghubungkan akun, buka Dashboard Ressist di website dan salin kode verifikasi Telegram Anda, lalu kirim di sini atau via `/start KODE`.\n\nContoh: `/start ABCD12`\n\nSetelah terhubung, coba `/tugas` untuk cek tugas.\n\nBot: @%s",
 			b.cfg.TelegramBotUsername,
 		))
 	case "help":

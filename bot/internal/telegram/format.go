@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremi16/resisst-bot/internal/client"
+	"github.com/jeremi16/ressist-bot/internal/client"
 )
 
 var wib = time.FixedZone("WIB", 7*3600)
@@ -46,7 +46,7 @@ func formatAssignmentList(title string, items []client.Assignment) string {
 		sb.WriteString(fmt.Sprintf("   🆔 `%s`\n\n", a.ID))
 	}
 	sb.WriteString("Selesaikan via: `/selesai <id>`\n")
-	sb.WriteString("🌐 Detail: [resisst.web.id](https://resisst.web.id)")
+	sb.WriteString("🌐 Detail: [ressist.web.id](https://ressist.web.id)")
 	return sb.String()
 }
 
@@ -84,7 +84,7 @@ func formatReminder(title, course string, due time.Time) string {
 		emoji = "⚠️"
 	}
 	return fmt.Sprintf(
-		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [resisst.web.id](https://resisst.web.id)",
+		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
 		emoji, escape(course), escape(title), due.In(wib).Format("Monday, 2 Jan 2006 15:04"), hours,
 	)
 }
@@ -107,6 +107,6 @@ func formatBriefing(name string, items []client.Assignment) string {
 		}
 	}
 	sb.WriteString("Semangat belajarnya! 💪\n\n")
-	sb.WriteString("🌐 *Cek detail di:* [resisst.web.id](https://resisst.web.id)")
+	sb.WriteString("🌐 *Cek detail di:* [ressist.web.id](https://ressist.web.id)")
 	return sb.String()
 }

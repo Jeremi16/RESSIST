@@ -9,10 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jeremi16/resisst-bot/internal/client"
-	"github.com/jeremi16/resisst-bot/internal/config"
-	"github.com/jeremi16/resisst-bot/internal/scheduler"
-	"github.com/jeremi16/resisst-bot/internal/telegram"
+	"github.com/jeremi16/ressist-bot/internal/client"
+	"github.com/jeremi16/ressist-bot/internal/config"
+	"github.com/jeremi16/ressist-bot/internal/scheduler"
+	"github.com/jeremi16/ressist-bot/internal/telegram"
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	go func() {
-		log.Printf("resisst-bot health on :%s (api=%s)", cfg.BotPort, cfg.APIBaseURL)
+		log.Printf("ressist-bot health on :%s (api=%s)", cfg.BotPort, cfg.APIBaseURL)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("health server: %v", err)
 		}

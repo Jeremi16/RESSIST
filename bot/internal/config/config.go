@@ -26,7 +26,7 @@ func Load() *Config {
 		APIBaseURL:          strings.TrimSuffix(getEnv("API_BASE_URL", "http://localhost:8080"), "/"),
 		BotServiceToken:     getEnv("BOT_SERVICE_TOKEN", ""),
 		TelegramBotToken:    getEnv("TELEGRAM_BOT_TOKEN", ""),
-		TelegramBotUsername: getEnv("TELEGRAM_BOT_USERNAME", "resisst_bot"),
+		TelegramBotUsername: getEnv("TELEGRAM_BOT_USERNAME", "ressist_bot"),
 		PollTimeout:         getEnvAsInt("BOT_POLL_TIMEOUT", 60),
 	}
 }

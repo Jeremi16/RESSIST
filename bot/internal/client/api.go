@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// Client talks to resisst-api 100% over HTTP. No DATABASE_URL here.
+// Client talks to ressist-api 100% over HTTP. No DATABASE_URL here.
 type Client struct {
 	base  string
 	token string

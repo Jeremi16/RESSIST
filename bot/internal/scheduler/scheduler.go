@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremi16/resisst-bot/internal/client"
+	"github.com/jeremi16/ressist-bot/internal/client"
 	"github.com/robfig/cron/v3"
 )
 
 // Scheduler sends periodic notifications via the SendFunc (telegram).
-// All data comes from resisst-api over HTTP. No DB here.
+// All data comes from ressist-api over HTTP. No DB here.
 type Scheduler struct {
 	client *client.Client
 	send   func(chatID int64, text string) error
@@ -168,7 +168,7 @@ func buildBriefing(name string, items []client.Assignment) string {
 		}
 	}
 	sb.WriteString("Semangat belajarnya! 💪\n\n")
-	sb.WriteString("🌐 *Cek detail di:* [resisst.web.id](https://resisst.web.id)")
+	sb.WriteString("🌐 *Cek detail di:* [ressist.web.id](https://ressist.web.id)")
 	return sb.String()
 }
 
@@ -185,7 +185,7 @@ func buildReminder(title, course string, due time.Time) string {
 		emoji = "⚠️"
 	}
 	return fmt.Sprintf(
-		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [resisst.web.id](https://resisst.web.id)",
+		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
 		emoji, course, title, due.In(time.FixedZone("WIB", 7*3600)).Format("Monday, 2 Jan 2006 15:04"), hours,
 	)
 }

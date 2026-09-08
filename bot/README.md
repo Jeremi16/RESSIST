@@ -1,4 +1,4 @@
-# resisst-bot — Telegram Poller & Scheduler
+# ressist-bot — Telegram Poller & Scheduler
 
 > Standalone Go service untuk polling Telegram + cron reminder. **Wajib 1 replica** — `getUpdates` eksklusif.
 
@@ -50,7 +50,7 @@ docker compose logs -f bot
 | `API_BASE_URL` | `http://localhost:8080` | Trim trailing `/` |
 | `BOT_SERVICE_TOKEN` | `` | Wajib, sama dengan backend. Empty → semua `/internal/*` 503 |
 | `TELEGRAM_BOT_TOKEN` | `` | Wajib untuk `Bot.New` |
-| `TELEGRAM_BOT_USERNAME` | `resisst_bot` | Untuk pesan `/start` |
+| `TELEGRAM_BOT_USERNAME` | `ressist_bot` | Untuk pesan `/start` |
 | `BOT_POLL_TIMEOUT` | `60` | `GetUpdates` timeout sec |
 
 ## Commands — `internal/telegram/bot.go:85`
