@@ -7,21 +7,23 @@ import "time"
 // ============================================================================
 
 type calendarEventPreview struct {
-	ID             string     `json:"id"`
-	Title          string     `json:"title"`
-	FullTitle      string     `json:"full_title"`
-	Course         string     `json:"course"`
-	OriginalCourse string     `json:"original_course"`
-	CourseID       *string    `json:"course_id,omitempty"`
-	ClassCode      *string    `json:"class_code,omitempty"`
-	Description    *string    `json:"description,omitempty"`
-	URL            *string    `json:"url,omitempty"`
-	Deadline       string     `json:"deadline"`
-	TimeRemaining  string     `json:"timeRemaining"`
-	DeadlineDate   time.Time  `json:"deadlineDate"`
-	Source         string     `json:"source"`
-	Completed      bool       `json:"completed"`
-	CompletedAt    *time.Time `json:"completed_at,omitempty"`
+	ID              string     `json:"id"`
+	Title           string     `json:"title"`
+	FullTitle       string     `json:"full_title"`
+	Course          string     `json:"course"`
+	OriginalCourse  string     `json:"original_course"`
+	CourseID        *string    `json:"course_id,omitempty"`
+	ClassCode       *string    `json:"class_code,omitempty"`
+	Description     *string    `json:"description,omitempty"`
+	URL             *string    `json:"url,omitempty"`
+	Deadline        string     `json:"deadline"`
+	TimeRemaining   string     `json:"timeRemaining"`
+	DeadlineDate    time.Time  `json:"deadlineDate"`
+	Source          string     `json:"source"`
+	Completed       bool       `json:"completed"`
+	CompletedAt     *time.Time `json:"completed_at,omitempty"`
+	Status          string     `json:"status"`
+	StatusUpdatedAt *time.Time `json:"status_updated_at,omitempty"`
 }
 
 type calendarSourceInfo struct {
