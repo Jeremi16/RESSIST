@@ -1,4 +1,4 @@
-# Resisst — Assignment Reminder Monorepo
+# Ressist — Assignment Reminder Monorepo
 
 > Sistem pengingat tugas kuliah untuk mahasiswa ITERA: agregasi **Moodle (ICS)** + **Google Classroom**, notifikasi Telegram, dan manajemen tugas via API.
 
@@ -6,8 +6,8 @@ Monorepo 3 service yang bisa di-deploy terpisah:
 
 | Service | Stack | Lokasi | Deploy target |
 |---------|-------|--------|---------------|
-| **frontend** | Vite 6 + React 19 + Hono BFF + Bun | `frontend/` | Vercel (`resisst.nodryx.com`) |
-| **backend (api)** | Go 1.25 + Gin + GORM + Postgres | `backend/` | Homeserver/Coolify `resisst-api.nodryx.com` |
+| **frontend** | Vite 6 + React 19 + Hono BFF + Bun | `frontend/` | Vercel (`ressist.nodryx.com`) |
+| **backend (api)** | Go 1.25 + Gin + GORM + Postgres | `backend/` | Homeserver/Coolify `ressist-api.nodryx.com` |
 | **bot** | Go 1.25 + tgbotapi + cron | `bot/` | Homeserver (single replica, long-polling) |
 
 ---
@@ -38,7 +38,7 @@ Bot :8081  ──→  Telegram Bot API (getUpdates, sendMessage)
 ## Struktur Repo
 
 ```
-resisst/
+ressist/
 ├── frontend/          # Vite SPA + Hono BFF (lihat frontend/README.md)
 │   ├── src/           # React pages, App.tsx routing
 │   ├── server/        # Hono app.ts, middleware/auth.ts
@@ -75,7 +75,7 @@ docker compose up -d --build
 docker compose logs -f api bot
 # api: http://localhost:8080/livez
 # bot: http://localhost:8081/livez
-# db:  postgres://resisst:resisst@localhost:5432/resisst
+# db:  postgres://ressist:ressist@localhost:5432/ressist
 ```
 
 Scale API (stateless):
@@ -143,7 +143,7 @@ Aturan frontend env:
 ### Frontend — Vercel
 *   Dashboard Vercel → **Root Directory = `frontend`** (root `vercel.json` sudah dihapus).
 *   `frontend/vercel.json`: `framework: vite`, build `bun run build`, output `dist`, rewrite `/api/*` → Functions, redirect 301 ID→EN, SPA fallback.
-*   Env Vercel: `VITE_APP_URL`, `VITE_API_URL=https://resisst-api.nodryx.com`, `BACKEND_API_URL` (sama), `SESSION_SECRET`.
+*   Env Vercel: `VITE_APP_URL`, `VITE_API_URL=https://ressist-api.nodryx.com`, `BACKEND_API_URL` (sama), `SESSION_SECRET`.
 
 ### Backend + Bot — Coolify / Docker Compose
 *   `docker-compose.yml` sudah production-ready: healthcheck `wget /livez`, `GIN_MODE=release`, `AUTO_MIGRATE=true`.
@@ -152,7 +152,7 @@ Aturan frontend env:
 
 ### Backup
 *   `ops/backup/backup_to_neon.sh` — `pg_dump -Fc` lokal → `pg_restore` ke Neon + checksum + retention 14 hari.
-*   Cron: `0 0 * * * /opt/resisst/ops/backup/backup_to_neon.sh >> /var/log/resisst_backup.log 2>&1` (lihat `ops/backup/crontab.example`).
+*   Cron: `0 0 * * * /opt/ressist/ops/backup/backup_to_neon.sh >> /var/log/ressist_backup.log 2>&1` (lihat `ops/backup/crontab.example`).
 
 ---
 
@@ -175,7 +175,7 @@ Aturan frontend env:
 *   `GET /livez` — liveness (200 `{status:ok}`)
 *   `GET /readyz` — readiness + DB ping (503 jika `db_ping_failed`)
 *   `GET /healthz` — alias liveness
-*   `GET /metrics` — Prometheus (`resisst_http_requests_total`, `resisst_http_request_latency_ms`)
+*   `GET /metrics` — Prometheus (`ressist_http_requests_total`, `ressist_http_request_latency_ms`)
 *   `GET /openapi.json` & `GET /v1/openapi.json` — OpenAPI spec
 *   Logging: JSON access log (`shared/middleware/logging.go`) + `X-Request-ID` (`shared/middleware/request_id.go`)
 

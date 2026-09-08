@@ -29,9 +29,9 @@ build_output.txt
 # Go binaries
 *.exe
 /api
-/resisst-api
+/ressist-api
 backend/api.exe
-backend/resisst-api.exe
+backend/ressist-api.exe
 
 # Backup files
 *.backup

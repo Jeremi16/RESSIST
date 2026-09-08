@@ -1,5 +1,5 @@
 {
-  "name": "resisst-api",
+  "name": "ressist-api",
   "private": true,
   "scripts": {
     "dev": "go run ./cmd/api",

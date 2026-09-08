@@ -1,5 +1,5 @@
 {
-  "name": "resisst-monorepo",
+  "name": "ressist-monorepo",
   "private": true,
   "scripts": {
     "dev": "bun run dev:frontend & bun run dev:backend & wait",
