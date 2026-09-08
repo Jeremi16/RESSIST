@@ -182,6 +182,23 @@ export default function Dashboard() {
     fetchUserData();
     fetchCourses();
     fetchAssignments();
+    // Tampilkan toast jika login-sync menemukan tugas baru (tiap login)
+    try {
+      const raw = sessionStorage.getItem("resisst.sync.new-assignments");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { count?: number };
+        if (parsed?.count && parsed.count > 0) {
+          showToast({
+            title: "Tugas Baru Ditemukan!",
+            description: `${parsed.count} tugas baru dari Moodle berhasil disinkronisasi saat login.`,
+            variant: "success",
+          });
+        }
+        sessionStorage.removeItem("resisst.sync.new-assignments");
+      }
+    } catch {
+      // ignore
+    }
   }, []);
 
   const fetchCourses = async () => {
@@ -241,6 +258,10 @@ export default function Dashboard() {
       if (response.ok) {
         setPreviewEvents(data.events);
         setPreviewError("");
+        if (forceRefresh) {
+          // Refresh user timestamps so staleness indicator updates
+          fetchUserData();
+        }
         if (forceRefresh && data.new_tasks_count && data.new_tasks_count > 0) {
           showToast({
             title: "Tugas Baru Ditemukan!",
@@ -254,10 +275,16 @@ export default function Dashboard() {
             variant: "info",
           });
         }
+      } else if (forceRefresh) {
+        const msg = (data as any)?.error || "Gagal sinkronisasi dengan Moodle";
+        showToast({ title: "Sinkronisasi Gagal", description: msg, variant: "error" });
       }
     } catch (error) {
       console.error("Error fetching calendar preview:", error);
       setPreviewError("Gagal memuat data kalender");
+      if (forceRefresh) {
+        showToast({ title: "Sinkronisasi Gagal", description: "Gangguan jaringan saat sinkronisasi", variant: "error" });
+      }
     } finally {
       setIsLoadingCalendar(false);
     }
@@ -275,6 +302,29 @@ export default function Dashboard() {
       console.error("Error fetching assignments:", error);
     } finally {
       setIsLoadingAssignments(false);
+    }
+  };
+
+  const handleSyncTasks = async () => {
+    // Force-sync ke Moodle/ICS dulu agar tugas yang sudah selesai di Moodle
+    // (hilang dari ICS) ditandai completed via markStaleAsCompleted, baru reload daftar tugas.
+    setIsLoadingAssignments(true);
+    try {
+      await fetchCalendarPreview(true, sortOrder);
+    } finally {
+      // fetchAssignments akan dipanggil setelah preview selesai;
+      // panggil lagi untuk pastikan kolom Mendatang/Selesai sinkron dengan DB terbaru.
+      try {
+        const response = await fetch("/api/assignments");
+        if (response.ok) {
+          const data = await response.json();
+          setAllAssignments(Array.isArray(data) ? data : data.assignments || []);
+        }
+      } catch (e) {
+        console.error("Error refetching assignments after sync:", e);
+      } finally {
+        setIsLoadingAssignments(false);
+      }
     }
   };
 
