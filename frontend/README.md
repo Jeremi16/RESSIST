@@ -75,3 +75,10 @@ api/index.ts          # entry Vercel Functions (Node, tanpa API Bun.*)
 
 `nixpacks.toml` start = `SERVE_STATIC=1 bun run server/index.ts` — 1 proses Bun
 serve `dist/` + `/api/*` (dengan guard halaman `authMiddleware`).
+
+## Dokumentasi Terkait
+
+*   Backend API: [`backend/README.md`](../backend/README.md) · [`backend/API_DOCUMENTATION.md`](../backend/API_DOCUMENTATION.md)
+*   Bot Telegram: [`bot/README.md`](../bot/README.md)
+*   Module backend: [`backend/internal/modules/`](../backend/internal/modules/) — 9 module + `shared/`, `pkg/`, `models/`
+*   Backup: [`ops/backup/README.md`](../ops/backup/README.md)

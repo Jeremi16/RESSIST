@@ -1,304 +1,239 @@
 # Resisst API Documentation
 
-## Base URL
+> Base: Production `https://resisst-api.nodryx.com` · Local `http://localhost:8080` · OpenAPI `GET /openapi.json` & `GET /v1/openapi.json`
 
-- Production: `https://resisst-api.nodryx.com`
-- Local: `http://localhost:8080`
+## Daftar Isi
+
+*   [Auth Model](#auth-model) · [Common Headers](#common-headers) · [Health](#health-and-observability)
+*   [Auth](#authentication-endpoints) · [User](#user-endpoints) · [Assignment](#assignment-endpoints) · [Course](#course-endpoints) · [Telegram](#telegram-endpoints) · [API Keys](#api-keys-programmatic-access) · [Calendar](#calendar-endpoints) · [Internal (bot)](#internal-bot-endpoints-service-to-service) · [BFF Proxy](#frontend-bff-proxy-endpoints-hono-vercel-functions)
 
 ## Auth Model
 
-- OAuth login sets **HttpOnly cookie**: `refresh_token`
-- Access token is obtained from `POST /v1/auth/refresh`
-- Protected endpoints require header:
-  - `Authorization: Bearer <access_token>` (browser via BFF)
-  - **OR** `X-API-Key: rsk_...` (programmatic, tanpa buka website) — berlaku untuk `GET /v1/assignments`, `GET /v1/calendar/preview`, `GET /v1/courses`, `GET /v1/user`, `GET /v1/auth/me`
-  - Alternative header: `Authorization: ApiKey rsk_...`
+*   OAuth login sets **HttpOnly cookie** `refresh_token` (30d, `sha256` di DB, rotasi + reuse detection).
+*   Access token (`JWT HS256 15m, iss=resisst-api`) via `POST /v1/auth/refresh`.
+*   Protected endpoints — salah satu:
+
+    | Header | Kapan | Endpoint support |
+    |--------|-------|------------------|
+    | `Authorization: Bearer <jwt>` | Browser via BFF | Semua `Bearer` routes |
+    | `X-API-Key: rsk_...` | Programmatic tanpa website | `GET /v1/assignments`, `GET /v1/calendar/preview`, `GET /v1/courses`, `GET /v1/user`, `GET /v1/auth/me` |
+    | `Authorization: ApiKey rsk_...` | Alternatif API key | Sama |
+    | `X-Bot-Token: <hex> + X-Act-As-User: <userID>` | Bot `resisst-bot` | `/internal/*` + `/v1/assignments` (GET) & `/complete` |
 
 ## Common Headers
 
-- Request ID:
-  - Optional request header: `X-Request-ID`
-  - Response always includes: `X-Request-ID`
+*   Request ID: optional `X-Request-ID` request → always `X-Request-ID` response (`shared/middleware/request_id.go`).
+*   Rate limit: IP bucket `15m TTL` untuk `AuthRateLimit`, prefix bucket `apikey:<12>` untuk `ApiKeyRateLimit`.
 
 ## Health and Observability
 
 ### `GET /livez`
-- Purpose: process liveness probe
-- Response `200`:
-```json
-{ "status": "ok" }
-```
+Liveness — `200 {"status":"ok"}`
 
 ### `GET /readyz`
-- Purpose: readiness probe with DB ping
-- Response `200`:
-```json
-{ "status": "ready" }
-```
-- Response `503`:
-```json
-{ "status": "not_ready", "error": "db_ping_failed" }
-```
+Readiness + DB ping 2s — `200 {"status":"ready"}` atau `503 {"status":"not_ready","error":"db_ping_failed"|"db_unavailable"}` (`shared/router/router.go:56`)
 
-### `GET /healthz`
-- Legacy alias of liveness.
+### `GET /healthz` — alias liveness
 
-### `GET /metrics`
-- Prometheus metrics endpoint.
+### `GET /metrics` — Prometheus
+`resisst_http_requests_total{method,path,status}` counter + `resisst_http_request_latency_ms` histogram 5-5000ms (`shared/middleware/metrics.go`)
 
-### `GET /openapi.json`
-### `GET /v1/openapi.json`
-- OpenAPI document.
+### `GET /openapi.json` & `GET /v1/openapi.json` — OpenAPI doc (`shared/docs/openapi.json`)
+
+---
 
 ## Authentication Endpoints
 
-All endpoints also exist in legacy path `/auth/*`.
-Recommended: use `/v1/auth/*`.
+Semua ada legacy `/auth/*` dan versioned `/v1/auth/*` — prefer `/v1`.
 
 ### `GET /v1/auth/google/login`
-- Starts Google OAuth flow.
-- Response: `307` redirect to Google.
+OAuth redirect 307 ke Google (`offline` + `include_granted_scopes`), set `oauth_state` cookie 600s.
 
 ### `GET /v1/auth/google/callback`
-- OAuth callback endpoint.
-- Response: `307` redirect to frontend success/error path.
-- Side effect: sets `refresh_token` cookie.
+Validasi state, `ExchangeGoogleCode`, `FetchGoogleUser` (`oauth2/v3/userinfo`), `UpsertGoogleUser` (check `@student.itera.ac.id`), `CreateRefreshToken` 48B base64url, set `refresh_token` httpOnly, redirect `FRONTEND_URL+SUCCESS_PATH` atau `ERROR_PATH`. Detail: `internal/modules/auth/README.md`.
 
 ### `POST /v1/auth/refresh`
-- Reads `refresh_token` cookie, rotates it, returns access token.
-- Response `200`:
+Rotate cookie, issue JWT — grace 30s race, reuse → `RevokeAll`.
 ```json
-{
-  "access_token": "jwt",
-  "token_type": "Bearer",
-  "expires_at": "2026-03-13T10:00:00Z",
-  "user": {
-    "id": "uuid",
-    "email": "user@student.itera.ac.id",
-    "name": "User Name"
-  }
-}
+{"access_token":"jwt","token_type":"Bearer","expires_at":"2026-03-13T10:00:00Z","user":{"id":"uuid","email":"...","name":"..."}}
 ```
-- Response `401`:
-```json
-{ "error": "invalid refresh token" }
-```
+`401 {"error":"invalid refresh token"}`
 
 ### `POST /v1/auth/logout`
-- Revokes current refresh token (best effort).
-- Response: `204 No Content`
+Revoke refresh (best effort) → `204`.
 
-### `GET /v1/auth/me`
-- Protected endpoint.
-- Response `200`:
+### `GET /v1/auth/me` — `Bearer` atau `X-API-Key`
 ```json
-{
-  "id": "uuid",
-  "email": "user@student.itera.ac.id",
-  "name": "User Name",
-  "avatar_url": "https://...",
-  "email_verified": true
-}
+{"id":"uuid","email":"...@student.itera.ac.id","name":"...","avatar_url":"...","email_verified":true}
 ```
+
+### `POST /v1/auth/sync` — `Bearer` only
+Trigger sinkronisasi LMS untuk user yang sudah login. Fetch & persist per provider (`moodle`/`google_classroom`) via `calendar.Service`. Jika tidak ada provider enabled → `400 {"error":"no_lms_configured"}`. Response:
+```json
+{"total_events":5,"new_assignments":[{"title":"Tugas 1","course":"Pemro","deadline":"2026-03-14T12:00:00Z","source":"moodle"}]}
+```
+
+---
 
 ## User Endpoints
 
-`GET /v1/user` mendukung `Bearer` atau `X-API-Key`; sisanya `Bearer` only (via BFF).
+`GET /v1/user` `Bearer` **atau** `X-API-Key`; mutasi `Bearer` only (via BFF).
 
 ### `GET /v1/user`
-- Get current user profile + settings.
-- Response `200`:
 ```json
 {
-  "id": "uuid",
-  "email": "user@student.itera.ac.id",
-  "name": "User Name",
-  "avatar_url": "https://...",
-  "whatsapp_number": "62812xxxx",
-  "whatsapp_enabled": true,
-  "telegram_chat_id": "123456",
-  "telegram_enabled": true,
-  "moodle_enabled": true,
-  "moodle_calendar_url": "https://...",
-  "google_classroom_enabled": true,
-  "google_connected": true,
-  "telegram_bot_username": "resisst_bot",
-  "reminder_hours": "[24,12]",
-  "morning_briefing": false,
-  "muted_courses": "[]",
-  "created_at": "2026-03-13T10:00:00.000Z"
-}
+  "id":"uuid","email":"...","name":"...","avatar_url":"...","whatsapp_number":"62812xxxx","whatsapp_enabled":true,
+  "telegram_chat_id":"123456","telegram_enabled":true,"moodle_enabled":true,"moodle_calendar_url":"https://...",
+  "google_classroom_enabled":true,"google_connected":true,"telegram_bot_username":"resisst_bot",
+  "reminder_hours":"[24,12]","morning_briefing":false,"muted_courses":"[]","course_aliases":{},"class_code":null,"available_class_codes":[],
+  "lms_last_synced_at":"...","moodle_last_synced_at":"...","google_last_synced_at":"...","created_at":"..."}
 ```
 
-### `PUT /v1/user`
-- Update user settings.
-- Body (all fields optional):
+### `PUT /v1/user` — `Bearer` only
+Body semua optional:
 ```json
-{
-  "whatsapp_number": "62812xxxx",
-  "whatsapp_enabled": true,
-  "telegram_chat_id": "123456",
-  "telegram_enabled": true,
-  "moodle_enabled": true,
-  "moodle_calendar_url": "https://moodle/.../calendar.ics",
-  "google_classroom_enabled": true,
-  "reminder_hours": "[24,12]",
-  "morning_briefing": false,
-  "muted_courses": "[]"
-}
+{"whatsapp_number":"62812xxxx","whatsapp_enabled":true,"telegram_chat_id":"123456","telegram_enabled":true,"moodle_enabled":true,"moodle_calendar_url":"https://moodle/.../calendar.ics","google_classroom_enabled":true,"reminder_hours":"[24,12]","morning_briefing":false,"muted_courses":"[]","course_aliases":{"Pemro":"Pemrograman"},"class_code":"A","available_class_codes":["A","B"]}
 ```
-- Response `200`: same shape as `GET /v1/user`
-- Response `400` examples:
-```json
-{ "error": "invalid whatsapp number" }
-```
-```json
-{ "error": "invalid moodle calendar url" }
-```
+`400 {"error":"invalid whatsapp number"|"invalid moodle calendar url"}`
 
-### `POST /v1/user/google/disconnect`
-- Disconnect Google Classroom, clear tokens, remove Google Classroom cached events.
-- Response `200`:
-```json
-{ "success": true }
-```
+### `POST /v1/user/google/disconnect` — `Bearer` only
+Clear tokens + hapus `events WHERE source=google_classroom` → `200 {"success":true}`
 
-### `POST /v1/user/telegram/verify-code`
-- Generate 6-char verify code untuk Telegram (valid 10 menit). `Bearer` only.
-- Response `200`:
-```json
-{ "code": "ABCDEFG1", "expires_at": "2026-03-13T10:10:00Z" }
-```
+### `POST /v1/user/telegram/verify-code` — `Bearer` only
+Generate 6-char `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` valid 10m → `200 {"code":"ABCDEFG1","expires_at":"..."}`. Bot verifikasi via `/internal/telegram/verify`.
 
-### `GET /v1/user/course-aliases` / `POST` / `DELETE`
-- CRUD alias mata kuliah. `Bearer` only. Body `{"original_name","alias"}`.
+### `GET /v1/user/course-aliases` · `POST` · `DELETE` — `Bearer` only
+CRUD alias. Body `{"original_name":"Pemro","alias":"Pemrograman"}`.
+
+---
 
 ## Assignment Endpoints
 
-### `GET /v1/assignments`
-- Daftar tugas terfilter (muted/class/keyword), ordered deadline ASC. Mendukung `X-API-Key` atau `Bearer`.
+### `GET /v1/assignments` — `Bearer` | `X-API-Key` | `X-Bot-Token+X-Act-As-User`
+List tugas terfilter (muted/class/keyword), `ORDER deadline ASC`. Bot & API key support.
 
-### `POST /v1/assignments/complete`
-- Tandai tugas selesai. `Bearer` only. Body `{"assignment_id":"uuid"}`. Response `200`:
-```json
-{ "success": true, "message": "Assignment marked as completed", "completed_at": "2026-03-13T10:00:00Z" }
-```
+### `POST /v1/assignments/complete` — `Bearer` | `X-Bot-Token+X-Act-As-User`
+Body `{"assignment_id":"uuid"}` → `200 {"success":true,"message":"Assignment marked as completed","completed_at":"..."}`
+
+---
 
 ## Course Endpoints
 
-### `GET /v1/courses`
-- Daftar matkul unik dari events. Mendukung `X-API-Key` atau `Bearer`.
+### `GET /v1/courses` — `Bearer` | `X-API-Key`
+Daftar matkul unik dari events (filter keyword) → `{"courses":[{"id":"Pemro","name":"Pemro"}]}`
 
-## Telegram Endpoints
+---
+
+## Telegram Endpoints — `Bearer` only
 
 ### `POST /v1/telegram/test-reminder`
-- Kirim test reminder Telegram. `Bearer` only.
+Kirim test reminder ke chat_id user (butuh `telegram_enabled && telegram_chat_id`).
 
 ### `POST /v1/telegram/test-briefing`
-- Kirim morning briefing Telegram. `Bearer` only.
+Kirim morning briefing test.
+
+Keduanya sender-only (aman multi-replica); polling lives in `bot/` (`bot/README.md`).
+
+---
 
 ## API Keys (Programmatic Access)
 
-Tanpa buka website, cek tugas via `curl` / script pakai API key.
+### Manage via website — JWT required
 
-### Manage via website (JWT required)
-- `POST /v1/api-keys` — buat key. Body: `{ "name": "curl laptop", "expires_in_days": 30 }` (opsional, 1-3650; omit = never). Response `201`:
-```json
-{
-  "id": "uuid",
-  "name": "curl laptop",
-  "prefix": "rsk_abc123",
-  "api_key": "rsk_... (hanya tampil sekali!)",
-  "expires_at": "2026-04-07T00:00:00Z",
-  "created_at": "2026-03-07T00:00:00Z"
-}
-```
-- `GET /v1/api-keys` — list keys (`{ "keys": [{ id, name, prefix, expires_at, last_used_at, revoked_at, created_at }] }`)
-- `DELETE /v1/api-keys/:id` — revoke key (`{ "success": true }`)
-- Max 5 key aktif/user. Rate limit 60/min per key (prefix bucket 15m TTL).
+*   `POST /v1/api-keys` `{name 1-64, expires_in_days 1-3650 optional omit=never}` → `201 {"id","name","prefix":"rsk_abc123","api_key":"rsk_... (sekali)","expires_at","created_at"}`
+*   `GET /v1/api-keys` → `{"keys":[{"id","name","prefix","expires_at","last_used_at","revoked_at","created_at"}]}`
+*   `DELETE /v1/api-keys/:id` → `{"success":true}`
 
-### Pakai API key (tanpa login)
+Max 5 aktif/user. Rate 60/min per prefix bucket 15m.
+
+### Pakai API key (tanpa website)
+
 ```bash
-# buat key sekali via website (Dashboard -> API Keys)
+# buat key sekali via Dashboard → API Keys
 
-# cek tugas
 curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/assignments
-
-# alternatif header
 curl -H "Authorization: ApiKey rsk_xxx" https://resisst-api.nodryx.com/v1/assignments
-
-# kalender preview
 curl -H "X-API-Key: rsk_xxx" "https://resisst-api.nodryx.com/v1/calendar/preview?sort=deadline_asc"
-
-# courses & profile juga bisa
 curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/courses
 curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/user
 ```
-BFF proxy: `GET/POST /api/api-keys` dan `DELETE /api/api-keys/:id` (frontend Dashboard tab API Keys).
 
-## Calendar Endpoints
+BFF proxy: `GET/POST /api/api-keys` dan `DELETE /api/api-keys/:id`.
 
-Read endpoints support both auth methods: `Authorization: Bearer <access_token>` **or** `X-API-Key: rsk_...`.
-Current implementation is cache-based (reads `events` table only).
+---
 
-### `GET /v1/calendar/preview`
-- Returns upcoming assignments from cache.
-- Response `200`:
+## Calendar Endpoints — `Bearer` | `X-API-Key`
+
+Cache-based (baca `events` table). Sorting `deadline_asc|deadline_desc|newest|oldest`.
+
+### `GET /v1/calendar/preview?force&sort`
+
+| Query | Deskripsi |
+|-------|-----------|
+| `force=true` | Force `SyncProviders` sebelum response (live fetch) |
+| `sort` | `deadline_asc` (default) / `deadline_desc` / `newest` / `oldest` — via `pkg/sortutil` |
+
+Response `200`:
 ```json
 {
-  "events": [
-    {
-      "title": "Tugas 1",
-      "course": "Pemrograman",
-      "deadline": "2026-03-14T12:00:00Z",
-      "timeRemaining": "1 hari 2 jam",
-      "deadlineDate": "2026-03-14T12:00:00Z",
-      "source": "google_classroom"
-    }
-  ],
-  "sources": [
-    { "provider": "google_classroom", "count": 1, "success": true }
-  ],
-  "total": 1,
-  "successfulSources": 1,
-  "failedSources": 0,
-  "fromCache": true,
-  "lastSyncedAt": "2026-03-13T08:00:00Z",
-  "nextRefreshAt": "2026-03-13T09:00:00Z"
+  "events":[{"id":"uuid","title":"Tugas 1","course":"Pemrograman","deadline":"2026-03-14T12:00:00Z","timeRemaining":"1 hari 2 jam","deadlineDate":"2026-03-14T12:00:00Z","source":"google_classroom","completed":false}],
+  "sources":[{"provider":"google_classroom","count":1,"success":true}],
+  "total":1,"successfulSources":1,"failedSources":0,"fromCache":true,
+  "lastSyncedAt":"2026-03-13T08:00:00Z","nextRefreshAt":"2026-03-13T09:00:00Z"
 }
 ```
 
 ### `POST /v1/calendar/test`
-- Validate selected providers and return cache preview for selected sources.
-- Body:
+
+Validate providers tanpa pakai cache. Body:
 ```json
-{
-  "moodle_calendar_url": "https://moodle/.../calendar.ics",
-  "test_moodle": true,
-  "test_google": false
-}
+{"moodle_calendar_url":"https://moodle/.../calendar.ics","test_moodle":true,"test_google":false}
 ```
-- Response `200`: same shape as `GET /v1/calendar/preview`
-- Response `400` example:
-```json
-{ "error": "No LMS source configured for testing" }
-```
+`400 {"error":"No LMS source configured for testing"}`
+
+---
+
+## Internal Bot Endpoints — Service-to-Service
+
+Guard `RequireBotService`: `X-Bot-Token: <BOT_SERVICE_TOKEN>` (`shared/middleware/bot_auth.go`). Empty token → `503`. Dipakai `bot/internal/client/api.go`.
+
+### `GET /internal/users/by-telegram/:chatID`
+→ `{"id","name","telegram_enabled","telegram_chat_id","telegram_username"}`
+
+### `GET /internal/users/:id`
+→ `{"id","name","telegram_enabled","telegram_chat_id","morning_briefing","reminder_hours","muted_courses","class_code"}`
+
+### `POST /internal/telegram/verify`
+Body `{"code":"ABCDEF","chat_id":"123456","telegram_username":"johndoe"}` — `WHERE telegram_verify_code=? AND expires>NOW()` → update `telegram_chat_id/enabled` → `{"success":true,"name":"..."}`
+
+### `GET /internal/scheduler/due?hours_before=24&window_minutes=30`
+Due assignments `deadline BETWEEN target-window AND target+window` where `completed=false && telegram_enabled && chat_id NOT NULL`.
+
+### `POST /internal/scheduler/mark-sent`
+Body `{"assignment_id":"uuid","key":"24h"}` — append `reminders_sent`.
+
+### `GET /internal/scheduler/briefing-candidates`
+`WHERE telegram_enabled && morning_briefing && chat_id NOT NULL`.
+
+---
 
 ## Frontend BFF Proxy Endpoints (Hono, Vercel Functions)
 
-Frontend `frontend/server/app.ts` proxies key routes to backend:
+`frontend/server/app.ts` proxies (browser `fetch /api/*` → BFF → backend):
 
-- `GET /api/assignments` -> `/v1/assignments`
-- `POST /api/assignments/complete` -> `/v1/assignments/complete`
-- `GET /api/courses` -> `/v1/courses`
-- `GET/PUT /api/user` -> `/v1/user`
-- `POST /api/user/google/disconnect` -> `/v1/user/google/disconnect`
-- `POST /api/user/telegram/verify-code` -> `/v1/user/telegram/verify-code`
-- `GET/POST /api/test-calendar` -> `/v1/calendar/preview|test` (query `?force&sort`)
-- `POST /api/telegram/test-reminder` -> `/v1/telegram/test-reminder`
-- `POST /api/telegram/test-briefing` -> `/v1/telegram/test-briefing`
-- `POST /api/auth/backend/sync` -> `/v1/auth/refresh` + `/v1/auth/me` + `/v1/auth/sync`
-- `GET/POST /api/api-keys` -> `/v1/api-keys`
-- `DELETE /api/api-keys/:id` -> `/v1/api-keys/:id`
+| BFF | → Backend |
+|-----|-----------|
+| `GET /api/assignments` | `GET /v1/assignments` |
+| `POST /api/assignments/complete` | `POST /v1/assignments/complete` |
+| `GET /api/courses` | `GET /v1/courses` |
+| `GET/PUT /api/user` | `GET/PUT /v1/user` |
+| `POST /api/user/google/disconnect` | `POST /v1/user/google/disconnect` |
+| `POST /api/user/telegram/verify-code` | `POST /v1/user/telegram/verify-code` |
+| `GET/POST /api/test-calendar` | `GET /v1/calendar/preview` / `POST /v1/calendar/test` (`?force&sort`) |
+| `POST /api/telegram/test-reminder` | `POST /v1/telegram/test-reminder` |
+| `POST /api/telegram/test-briefing` | `POST /v1/telegram/test-briefing` |
+| `POST /api/auth/backend/sync` | `POST /v1/auth/refresh` + `/v1/auth/me` + `/v1/auth/sync` |
+| `GET/POST /api/api-keys` | `GET/POST /v1/api-keys` |
+| `DELETE /api/api-keys/:id` | `DELETE /v1/api-keys/:id` |
 
-This is the recommended path for browser calls from frontend UI. External programmatic consumers hit backend directly with `X-API-Key`.
+Browser wajib lewat BFF (cookie httpOnly). Konsumen programmatic hit backend langsung dengan `X-API-Key`.
