@@ -141,9 +141,30 @@ func (h *Handler) syncAndBuildResponse(c *gin.Context, user *models.User, provid
 	sourceInfo, newAssignments, successfulSources, failedSources := h.syncProviders(c.Request.Context(), user, providers)
 	fromCache := successfulSources == 0
 
+	// Per-provider timestamps are now updated inside Service.SyncProviders.
+	// Keep in-memory user timestamps in sync for response.
 	if successfulSources > 0 {
 		now := time.Now().UTC()
-		h.db.WithContext(c.Request.Context()).Model(&models.User{}).Where("id = ?", user.ID).Update("lms_last_synced_at", now)
+		// Refresh user timestamps from DB or set locally
+		if h.svc == nil {
+			// Fallback path: update per-provider here
+			updates := make(map[string]interface{})
+			// Determine which providers succeeded from sourceInfo
+			for _, si := range sourceInfo {
+				if si.Success {
+					if si.Provider == "moodle" {
+						updates["moodle_last_synced_at"] = now
+					}
+					if si.Provider == "google_classroom" {
+						updates["google_classroom_last_synced_at"] = now
+					}
+				}
+			}
+			if len(updates) > 0 {
+				updates["lms_last_synced_at"] = now
+				h.db.WithContext(c.Request.Context()).Model(&models.User{}).Where("id = ?", user.ID).Updates(updates)
+			}
+		}
 		user.LMSLastSyncedAt = &now
 	}
 

@@ -3,6 +3,8 @@ package calendar
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/jeremi16/resisst-api/internal/config"
 	"github.com/jeremi16/resisst-api/internal/models"
@@ -75,9 +77,11 @@ func (s *Service) SyncProviders(ctx context.Context, user *models.User, provider
 	failedSources := 0
 	allClassCodes := make(map[string]bool)
 
+	successPerProvider := make(map[string]bool)
 	for _, provider := range providers {
 		assignments, err := s.FetchProviderAssignments(ctx, provider, user)
 		if err != nil {
+			log.Printf("[calendar] FetchProviderAssignments failed provider=%s user=%s err=%v", provider, user.ID, err)
 			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false})
 			failedSources++
 			continue
@@ -92,6 +96,7 @@ func (s *Service) SyncProviders(ctx context.Context, user *models.User, provider
 
 		newForProvider, err := s.syncSvc.PersistAssignments(ctx, user.ID, provider, assignments, user.CourseAliases)
 		if err != nil {
+			log.Printf("[calendar] PersistAssignments failed provider=%s user=%s err=%v", provider, user.ID, err)
 			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false})
 			failedSources++
 			continue
@@ -108,10 +113,28 @@ func (s *Service) SyncProviders(ctx context.Context, user *models.User, provider
 		}
 		sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: len(assignments), Success: true})
 		successfulSources++
+		successPerProvider[provider] = true
 	}
 
 	if successfulSources > 0 && len(allClassCodes) > 0 {
 		s.updateUserAvailableClassCodes(ctx, user.ID, allClassCodes)
+	}
+
+	// Update per-provider timestamps
+	if len(successPerProvider) > 0 {
+		now := time.Now().UTC()
+		updates := make(map[string]interface{})
+		if successPerProvider["moodle"] {
+			updates["moodle_last_synced_at"] = now
+		}
+		if successPerProvider["google_classroom"] {
+			updates["google_classroom_last_synced_at"] = now
+		}
+		// Keep global for backward compat: set to max(now, existing)
+		updates["lms_last_synced_at"] = now
+		if err := s.db.WithContext(ctx).Model(&models.User{}).Where("id = ?", user.ID).Updates(updates).Error; err != nil {
+			log.Printf("[calendar] failed to update per-provider timestamps user=%s err=%v", user.ID, err)
+		}
 	}
 
 	return sourceInfo, newAssignments, successfulSources, failedSources
