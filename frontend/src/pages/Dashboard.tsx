@@ -1048,6 +1048,7 @@ function TaskCard({
 }) {
   const isOverdue = !task.completed && new Date(task.deadline) < new Date();
   const isSelesai = task.completed;
+  const isGoogle = typeof task.source === "string" && task.source.toLowerCase().includes("google");
 
   return (
     <div className={cn("bg-white p-4 rounded-2xl border border-black/5", isSelesai && "opacity-60")}>
@@ -1058,9 +1059,11 @@ function TaskCard({
             <span className="inline-flex text-xs text-black/40 bg-[#F5F0EB] px-2 py-1 rounded-full truncate max-w-full">{task.course}</span>
           </div>
           {!isSelesai ? (
-            <button onClick={() => onComplete(task.id)} className="size-8 bg-black text-white rounded-full flex items-center justify-center shrink-0 hover:bg-black/90 transition-colors" title="Tandai Selesai">
-              <CheckCircle2 className="size-4" />
-            </button>
+            isGoogle ? null : (
+              <button onClick={() => onComplete(task.id)} className="size-8 bg-black text-white rounded-full flex items-center justify-center shrink-0 hover:bg-black/90 transition-colors" title="Tandai Selesai">
+                <CheckCircle2 className="size-4" />
+              </button>
+            )
           ) : (
             <div className="size-8 bg-black/10 text-black/40 rounded-full flex items-center justify-center shrink-0"><CheckCircle2 className="size-4" /></div>
           )}
