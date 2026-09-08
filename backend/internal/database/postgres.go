@@ -39,6 +39,9 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 		if err := db.AutoMigrate(&models.User{}, &models.RefreshToken{}, &models.Event{}, &models.Course{}, &models.ApiKey{}); err != nil {
 			return nil, fmt.Errorf("auto migrate: %w", err)
 		}
+		// Backfill status for existing rows: completed=true -> status=completed, else pending/missed stays pending
+		// Also ensure status column has default for old rows where status is empty
+		_ = db.Exec(`UPDATE events SET status = CASE WHEN completed = true THEN 'completed' ELSE 'pending' END WHERE status IS NULL OR status = ''`).Error
 	}
 
 	return db, nil

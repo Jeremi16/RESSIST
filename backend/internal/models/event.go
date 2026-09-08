@@ -21,4 +21,6 @@ type Event struct {
 	UpdatedAt       time.Time
 	Completed       bool       `gorm:"column:completed;default:false"`
 	CompletedAt     *time.Time `gorm:"column:completed_at"`
+	Status          string     `gorm:"column:status;default:pending;index"` // pending | completed | missed
+	StatusUpdatedAt *time.Time `gorm:"column:status_updated_at"`
 }
