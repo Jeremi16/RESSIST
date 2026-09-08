@@ -374,7 +374,7 @@ func (h *Handler) calculateNextRefreshAt(user *models.User) *time.Time {
 	return &next
 }
 
-// loadCachedEvents loads events from database.
+// loadCachedEvents loads events from database. Excludes completed tasks so calendar mirrors Moodle (done tasks disappear).
 func (h *Handler) loadCachedEvents(c *gin.Context, userID string, providers []string, sortBy string) ([]models.Event, error) {
 	if len(providers) == 0 {
 		return []models.Event{}, nil
@@ -385,7 +385,7 @@ func (h *Handler) loadCachedEvents(c *gin.Context, userID string, providers []st
 
 	var events []models.Event
 	err := h.db.WithContext(c.Request.Context()).
-		Where("user_id = ? AND source IN ? AND deadline > ? AND deadline <= ?", userID, providers, now, cutoff).
+		Where("user_id = ? AND source IN ? AND deadline > ? AND deadline <= ? AND (completed IS NULL OR completed = ?)", userID, providers, now, cutoff, false).
 		Order(sortutil.OrderClause(sortBy)).
 		Find(&events).Error
 	if err != nil {
