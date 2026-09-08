@@ -13,10 +13,10 @@ fi
 : "${LOCAL_DB_URL:?LOCAL_DB_URL is required}"
 : "${NEON_DB_URL:?NEON_DB_URL is required}"
 
-BACKUP_DIR="${BACKUP_DIR:-/var/backups/resisst}"
+BACKUP_DIR="${BACKUP_DIR:-/var/backups/ressist}"
 RETENTION_DAYS="${RETENTION_DAYS:-14}"
 TIMESTAMP="$(date +%F)"
-DUMP_FILE="${BACKUP_DIR}/resisst_${TIMESTAMP}.dump"
+DUMP_FILE="${BACKUP_DIR}/ressist_${TIMESTAMP}.dump"
 LIST_FILE="${DUMP_FILE}.list"
 LOG_FILE="${BACKUP_DIR}/backup_${TIMESTAMP}.log"
 
@@ -29,7 +29,7 @@ notify_failure() {
   if [[ -n "${WEBHOOK_URL:-}" ]]; then
     curl -sS -X POST "${WEBHOOK_URL}" \
       -H "Content-Type: application/json" \
-      -d "{\"text\":\"resisst backup failed: ${message}\"}" >/dev/null || true
+      -d "{\"text\":\"ressist backup failed: ${message}\"}" >/dev/null || true
   fi
 }
 
@@ -51,9 +51,9 @@ trap 'notify_failure "backup script failed at line ${LINENO}"' ERR
   sha256sum "${DUMP_FILE}" > "${DUMP_FILE}.sha256"
 
   echo "[$(date -Iseconds)] applying retention policy"
-  find "${BACKUP_DIR}" -type f -name "resisst_*.dump" -mtime +"${RETENTION_DAYS}" -delete
-  find "${BACKUP_DIR}" -type f -name "resisst_*.dump.sha256" -mtime +"${RETENTION_DAYS}" -delete
-  find "${BACKUP_DIR}" -type f -name "resisst_*.dump.list" -mtime +"${RETENTION_DAYS}" -delete
+  find "${BACKUP_DIR}" -type f -name "ressist_*.dump" -mtime +"${RETENTION_DAYS}" -delete
+  find "${BACKUP_DIR}" -type f -name "ressist_*.dump.sha256" -mtime +"${RETENTION_DAYS}" -delete
+  find "${BACKUP_DIR}" -type f -name "ressist_*.dump.list" -mtime +"${RETENTION_DAYS}" -delete
 
   echo "[$(date -Iseconds)] backup finished successfully"
 } | tee -a "${LOG_FILE}"

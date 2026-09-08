@@ -27,7 +27,7 @@ crontab -e
 and add:
 
 ```text
-0 0 * * * /opt/resisst/ops/backup/backup_to_neon.sh >> /var/log/resisst_backup.log 2>&1
+0 0 * * * /opt/ressist/ops/backup/backup_to_neon.sh >> /var/log/ressist_backup.log 2>&1
 ```
 
 ## What the script does
