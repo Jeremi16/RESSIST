@@ -58,6 +58,9 @@ interface UserData {
   available_class_codes: string;
   course_aliases: string | Record<string, string>;
   created_at: string;
+  lms_last_synced_at: string | null;
+  moodle_last_synced_at: string | null;
+  google_classroom_last_synced_at: string | null;
 }
 
 type TabType =
