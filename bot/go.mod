@@ -1,4 +1,4 @@
-module github.com/jeremi16/resisst-bot
+module github.com/jeremi16/ressist-bot
 
 go 1.25.0
 
