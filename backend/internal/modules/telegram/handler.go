@@ -115,7 +115,7 @@ func (h *Handler) SendMorningBriefing(c *gin.Context) {
 	endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
 
 	var allAssignments []models.Event
-	h.db.Where("user_id = ? AND completed = ? AND deadline BETWEEN ? AND ?", userID, false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
+	h.db.Where("user_id = ? AND (status = ? OR (status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", userID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
 
 	assignments := classcode.Filter(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters)
 

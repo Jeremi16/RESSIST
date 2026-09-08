@@ -167,7 +167,7 @@ func (h *Handler) GetDueAssignments(c *gin.Context) {
 		Table("events").
 		Select("events.id, events.user_id, events.title, events.course, events.class_code, events.deadline, events.reminders_sent, events.completed, users.telegram_chat_id, users.name as user_name").
 		Joins("JOIN users ON users.id = events.user_id").
-		Where("events.deadline BETWEEN ? AND ? AND events.completed = ? AND users.telegram_enabled = ? AND users.telegram_chat_id IS NOT NULL", start, end, false, true).
+		Where("events.deadline BETWEEN ? AND ? AND (events.status = ? OR (events.status IS NULL OR events.status = '') AND events.completed = ?) AND users.telegram_enabled = ? AND users.telegram_chat_id IS NOT NULL", start, end, "pending", false, true).
 		Scan(&rows).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
 		return

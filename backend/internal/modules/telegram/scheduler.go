@@ -99,7 +99,7 @@ func (s *Scheduler) sendMorningBriefing() {
 		endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
 
 		var allAssignments []models.Event
-		s.bot.db.Where("user_id = ? AND completed = ? AND deadline BETWEEN ? AND ?", user.ID, false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
+		s.bot.db.Where("user_id = ? AND (status = ? OR (status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", user.ID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
 
 		// Filter assignments using pkg helpers.
 		var assignments []models.Event
@@ -194,7 +194,7 @@ func (s *Scheduler) sendReminders(hoursBeforeDeadline int) {
 	end := targetTime.Add(30 * time.Minute)
 
 	var assignments []models.Event
-	err := s.bot.db.Where("deadline BETWEEN ? AND ?", start, end).Find(&assignments).Error
+	err := s.bot.db.Where("deadline BETWEEN ? AND ? AND (status = ? OR (status IS NULL OR status = '') AND completed = ?)", start, end, "pending", false).Find(&assignments).Error
 	if err != nil {
 		log.Printf("error fetching assignments for reminders: %v", err)
 		return
