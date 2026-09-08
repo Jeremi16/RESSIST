@@ -103,7 +103,7 @@ func (s *SyncService) PersistAssignments(
 			}
 		}
 
-		return s.deleteStaleAssignments(tx, userID, provider, keys, now)
+		return s.markStaleAsCompleted(tx, userID, provider, keys, now)
 	})
 
 	if err != nil {
@@ -212,18 +212,34 @@ func (s *SyncService) needsUpdate(
 	return false
 }
 
-// deleteStaleAssignments removes assignments that no longer exist in the source.
+// markStaleAsCompleted marks assignments that no longer exist in source as completed (instead of deleting).
+// This makes Moodle-done tasks disappear from calendar (filtered) but appear in "Selesai" tab.
+func (s *SyncService) markStaleAsCompleted(
+	tx *gorm.DB,
+	userID, provider string,
+	keys []string,
+	now time.Time,
+) error {
+	query := tx.Model(&models.Event{}).
+		Where("user_id = ? AND source = ? AND deadline > ? AND (completed IS NULL OR completed = ?)", userID, provider, now, false)
+	if len(keys) > 0 {
+		query = query.Where("sync_key NOT IN ?", keys)
+	}
+	return query.Updates(map[string]interface{}{
+		"completed":    true,
+		"completed_at": now,
+		"updated_at":   now,
+	}).Error
+}
+
+// deleteStaleAssignments is kept for backward compatibility but now delegates to markStaleAsCompleted.
 func (s *SyncService) deleteStaleAssignments(
 	tx *gorm.DB,
 	userID, provider string,
 	keys []string,
 	now time.Time,
 ) error {
-	query := tx.Where("user_id = ? AND source = ? AND deadline > ?", userID, provider, now)
-	if len(keys) > 0 {
-		query = query.Where("sync_key NOT IN ?", keys)
-	}
-	return query.Delete(&models.Event{}).Error
+	return s.markStaleAsCompleted(tx, userID, provider, keys, now)
 }
 
 // stringsEqual compares two string pointers for equality.

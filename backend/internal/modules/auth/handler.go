@@ -451,7 +451,7 @@ func (s *syncService) PersistAssignments(ctx context.Context, userID string, pro
 			}
 		}
 
-		return s.deleteStaleAssignments(tx, userID, provider, keys, now)
+		return s.markStaleAsCompleted(tx, userID, provider, keys, now)
 	})
 
 	if err != nil {
@@ -540,12 +540,21 @@ func (s *syncService) needsUpdate(existing *models.Event, assignment AssignmentR
 	return false
 }
 
-func (s *syncService) deleteStaleAssignments(tx *gorm.DB, userID, provider string, keys []string, now time.Time) error {
-	query := tx.Where("user_id = ? AND source = ? AND deadline > ?", userID, provider, now)
+func (s *syncService) markStaleAsCompleted(tx *gorm.DB, userID, provider string, keys []string, now time.Time) error {
+	query := tx.Model(&models.Event{}).
+		Where("user_id = ? AND source = ? AND deadline > ? AND (completed IS NULL OR completed = ?)", userID, provider, now, false)
 	if len(keys) > 0 {
 		query = query.Where("sync_key NOT IN ?", keys)
 	}
-	return query.Delete(&models.Event{}).Error
+	return query.Updates(map[string]interface{}{
+		"completed":    true,
+		"completed_at": now,
+		"updated_at":   now,
+	}).Error
+}
+
+func (s *syncService) deleteStaleAssignments(tx *gorm.DB, userID, provider string, keys []string, now time.Time) error {
+	return s.markStaleAsCompleted(tx, userID, provider, keys, now)
 }
 
 func stringsEqual(a, b *string) bool {
