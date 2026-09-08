@@ -12,6 +12,7 @@ import (
 	"github.com/jeremi16/resisst-api/internal/app"
 	"github.com/jeremi16/resisst-api/internal/config"
 	"github.com/jeremi16/resisst-api/internal/database"
+	"github.com/jeremi16/resisst-api/internal/modules/lmssync"
 	"github.com/jeremi16/resisst-api/internal/shared/router"
 )
 
@@ -32,6 +33,27 @@ func main() {
 	}
 
 	engine := router.New(cfg, db, container.Auth, container.User, container.Calendar, container.Course, container.Internal, container.Assignment, container.ApiKey, container.TelegramSender)
+
+	// LMS daily sync at 07:00 WIB — marks Moodle-done tasks as completed so they disappear from calendar
+	if cfg.LMSSyncEnabled {
+		lmsSvc := lmssync.New(cfg, db, container.Calendar.Service)
+		lmsSched := lmssync.NewScheduler(lmsSvc)
+		bgCtx, bgCancel := context.WithCancel(context.Background())
+		defer bgCancel()
+		go func() {
+			if err := lmsSched.Start(bgCtx); err != nil && err != context.Canceled {
+				log.Printf("lmssync scheduler stopped: %v", err)
+			}
+		}()
+		defer func() {
+			bgCancel()
+			// give scheduler a moment to stop cron
+			time.Sleep(100 * time.Millisecond)
+		}()
+		log.Printf("lmssync scheduler enabled (cron=%s)", cfg.LMSSyncCron)
+	} else {
+		log.Printf("lmssync scheduler disabled (LMS_SYNC_ENABLED=false)")
+	}
 
 	requestTimeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second
 	if requestTimeout <= 0 {
