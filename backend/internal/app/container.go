@@ -38,8 +38,9 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Inject calendar provider into auth handler to enable SyncAfterLogin
+	// Inject calendar provider and sync service into auth handler to enable SyncAfterLogin and avoid duplication
 	authMod.SetCalendarProvider(calendarMod.Service)
+	authMod.SetSyncService(calendarMod.SyncService)
 
 	userMod, err := user.New(db)
 	if err != nil {
