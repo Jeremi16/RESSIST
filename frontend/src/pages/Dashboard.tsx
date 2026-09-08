@@ -283,10 +283,15 @@ export default function Dashboard() {
         body: JSON.stringify({ assignment_id: assignmentId }),
       });
       if (response.ok) {
-        // Optimistic update
+        // Optimistic update for both assignments list and calendar
         setAllAssignments((prev) =>
           prev.map((task) =>
             task.id === assignmentId ? { ...task, completed: true } : task,
+          ),
+        );
+        setPreviewEvents((prev) =>
+          prev.map((ev: any) =>
+            ev.id === assignmentId ? { ...ev, completed: true } : ev,
           ),
         );
         showToast({

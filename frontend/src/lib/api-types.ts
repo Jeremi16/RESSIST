@@ -12,4 +12,6 @@ export interface EventPreview {
   timeRemaining: string;
   deadlineDate: Date;
   source: string;
+  completed?: boolean;
+  completed_at?: string | null;
 }
