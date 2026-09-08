@@ -1,10 +1,10 @@
 package calendar
 
 import (
-	"github.com/jeremi16/resisst-api/internal/config"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar/google"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar/moodle"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar/sync"
+	"github.com/jeremi16/ressist-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar/google"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar/moodle"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar/sync"
 	"gorm.io/gorm"
 )
 

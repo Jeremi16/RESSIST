@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/jeremi16/resisst-api/internal/config"
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar/google"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar/moodle"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar/sync"
-	"github.com/jeremi16/resisst-api/internal/pkg/classcode"
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar/google"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar/moodle"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar/sync"
+	"github.com/jeremi16/ressist-api/internal/pkg/classcode"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
 	"gorm.io/gorm"
 )
 

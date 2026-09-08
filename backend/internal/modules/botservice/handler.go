@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jeremi16/resisst-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/models"
 	"gorm.io/gorm"
 )
 
-// Handler serves service-to-service endpoints for resisst-bot.
+// Handler serves service-to-service endpoints for ressist-bot.
 // All routes are guarded by middleware.RequireBotService.
 type Handler struct {
 	db *gorm.DB
@@ -88,7 +88,7 @@ type verifyTelegramRequest struct {
 
 // VerifyTelegram links a telegram chat to a user via verify code.
 // POST /internal/telegram/verify
-// Logic moved here from the old in-process bot so resisst-bot stays stateless.
+// Logic moved here from the old in-process bot so ressist-bot stays stateless.
 func (h *Handler) VerifyTelegram(c *gin.Context) {
 	var req verifyTelegramRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

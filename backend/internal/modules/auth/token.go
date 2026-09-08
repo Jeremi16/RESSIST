@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/shared/middleware"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/shared/middleware"
 )
 
 type TokenService struct {

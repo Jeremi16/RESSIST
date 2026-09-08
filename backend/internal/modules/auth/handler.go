@@ -12,14 +12,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/jeremi16/resisst-api/internal/config"
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar/sync"
-	"github.com/jeremi16/resisst-api/internal/pkg/coursealias"
-	"github.com/jeremi16/resisst-api/internal/pkg/synckey"
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
-	"github.com/jeremi16/resisst-api/internal/pkg/urlutil"
-	"github.com/jeremi16/resisst-api/internal/shared/middleware"
+	"github.com/jeremi16/ressist-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar/sync"
+	"github.com/jeremi16/ressist-api/internal/pkg/coursealias"
+	"github.com/jeremi16/ressist-api/internal/pkg/synckey"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/pkg/urlutil"
+	"github.com/jeremi16/ressist-api/internal/shared/middleware"
 	"gorm.io/gorm"
 )
 

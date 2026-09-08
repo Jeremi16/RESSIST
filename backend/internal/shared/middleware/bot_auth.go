@@ -10,7 +10,7 @@ import (
 
 const botContextKey = "bot_service"
 
-// RequireBotService allows only the standalone resisst-bot service.
+// RequireBotService allows only the standalone ressist-bot service.
 // Client must send X-Bot-Token: <BOT_SERVICE_TOKEN>.
 func RequireBotService(botToken string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -46,7 +46,7 @@ func IsBotService(c *gin.Context) bool {
 }
 
 // BotOrAPIKeyOrJWT accepts (in order):
-//  1. X-Bot-Token (+ optional X-Act-As-User) for resisst-bot service calls
+//  1. X-Bot-Token (+ optional X-Act-As-User) for ressist-bot service calls
 //  2. X-API-Key / Authorization: ApiKey for programmatic access
 //  3. Bearer JWT for website users
 func BotOrAPIKeyOrJWT(parser TokenParser, validator ApiKeyValidator, botToken string) gin.HandlerFunc {

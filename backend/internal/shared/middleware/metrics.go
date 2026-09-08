@@ -21,14 +21,14 @@ func initMetrics() {
 	metricsOnce.Do(func() {
 		httpRequestsTotal = prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: "resisst_http_requests_total",
+				Name: "ressist_http_requests_total",
 				Help: "Total number of HTTP requests.",
 			},
 			[]string{"method", "path", "status"},
 		)
 		httpRequestLatMS = prometheus.NewHistogramVec(
 			prometheus.HistogramOpts{
-				Name:    "resisst_http_request_latency_ms",
+				Name:    "ressist_http_request_latency_ms",
 				Help:    "HTTP request latency in milliseconds.",
 				Buckets: []float64{5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000},
 			},

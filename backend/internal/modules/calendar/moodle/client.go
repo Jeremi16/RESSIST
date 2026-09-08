@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar/ics"
-	"github.com/jeremi16/resisst-api/internal/pkg/classcode"
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar/ics"
+	"github.com/jeremi16/ressist-api/internal/pkg/classcode"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
 )
 
 const upcomingWindowDays = 60
@@ -61,7 +61,7 @@ func (c *Client) FetchMoodleCalendar(ctx context.Context, calendarURL string) (s
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("User-Agent", "resisst-api/1.0")
+	req.Header.Set("User-Agent", "ressist-api/1.0")
 
 	client := &http.Client{Timeout: 12 * time.Second}
 	resp, err := client.Do(req)

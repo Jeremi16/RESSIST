@@ -8,9 +8,9 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/pkg/classcode"
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/pkg/classcode"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
 )
 
 // SendMessage sends a markdown message to a chat.
@@ -88,7 +88,7 @@ func (b *Bot) SendAssignmentNotification(userID string, assignmentTitle string, 
 			"⏰ *Deadline:* %s\n"+
 			"⏳ *Sisa Waktu:* %d jam\n\n"+
 			"Ayo segera dikerjakan! 💪\n\n"+
-			"🌐 *Detail:* [resisst.web.id](https://resisst.web.id)",
+			"🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
 		urgencyEmoji,
 		courseName,
 		assignmentTitle,

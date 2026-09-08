@@ -3,7 +3,7 @@ package synckey
 import (
 	"strings"
 
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
 )
 
 func Build(provider, externalID, course, title string) string {

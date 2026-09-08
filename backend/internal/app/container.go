@@ -1,15 +1,15 @@
 package app
 
 import (
-	"github.com/jeremi16/resisst-api/internal/config"
-	"github.com/jeremi16/resisst-api/internal/modules/apikey"
-	"github.com/jeremi16/resisst-api/internal/modules/assignment"
-	"github.com/jeremi16/resisst-api/internal/modules/auth"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar"
-	"github.com/jeremi16/resisst-api/internal/modules/course"
-	"github.com/jeremi16/resisst-api/internal/modules/botservice"
-	"github.com/jeremi16/resisst-api/internal/modules/telegram"
-	"github.com/jeremi16/resisst-api/internal/modules/user"
+	"github.com/jeremi16/ressist-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/modules/apikey"
+	"github.com/jeremi16/ressist-api/internal/modules/assignment"
+	"github.com/jeremi16/ressist-api/internal/modules/auth"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar"
+	"github.com/jeremi16/ressist-api/internal/modules/course"
+	"github.com/jeremi16/ressist-api/internal/modules/botservice"
+	"github.com/jeremi16/ressist-api/internal/modules/telegram"
+	"github.com/jeremi16/ressist-api/internal/modules/user"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +22,7 @@ type Container struct {
 	Course           *course.Module
 	Internal         *botservice.Module
 	// TelegramSender is sender-only (SendMessage for /v1/telegram/test-*).
-	// It NEVER polls: polling lives in resisst-bot. Sending via Bot API
+	// It NEVER polls: polling lives in ressist-bot. Sending via Bot API
 	// from multiple processes is allowed; only getUpdates is exclusive.
 	TelegramSender   *telegram.Module
 	Assignment       *assignment.Module

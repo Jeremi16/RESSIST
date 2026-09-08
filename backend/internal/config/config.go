@@ -42,7 +42,7 @@ type Config struct {
 
 	AllowedOrigins []string
 
-	// BotServiceToken authenticates the standalone resisst-bot service.
+	// BotServiceToken authenticates the standalone ressist-bot service.
 	// Bot calls /internal/* with X-Bot-Token and /v1/* with
 	// X-Bot-Token + X-Act-As-User. Empty = bot integration disabled.
 	BotServiceToken string

@@ -7,17 +7,17 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/jeremi16/resisst-api/internal/config"
-	"github.com/jeremi16/resisst-api/internal/modules/apikey"
-	"github.com/jeremi16/resisst-api/internal/modules/assignment"
-	"github.com/jeremi16/resisst-api/internal/modules/auth"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar"
-	"github.com/jeremi16/resisst-api/internal/modules/course"
-	"github.com/jeremi16/resisst-api/internal/modules/botservice"
-	"github.com/jeremi16/resisst-api/internal/modules/telegram"
-	"github.com/jeremi16/resisst-api/internal/modules/user"
-	"github.com/jeremi16/resisst-api/internal/shared/docs"
-	"github.com/jeremi16/resisst-api/internal/shared/middleware"
+	"github.com/jeremi16/ressist-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/modules/apikey"
+	"github.com/jeremi16/ressist-api/internal/modules/assignment"
+	"github.com/jeremi16/ressist-api/internal/modules/auth"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar"
+	"github.com/jeremi16/ressist-api/internal/modules/course"
+	"github.com/jeremi16/ressist-api/internal/modules/botservice"
+	"github.com/jeremi16/ressist-api/internal/modules/telegram"
+	"github.com/jeremi16/ressist-api/internal/modules/user"
+	"github.com/jeremi16/ressist-api/internal/shared/docs"
+	"github.com/jeremi16/ressist-api/internal/shared/middleware"
 	"gorm.io/gorm"
 )
 
@@ -118,7 +118,7 @@ func New(
 	courseGroup.Use(middleware.APIKeyOrJWT(tokenParser, apiKeyValidator), apiKeyRateLimit)
 	courseGroup.GET("", courseModule.Handler.GetAllCourses)
 
-	// Service-to-service endpoints for standalone resisst-bot (100% via API).
+	// Service-to-service endpoints for standalone ressist-bot (100% via API).
 	// Guarded by X-Bot-Token. No JWT needed. Bot impersonates users via
 	// X-Act-As-User on /v1/* below.
 	if internalModule != nil {
@@ -129,7 +129,7 @@ func New(
 
 	// Telegram test endpoints (sender-only, JWT). Used by the dashboard
 	// "test notification" buttons. Sending via Bot API is safe from N
-	// processes; only getUpdates polling (resisst-bot, replicas=1) is exclusive.
+	// processes; only getUpdates polling (ressist-bot, replicas=1) is exclusive.
 	if telegramSender != nil {
 		telegramGroup := v1.Group("/telegram")
 		telegramGroup.Use(middleware.AccessToken(tokenParser))

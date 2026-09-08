@@ -41,7 +41,7 @@ Semua → `sendReminders(hoursBefore)` window ±30m. Sekarang duplikat di `bot/i
 
 ## Env
 
-`TELEGRAM_BOT_TOKEN` (kosong → `Bot==nil` → test endpoints 503), `TELEGRAM_BOT_USERNAME=resisst_bot`.
+`TELEGRAM_BOT_TOKEN` (kosong → `Bot==nil` → test endpoints 503), `TELEGRAM_BOT_USERNAME=ressist_bot`.
 
 ## Contoh
 

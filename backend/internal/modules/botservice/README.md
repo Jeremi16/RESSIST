@@ -1,4 +1,4 @@
-# botservice — Service-to-Service for resisst-bot
+# botservice — Service-to-Service for ressist-bot
 
 > Lokasi: `internal/modules/botservice/` | DI: `internal/app/container.go:52` | Router: `shared/router/router.go:123`
 

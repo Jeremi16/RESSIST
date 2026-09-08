@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/pkg/coursealias"
-	"github.com/jeremi16/resisst-api/internal/pkg/synckey"
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/pkg/coursealias"
+	"github.com/jeremi16/ressist-api/internal/pkg/synckey"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
 	"gorm.io/gorm"
 )
 

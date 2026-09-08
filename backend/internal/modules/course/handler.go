@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/pkg/classcode"
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
-	"github.com/jeremi16/resisst-api/internal/shared/middleware"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/pkg/classcode"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/shared/middleware"
 	"gorm.io/gorm"
 )
 

@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/pkg/classcode"
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
-	"github.com/jeremi16/resisst-api/internal/shared/middleware"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/pkg/classcode"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/shared/middleware"
 	"gorm.io/gorm"
 )
 
@@ -159,6 +159,6 @@ func buildMorningBriefingMessage(userName string, assignments []models.Event) st
 	}
 
 	message += "Semangat belajarnya! 💪\n\n"
-	message += "🌐 *Cek detail di:* [resisst.web.id](https://resisst.web.id)"
+	message += "🌐 *Cek detail di:* [ressist.web.id](https://ressist.web.id)"
 	return message
 }

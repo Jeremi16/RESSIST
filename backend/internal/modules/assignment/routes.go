@@ -2,7 +2,7 @@ package assignment
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/jeremi16/resisst-api/internal/shared/middleware"
+	"github.com/jeremi16/ressist-api/internal/shared/middleware"
 )
 
 // RegisterRoutes registers assignment routes onto the given router group.

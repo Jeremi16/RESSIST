@@ -9,11 +9,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jeremi16/resisst-api/internal/app"
-	"github.com/jeremi16/resisst-api/internal/config"
-	"github.com/jeremi16/resisst-api/internal/database"
-	"github.com/jeremi16/resisst-api/internal/modules/lmssync"
-	"github.com/jeremi16/resisst-api/internal/shared/router"
+	"github.com/jeremi16/ressist-api/internal/app"
+	"github.com/jeremi16/ressist-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/database"
+	"github.com/jeremi16/ressist-api/internal/modules/lmssync"
+	"github.com/jeremi16/ressist-api/internal/shared/router"
 )
 
 func main() {
@@ -74,14 +74,14 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("resisst-api listening on %s", srv.Addr)
+		log.Printf("ressist-api listening on %s", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("run server: %v", err)
 		}
 	}()
 
 	// NOTE: Telegram polling intentionally NOT started here anymore.
-	// It lives in the standalone resisst-bot service (bot/) to avoid
+	// It lives in the standalone ressist-bot service (bot/) to avoid
 	// "Conflict: terminated by other getUpdates" when api scales to N replicas.
 
 	stop := make(chan os.Signal, 1)

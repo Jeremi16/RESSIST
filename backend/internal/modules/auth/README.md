@@ -10,7 +10,7 @@ Tanggung jawab: login Google, upsert user, rotasi refresh token (reuse detection
 |------|-------|
 | `module.go` | `type Module{Service,*Handler,TokenService}` + `New(db,cfg)` + `SetCalendarProvider` |
 | `service.go` | `Service{db,cfg,tokens,oauthCfg,client}` — `UpsertGoogleUser`, `CreateRefreshToken`, `RotateRefreshToken`, `ExchangeGoogleCode`, `FetchGoogleUser` |
-| `token.go` | `TokenService{secret,ttl,iss=resisst-api,aud=resisst-frontend}` — `GenerateAccessToken`, `ParseAccessToken` (HS256) |
+| `token.go` | `TokenService{secret,ttl,iss=ressist-api,aud=ressist-frontend}` — `GenerateAccessToken`, `ParseAccessToken` (HS256) |
 | `handler.go` (621 baris) | 6 handler: `GoogleLogin`, `GoogleCallback`, `Refresh`, `Logout`, `Me`, `SyncAfterLogin` |
 | `routes.go` | `RegisterRoutes` dipanggil dari `router.registerAuthRoutes` |
 

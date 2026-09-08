@@ -8,8 +8,8 @@ package user
 import (
 	"strings"
 
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
-	"github.com/jeremi16/resisst-api/internal/pkg/urlutil"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/pkg/urlutil"
 )
 
 // ValidateMoodleURL validates that a Moodle calendar URL looks plausible.

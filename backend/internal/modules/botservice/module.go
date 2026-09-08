@@ -2,7 +2,7 @@ package botservice
 
 import "gorm.io/gorm"
 
-// Module aggregates internal service-to-service components for resisst-bot.
+// Module aggregates internal service-to-service components for ressist-bot.
 type Module struct {
 	Handler *Handler
 }

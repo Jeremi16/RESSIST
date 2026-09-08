@@ -2,7 +2,7 @@ package apikey
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/jeremi16/resisst-api/internal/shared/middleware"
+	"github.com/jeremi16/ressist-api/internal/shared/middleware"
 )
 
 func RegisterRoutes(group *gin.RouterGroup, h *Handler, parser middleware.TokenParser) {

@@ -41,7 +41,7 @@ shared/
 | `request_id.go` | `RequestID()` | Propagate/injeksi `X-Request-ID` uuid. |
 | `timeout.go` | `TimeoutContext(15)` | `c.Request.WithContext(timeout)` → 504 jika `DeadlineExceeded`. |
 | `logging.go` | `JSONAccessLogger()` | JSON line `level` (info/warn/error by status), `request_id, method, path, status, latency_ms`. |
-| `metrics.go` | `HTTPMetrics()`, `PrometheusHandler()` | Counter `resisst_http_requests_total{method,path,status}` + histogram `latency_ms` 5-5000ms. |
+| `metrics.go` | `HTTPMetrics()`, `PrometheusHandler()` | Counter `ressist_http_requests_total{method,path,status}` + histogram `latency_ms` 5-5000ms. |
 
 ## Docs — `shared/docs/`
 

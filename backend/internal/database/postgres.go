@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jeremi16/resisst-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

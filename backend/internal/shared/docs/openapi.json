@@ -1,13 +1,13 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Resisst API",
+    "title": "Ressist API",
     "version": "1.0.0",
-    "description": "Auth API for Resisst"
+    "description": "Auth API for Ressist"
   },
   "servers": [
     {
-      "url": "https://resisst-api.nodryx.com"
+      "url": "https://ressist-api.nodryx.com"
     },
     {
       "url": "http://localhost:8080"

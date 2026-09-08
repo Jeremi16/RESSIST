@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/jeremi16/resisst-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/config"
 	"gorm.io/gorm"
 )
 
@@ -14,7 +14,7 @@ type Module struct {
 
 // New creates a new auth Module.
 func New(db *gorm.DB, cfg *config.Config) (*Module, error) {
-	tokenSvc, err := NewTokenService(cfg.JWTAccessSecret, cfg.AccessTokenTTLMinute, "resisst-api", "resisst-frontend")
+	tokenSvc, err := NewTokenService(cfg.JWTAccessSecret, cfg.AccessTokenTTLMinute, "ressist-api", "ressist-frontend")
 	if err != nil {
 		return nil, err
 	}

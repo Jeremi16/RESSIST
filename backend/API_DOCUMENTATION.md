@@ -1,6 +1,6 @@
-# Resisst API Documentation
+# Ressist API Documentation
 
-> Base: Production `https://resisst-api.nodryx.com` · Local `http://localhost:8080` · OpenAPI `GET /openapi.json` & `GET /v1/openapi.json`
+> Base: Production `https://ressist-api.nodryx.com` · Local `http://localhost:8080` · OpenAPI `GET /openapi.json` & `GET /v1/openapi.json`
 
 ## Daftar Isi
 
@@ -10,7 +10,7 @@
 ## Auth Model
 
 *   OAuth login sets **HttpOnly cookie** `refresh_token` (30d, `sha256` di DB, rotasi + reuse detection).
-*   Access token (`JWT HS256 15m, iss=resisst-api`) via `POST /v1/auth/refresh`.
+*   Access token (`JWT HS256 15m, iss=ressist-api`) via `POST /v1/auth/refresh`.
 *   Protected endpoints — salah satu:
 
     | Header | Kapan | Endpoint support |
@@ -18,7 +18,7 @@
     | `Authorization: Bearer <jwt>` | Browser via BFF | Semua `Bearer` routes |
     | `X-API-Key: rsk_...` | Programmatic tanpa website | `GET /v1/assignments`, `GET /v1/calendar/preview`, `GET /v1/courses`, `GET /v1/user`, `GET /v1/auth/me` |
     | `Authorization: ApiKey rsk_...` | Alternatif API key | Sama |
-    | `X-Bot-Token: <hex> + X-Act-As-User: <userID>` | Bot `resisst-bot` | `/internal/*` + `/v1/assignments` (GET) & `/complete` |
+    | `X-Bot-Token: <hex> + X-Act-As-User: <userID>` | Bot `ressist-bot` | `/internal/*` + `/v1/assignments` (GET) & `/complete` |
 
 ## Common Headers
 
@@ -36,7 +36,7 @@ Readiness + DB ping 2s — `200 {"status":"ready"}` atau `503 {"status":"not_rea
 ### `GET /healthz` — alias liveness
 
 ### `GET /metrics` — Prometheus
-`resisst_http_requests_total{method,path,status}` counter + `resisst_http_request_latency_ms` histogram 5-5000ms (`shared/middleware/metrics.go`)
+`ressist_http_requests_total{method,path,status}` counter + `ressist_http_request_latency_ms` histogram 5-5000ms (`shared/middleware/metrics.go`)
 
 ### `GET /openapi.json` & `GET /v1/openapi.json` — OpenAPI doc (`shared/docs/openapi.json`)
 
@@ -84,7 +84,7 @@ Trigger sinkronisasi LMS untuk user yang sudah login. Fetch & persist per provid
 {
   "id":"uuid","email":"...","name":"...","avatar_url":"...","whatsapp_number":"62812xxxx","whatsapp_enabled":true,
   "telegram_chat_id":"123456","telegram_enabled":true,"moodle_enabled":true,"moodle_calendar_url":"https://...",
-  "google_classroom_enabled":true,"google_connected":true,"telegram_bot_username":"resisst_bot",
+  "google_classroom_enabled":true,"google_connected":true,"telegram_bot_username":"ressist_bot",
   "reminder_hours":"[24,12]","morning_briefing":false,"muted_courses":"[]","course_aliases":{},"class_code":null,"available_class_codes":[],
   "lms_last_synced_at":"...","moodle_last_synced_at":"...","google_last_synced_at":"...","created_at":"..."}
 ```
@@ -151,11 +151,11 @@ Max 5 aktif/user. Rate 60/min per prefix bucket 15m.
 ```bash
 # buat key sekali via Dashboard → API Keys
 
-curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/assignments
-curl -H "Authorization: ApiKey rsk_xxx" https://resisst-api.nodryx.com/v1/assignments
-curl -H "X-API-Key: rsk_xxx" "https://resisst-api.nodryx.com/v1/calendar/preview?sort=deadline_asc"
-curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/courses
-curl -H "X-API-Key: rsk_xxx" https://resisst-api.nodryx.com/v1/user
+curl -H "X-API-Key: rsk_xxx" https://ressist-api.nodryx.com/v1/assignments
+curl -H "Authorization: ApiKey rsk_xxx" https://ressist-api.nodryx.com/v1/assignments
+curl -H "X-API-Key: rsk_xxx" "https://ressist-api.nodryx.com/v1/calendar/preview?sort=deadline_asc"
+curl -H "X-API-Key: rsk_xxx" https://ressist-api.nodryx.com/v1/courses
+curl -H "X-API-Key: rsk_xxx" https://ressist-api.nodryx.com/v1/user
 ```
 
 BFF proxy: `GET/POST /api/api-keys` dan `DELETE /api/api-keys/:id`.

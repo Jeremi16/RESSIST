@@ -1,6 +1,6 @@
-# resisst-api — Go Backend
+# ressist-api — Go Backend
 
-> Stateless Go API untuk auth, agregasi LMS (Moodle + Google Classroom), dan notifikasi. Deploy di `resisst-api.nodryx.com` (Coolify / Docker Compose).
+> Stateless Go API untuk auth, agregasi LMS (Moodle + Google Classroom), dan notifikasi. Deploy di `ressist-api.nodryx.com` (Coolify / Docker Compose).
 
 **Stack:** Go 1.25 · Gin · GORM (Postgres) · JWT (access 15m + refresh 30d) · Prometheus · cron (LMS sync)
 
@@ -75,7 +75,7 @@ Semua via `os.Getenv` + `godotenv` (`internal/config/config.go:62`). Daftar leng
 | `AUTH_RATE_LIMIT_BURST` | `10` | Burst auth |
 | `GOOGLE_CLIENT_ID` / `SECRET` / `REDIRECT_URL` | `` | OAuth2 (`/v1/auth/google/callback` prefer) |
 | `ALLOWED_EMAIL_DOMAIN` | `student.itera.ac.id` | Domain check di `auth.Service.UpsertGoogleUser` |
-| `JWT_ACCESS_SECRET` | `` | HMAC HS256, `iss=resisst-api` `aud=resisst-frontend` |
+| `JWT_ACCESS_SECRET` | `` | HMAC HS256, `iss=ressist-api` `aud=ressist-frontend` |
 | `ACCESS_TOKEN_TTL_MINUTES` | `15` | TTL access JWT |
 | `REFRESH_TOKEN_TTL_HOURS` | `720` | 30 hari, simpan `sha256` di `refresh_tokens` |
 | `FRONTEND_URL` | `http://localhost:3000` | Redirect setelah OAuth |
@@ -105,7 +105,7 @@ Lihat `backend/.env.example:1` untuk template.
 | `GET` | `/livez` | Liveness `{status:ok}` |
 | `GET` | `/healthz` | Alias liveness |
 | `GET` | `/readyz` | Readiness + DB ping 2s (`db_ping_failed` → 503) |
-| `GET` | `/metrics` | Prometheus (`resisst_http_requests_total`, `resisst_http_request_latency_ms`) |
+| `GET` | `/metrics` | Prometheus (`ressist_http_requests_total`, `ressist_http_request_latency_ms`) |
 | `GET` | `/openapi.json` | OpenAPI spec |
 | `GET` | `/v1/openapi.json` | Alias versioned |
 
@@ -208,7 +208,7 @@ Core: [`app/`](internal/app/README.md) · [`config/`](internal/config/README.md)
 Set redirect URI di Google Cloud Console ke:
 
 ```
-https://resisst-api.nodryx.com/v1/auth/google/callback
+https://ressist-api.nodryx.com/v1/auth/google/callback
 # legacy alias juga aktif: /auth/google/callback
 ```
 
@@ -219,7 +219,7 @@ Scopes: `openid` + `userinfo.email` + `userinfo.profile` + `classroom.courses.re
 ## Observability
 
 *   `JSONAccessLogger` (`shared/middleware/logging.go`) — JSON line: `request_id, method, path, status, latency_ms`.
-*   `HTTPMetrics` (`shared/middleware/metrics.go`) — `resisst_http_requests_total{method,path,status}` + `resisst_http_request_latency_ms` histogram.
+*   `HTTPMetrics` (`shared/middleware/metrics.go`) — `ressist_http_requests_total{method,path,status}` + `ressist_http_request_latency_ms` histogram.
 *   `RequestID` (`shared/middleware/request_id.go`) — propagate `X-Request-ID`.
 *   `TimeoutContext` (`shared/middleware/timeout.go`) — 15s default, 504 jika `DeadlineExceeded`.
 

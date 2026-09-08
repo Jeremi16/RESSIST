@@ -35,7 +35,7 @@ Tanggung jawab: CRUD settings user (WA/Telegram/Moodle/Google, reminder, muted, 
   "telegram_chat_id":null,"telegram_enabled":true,
   "moodle_enabled":false,"moodle_calendar_url":null,
   "google_classroom_enabled":false,"google_connected":false,
-  "telegram_bot_username":"resisst_bot",
+  "telegram_bot_username":"ressist_bot",
   "reminder_hours":"[24,12]","morning_briefing":false,
   "muted_courses":"[]","course_aliases":{},"class_code":null,"available_class_codes":[],
   "lms_last_synced_at":null,"moodle_last_synced_at":null,"google_last_synced_at":null,
@@ -54,7 +54,7 @@ Tanggung jawab: CRUD settings user (WA/Telegram/Moodle/Google, reminder, muted, 
 
 ## Dependencies
 
-`*gorm.DB`, `pkg/text, classcode, coursealias, urlutil`, env `TELEGRAM_BOT_USERNAME=resisst_bot`.
+`*gorm.DB`, `pkg/text, classcode, coursealias, urlutil`, env `TELEGRAM_BOT_USERNAME=ressist_bot`.
 
 ## Contoh
 

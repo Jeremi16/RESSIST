@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jeremi16/resisst-api/internal/config"
-	"github.com/jeremi16/resisst-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -79,7 +79,7 @@ func (b *Bot) handleCommand(msg *tgbotapi.Message) {
 func (b *Bot) handleStartCommand(msg *tgbotapi.Message) {
 	code := strings.TrimSpace(msg.CommandArguments())
 	if code == "" {
-		reply := tgbotapi.NewMessage(msg.Chat.ID, "Halo! Selamat datang di Resisst Bot. 🎓\n\nUntuk menghubungkan akun Anda, silakan buka Dashboard Resisst di website dan salin kode verifikasi Telegram Anda, lalu kirimkan kode tersebut di sini.\n\nContoh: `ABCD12`")
+		reply := tgbotapi.NewMessage(msg.Chat.ID, "Halo! Selamat datang di Ressist Bot. 🎓\n\nUntuk menghubungkan akun Anda, silakan buka Dashboard Ressist di website dan salin kode verifikasi Telegram Anda, lalu kirimkan kode tersebut di sini.\n\nContoh: `ABCD12`")
 		reply.ParseMode = "Markdown"
 		b.api.Send(reply)
 		return

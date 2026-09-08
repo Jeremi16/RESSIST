@@ -10,9 +10,9 @@ import (
 
 	"github.com/robfig/cron/v3"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/pkg/classcode"
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/pkg/classcode"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
 )
 
 // Scheduler handles periodic telegram notifications.
@@ -181,7 +181,7 @@ func (s *Scheduler) buildMorningBriefingMessage(user models.User, assignments []
 	}
 
 	message += "Semangat belajarnya! 💪\n\n"
-	message += "🌐 *Cek detail di:* [resisst.web.id](https://resisst.web.id)"
+	message += "🌐 *Cek detail di:* [ressist.web.id](https://ressist.web.id)"
 	return message
 }
 

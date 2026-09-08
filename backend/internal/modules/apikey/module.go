@@ -1,7 +1,7 @@
 package apikey
 
 import (
-	"github.com/jeremi16/resisst-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/config"
 	"gorm.io/gorm"
 )
 

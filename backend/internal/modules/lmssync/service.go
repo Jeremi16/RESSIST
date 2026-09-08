@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jeremi16/resisst-api/internal/config"
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/modules/calendar"
+	"github.com/jeremi16/ressist-api/internal/config"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/modules/calendar"
 	"gorm.io/gorm"
 )
 

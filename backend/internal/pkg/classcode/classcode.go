@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jeremi16/resisst-api/internal/models"
-	"github.com/jeremi16/resisst-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/models"
+	"github.com/jeremi16/ressist-api/internal/pkg/text"
 )
 
 func ParseArray(jsonStr string) []string {
