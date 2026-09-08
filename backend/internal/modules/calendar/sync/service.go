@@ -23,6 +23,7 @@ type AssignmentRecord struct {
 	Deadline    time.Time
 	ExternalID  string
 	Source      string
+	IsCompleted bool
 }
 
 // NewAssignmentInfo represents a newly created assignment returned to the client.
@@ -138,6 +139,12 @@ func (s *SyncService) createAssignment(
 	userID, provider, key string,
 	courseValue, sourceIDValue, courseIDValue *string,
 ) error {
+	completed := assignment.IsCompleted
+	var completedAt *time.Time
+	if completed {
+		t := time.Now().UTC()
+		completedAt = &t
+	}
 	event := models.Event{
 		ID:              uuid.NewString(),
 		UserID:          userID,
@@ -151,6 +158,8 @@ func (s *SyncService) createAssignment(
 		Source:          provider,
 		SourceID:        sourceIDValue,
 		SyncKey:         key,
+		Completed:       completed,
+		CompletedAt:     completedAt,
 		Reminder24HSent: false,
 		RemindersSent:   "[]",
 	}
@@ -165,6 +174,14 @@ func (s *SyncService) updateAssignment(
 	provider string,
 	courseValue, sourceIDValue, courseIDValue *string,
 ) error {
+	completed := assignment.IsCompleted
+	var completedAt interface{}
+	if completed {
+		t := time.Now().UTC()
+		completedAt = t
+	} else {
+		completedAt = nil
+	}
 	updateData := map[string]interface{}{
 		"title":        assignment.Title,
 		"course":       courseValue,
@@ -175,8 +192,8 @@ func (s *SyncService) updateAssignment(
 		"deadline":     assignment.Deadline.UTC(),
 		"source":       provider,
 		"source_id":    sourceIDValue,
-		"completed":    false,
-		"completed_at": nil,
+		"completed":    completed,
+		"completed_at": completedAt,
 	}
 	return tx.Model(&models.Event{}).Where("id = ?", eventID).Updates(updateData).Error
 }
@@ -211,7 +228,7 @@ func (s *SyncService) needsUpdate(
 	if !stringsEqual(existing.SourceID, sourceIDValue) {
 		return true
 	}
-	if existing.Completed {
+	if existing.Completed != assignment.IsCompleted {
 		return true
 	}
 	return false

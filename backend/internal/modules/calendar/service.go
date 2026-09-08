@@ -196,6 +196,7 @@ func convertGoogleRecords(in []google.AssignmentRecord) []sync.AssignmentRecord 
 			Deadline:    r.Deadline,
 			ExternalID:  r.ExternalID,
 			Source:      r.Source,
+			IsCompleted: r.IsCompleted,
 		}
 	}
 	return out

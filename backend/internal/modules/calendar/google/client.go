@@ -34,6 +34,7 @@ type AssignmentRecord struct {
 	Deadline    time.Time
 	ExternalID  string
 	Source      string
+	IsCompleted bool
 }
 
 // GoogleCourse represents a Google Classroom course.
@@ -76,6 +77,21 @@ type GoogleCourseWork struct {
 type GoogleCourseWorkResponse struct {
 	CourseWork    []GoogleCourseWork `json:"courseWork"`
 	NextPageToken string             `json:"nextPageToken"`
+}
+
+// StudentSubmission represents a Google Classroom submission state.
+type StudentSubmission struct {
+	ID         string  `json:"id"`
+	CourseID   string  `json:"courseId"`
+	CourseWorkID string `json:"courseWorkId"`
+	State      string  `json:"state"` // NEW, CREATED, TURNED_IN, RETURNED, RECLAIMED_BY_STUDENT
+	Late       bool    `json:"late"`
+	AssignedGrade *float64 `json:"assignedGrade"`
+}
+
+type StudentSubmissionsResponse struct {
+	StudentSubmissions []StudentSubmission `json:"studentSubmissions"`
+	NextPageToken      string              `json:"nextPageToken"`
 }
 
 // Client handles Google Classroom API interactions.
@@ -140,6 +156,24 @@ func (c *Client) FetchAssignmentsFromCourses(ctx context.Context, accessToken st
 				if !ok || !isValidDeadline(deadline, now, cutoff) {
 					continue
 				}
+				// Check submission state for accurate completed (best-effort, ignore errors).
+				isCompleted := false
+				if subs, err := c.FetchStudentSubmissions(ctx, accessToken, course.ID, work.ID); err == nil {
+					for _, sub := range subs {
+						if sub.State == "TURNED_IN" || sub.State == "RETURNED" || sub.AssignedGrade != nil {
+							isCompleted = true
+							break
+						}
+					}
+					if isCompleted {
+						log.Printf("[google] work completed course=%s work=%s", course.ID, work.ID)
+					}
+				} else {
+					// Graceful: 403 insufficient scope (user not re-consented) -> treat as not completed
+					if !strings.Contains(err.Error(), "403") {
+						log.Printf("[google] FetchStudentSubmissions failed course=%s work=%s err=%v", course.ID, work.ID, err)
+					}
+				}
 				workURL := strings.TrimSpace(work.CourseWorkURL)
 				if workURL == "" {
 					workURL = fmt.Sprintf(
@@ -156,6 +190,7 @@ func (c *Client) FetchAssignmentsFromCourses(ctx context.Context, accessToken st
 					Deadline:    deadline.UTC(),
 					ExternalID:  work.ID,
 					Source:      "google_classroom",
+					IsCompleted: isCompleted,
 				})
 			}
 			if len(local) > 0 {
@@ -235,6 +270,39 @@ func (c *Client) FetchGoogleCourseWork(ctx context.Context, accessToken string, 
 	}
 
 	return works, nil
+}
+
+// FetchStudentSubmissions fetches submission states for a coursework.
+func (c *Client) FetchStudentSubmissions(ctx context.Context, accessToken, courseID, courseWorkID string) ([]StudentSubmission, error) {
+	subs := make([]StudentSubmission, 0, 8)
+	pageToken := ""
+	for {
+		endpoint := fmt.Sprintf(
+			"https://classroom.googleapis.com/v1/courses/%s/courseWork/%s/studentSubmissions?pageSize=100",
+			url.PathEscape(courseID), url.PathEscape(courseWorkID),
+		)
+		if pageToken != "" {
+			endpoint += "&pageToken=" + url.QueryEscape(pageToken)
+		}
+		var resp StudentSubmissionsResponse
+		if err := c.FetchGoogleJSON(ctx, endpoint, accessToken, &resp); err != nil {
+			return nil, err
+		}
+		subs = append(subs, resp.StudentSubmissions...)
+		if resp.NextPageToken == "" {
+			break
+		}
+		if resp.NextPageToken == pageToken {
+			log.Printf("[google] duplicate NextPageToken submissions course=%s work=%s", courseID, courseWorkID)
+			break
+		}
+		pageToken = resp.NextPageToken
+		// Typically 1 submission per student, no need for many pages.
+		if len(subs) >= 1 {
+			// still continue if paginated
+		}
+	}
+	return subs, nil
 }
 
 // FetchGoogleJSON makes authenticated request to Google API.

@@ -504,6 +504,12 @@ func getAssignmentKeys(assignments map[string]AssignmentRecord) []string {
 }
 
 func (s *syncService) createAssignment(tx *gorm.DB, assignment AssignmentRecord, userID, provider, key string, courseValue, sourceIDValue, courseIDValue *string) error {
+	completed := assignment.IsCompleted
+	var completedAt *time.Time
+	if completed {
+		t := time.Now().UTC()
+		completedAt = &t
+	}
 	event := models.Event{
 		ID:              uuid.NewString(),
 		UserID:          userID,
@@ -517,6 +523,8 @@ func (s *syncService) createAssignment(tx *gorm.DB, assignment AssignmentRecord,
 		Source:          provider,
 		SourceID:        sourceIDValue,
 		SyncKey:         key,
+		Completed:       completed,
+		CompletedAt:     completedAt,
 		Reminder24HSent: false,
 		RemindersSent:   "[]",
 	}
@@ -524,6 +532,14 @@ func (s *syncService) createAssignment(tx *gorm.DB, assignment AssignmentRecord,
 }
 
 func (s *syncService) updateAssignment(tx *gorm.DB, eventID string, assignment AssignmentRecord, provider string, courseValue, sourceIDValue, courseIDValue *string) error {
+	completed := assignment.IsCompleted
+	var completedAt interface{}
+	if completed {
+		t := time.Now().UTC()
+		completedAt = t
+	} else {
+		completedAt = nil
+	}
 	updateData := map[string]interface{}{
 		"title":        assignment.Title,
 		"course":       courseValue,
@@ -534,8 +550,8 @@ func (s *syncService) updateAssignment(tx *gorm.DB, eventID string, assignment A
 		"deadline":     assignment.Deadline.UTC(),
 		"source":       provider,
 		"source_id":    sourceIDValue,
-		"completed":    false,
-		"completed_at": nil,
+		"completed":    completed,
+		"completed_at": completedAt,
 	}
 	return tx.Model(&models.Event{}).Where("id = ?", eventID).Updates(updateData).Error
 }
@@ -565,7 +581,7 @@ func (s *syncService) needsUpdate(existing *models.Event, assignment AssignmentR
 	if !stringsEqual(existing.SourceID, sourceIDValue) {
 		return true
 	}
-	if existing.Completed {
+	if existing.Completed != assignment.IsCompleted {
 		return true
 	}
 	return false
