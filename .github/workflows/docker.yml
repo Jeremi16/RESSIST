@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   build-backend:
-    name: build backend (resisst-api)
+    name: build backend (ressist-api)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -42,7 +42,7 @@ jobs:
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/resisst-api
+          images: ghcr.io/${{ github.repository_owner }}/ressist-api
           tags: |
             type=raw,value=main
             type=raw,value=latest
@@ -64,7 +64,7 @@ jobs:
           provenance: false
 
   build-bot:
-    name: build bot (resisst-bot)
+    name: build bot (ressist-bot)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -87,7 +87,7 @@ jobs:
         id: meta-bot
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/resisst-bot
+          images: ghcr.io/${{ github.repository_owner }}/ressist-bot
           tags: |
             type=raw,value=main
             type=raw,value=latest
