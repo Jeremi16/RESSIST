@@ -44,6 +44,10 @@ services:
       # Sending from N processes is allowed; only getUpdates is exclusive.
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-resisst_bot}
+      LMS_SYNC_ENABLED: ${LMS_SYNC_ENABLED:-true}
+      LMS_SYNC_CRON: ${LMS_SYNC_CRON:-0 7 * * *}
+      LMS_SYNC_BATCH_SIZE: ${LMS_SYNC_BATCH_SIZE:-200}
+      LMS_SYNC_CONCURRENCY: ${LMS_SYNC_CONCURRENCY:-2}
     ports:
       - "${API_PORT:-8080}:8080"
     healthcheck:

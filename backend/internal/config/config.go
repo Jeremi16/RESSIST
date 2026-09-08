@@ -51,6 +51,11 @@ type Config struct {
 	ApiKeyMaxPerUser       int
 	ApiKeyRateLimitPerMinute int
 	ApiKeyRateLimitBurst     int
+
+	LMSSyncEnabled    bool
+	LMSSyncCron       string
+	LMSSyncBatchSize  int
+	LMSSyncConcurrency int
 }
 
 func Load() (*Config, error) {
@@ -97,6 +102,11 @@ func Load() (*Config, error) {
 		ApiKeyMaxPerUser:         getEnvAsInt("API_KEY_MAX_PER_USER", 5),
 		ApiKeyRateLimitPerMinute: getEnvAsInt("API_KEY_RATE_LIMIT_PER_MINUTE", 60),
 		ApiKeyRateLimitBurst:     getEnvAsInt("API_KEY_RATE_LIMIT_BURST", 20),
+
+		LMSSyncEnabled:     getEnvAsBool("LMS_SYNC_ENABLED", true),
+		LMSSyncCron:        getEnv("LMS_SYNC_CRON", "0 7 * * *"),
+		LMSSyncBatchSize:   getEnvAsInt("LMS_SYNC_BATCH_SIZE", 200),
+		LMSSyncConcurrency: getEnvAsInt("LMS_SYNC_CONCURRENCY", 2),
 	}
 
 	return cfg, nil
