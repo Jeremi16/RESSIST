@@ -56,6 +56,7 @@ type Config struct {
 	LMSSyncCron       string
 	LMSSyncBatchSize  int
 	LMSSyncConcurrency int
+	LMSSyncTimeoutSeconds int
 }
 
 func Load() (*Config, error) {
@@ -103,10 +104,11 @@ func Load() (*Config, error) {
 		ApiKeyRateLimitPerMinute: getEnvAsInt("API_KEY_RATE_LIMIT_PER_MINUTE", 60),
 		ApiKeyRateLimitBurst:     getEnvAsInt("API_KEY_RATE_LIMIT_BURST", 20),
 
-		LMSSyncEnabled:     getEnvAsBool("LMS_SYNC_ENABLED", true),
-		LMSSyncCron:        getEnv("LMS_SYNC_CRON", "0 7 * * *"),
-		LMSSyncBatchSize:   getEnvAsInt("LMS_SYNC_BATCH_SIZE", 200),
-		LMSSyncConcurrency: getEnvAsInt("LMS_SYNC_CONCURRENCY", 2),
+		LMSSyncEnabled:         getEnvAsBool("LMS_SYNC_ENABLED", true),
+		LMSSyncCron:            getEnv("LMS_SYNC_CRON", "0 7 * * *"),
+		LMSSyncBatchSize:       getEnvAsInt("LMS_SYNC_BATCH_SIZE", 200),
+		LMSSyncConcurrency:     getEnvAsInt("LMS_SYNC_CONCURRENCY", 2),
+		LMSSyncTimeoutSeconds:  getEnvAsInt("LMS_SYNC_TIMEOUT_SECONDS", 90),
 	}
 
 	return cfg, nil
