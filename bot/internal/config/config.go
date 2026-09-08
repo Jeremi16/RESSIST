@@ -4,6 +4,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -20,6 +22,11 @@ type Config struct {
 }
 
 func Load() *Config {
+	// Load bot/.env when running from repo root (go run ./bot/cmd/bot)
+	// and when running from bot/ itself. Both calls are safe if file missing.
+	_ = godotenv.Load()
+	_ = godotenv.Load("bot/.env")
+	_ = godotenv.Load("../bot/.env")
 	return &Config{
 		Env:                 getEnv("ENV", "development"),
 		BotPort:             getEnv("BOT_PORT", "8081"),
