@@ -24,7 +24,7 @@ func New(cfg *config.Config, db *gorm.DB, cal *calendar.Service) *Service {
 	return &Service{cfg: cfg, db: db, cal: cal}
 }
 
-// SyncBatch syncs all users whose LMS needs sync (lms_last_synced_at older than 24h or nil).
+// SyncBatch syncs all users whose LMS needs sync (per-provider 24h window).
 func (s *Service) SyncBatch(ctx context.Context) {
 	batchSize := s.cfg.LMSSyncBatchSize
 	if batchSize <= 0 {
@@ -35,20 +35,18 @@ func (s *Service) SyncBatch(ctx context.Context) {
 		concurrency = 2
 	}
 
-	// Fetch users needing sync with SKIP LOCKED to dedup across replicas
+	// Fetch users needing sync with SKIP LOCKED to dedup across replicas.
+	// Use per-provider timestamps: sync if any enabled provider is stale >24h.
 	var users []models.User
-	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// Use raw query for FOR UPDATE SKIP LOCKED
-		// Only users with LMS enabled
-		q := tx.Raw(`
+	err := s.db.WithContext(ctx).Raw(`
 			SELECT * FROM users
-			WHERE (moodle_enabled = true OR google_classroom_enabled = true)
-			  AND (lms_last_synced_at IS NULL OR lms_last_synced_at < NOW() - INTERVAL '24 hours')
-			ORDER BY lms_last_synced_at NULLS FIRST
+			WHERE (moodle_enabled = true AND (moodle_last_synced_at IS NULL OR moodle_last_synced_at < NOW() - INTERVAL '24 hours'))
+			   OR (google_classroom_enabled = true AND (google_classroom_last_synced_at IS NULL OR google_classroom_last_synced_at < NOW() - INTERVAL '24 hours'))
+			   OR ((moodle_enabled = true OR google_classroom_enabled = true) AND lms_last_synced_at IS NULL
+			       AND moodle_last_synced_at IS NULL AND google_classroom_last_synced_at IS NULL)
+			ORDER BY COALESCE(LEAST(moodle_last_synced_at, google_classroom_last_synced_at), lms_last_synced_at) ASC NULLS FIRST
 			LIMIT ? FOR UPDATE SKIP LOCKED
-		`, batchSize).Scan(&users)
-		return q.Error
-	})
+		`, batchSize).Scan(&users).Error
 	if err != nil {
 		log.Printf("[lmssync] fetch batch failed: %v", err)
 		return
@@ -67,6 +65,10 @@ func (s *Service) SyncBatch(ctx context.Context) {
 	successCount := 0
 	failCount := 0
 
+	timeoutSec := s.cfg.LMSSyncTimeoutSeconds
+	if timeoutSec <= 0 {
+		timeoutSec = 90
+	}
 	for i := range users {
 		u := users[i]
 		wg.Add(1)
@@ -74,22 +76,21 @@ func (s *Service) SyncBatch(ctx context.Context) {
 		go func(user models.User) {
 			defer wg.Done()
 			defer func() { <-sem }()
-			pctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			pctx, cancel := context.WithTimeout(ctx, time.Duration(timeoutSec)*time.Second)
 			defer cancel()
 
 			providers := s.cal.GetEnabledProviders(&user)
 			if len(providers) == 0 {
 				// Still update timestamp to avoid re-pick
-				s.db.WithContext(pctx).Model(&models.User{}).Where("id = ?", user.ID).Update("lms_last_synced_at", time.Now().UTC())
+				now := time.Now().UTC()
+				s.db.WithContext(pctx).Model(&models.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
+					"lms_last_synced_at": now,
+				})
 				return
 			}
 
 			_, _, success, failed := s.cal.SyncProviders(pctx, &user, providers)
-			now := time.Now().UTC()
-			// Update last synced if at least one provider succeeded
-			if success > 0 {
-				s.db.WithContext(pctx).Model(&models.User{}).Where("id = ?", user.ID).Update("lms_last_synced_at", now)
-			}
+			// Per-provider timestamps already updated inside SyncProviders.
 			mu.Lock()
 			if success > 0 {
 				successCount++
