@@ -74,6 +74,31 @@ type TabType =
   | "lainnya";
 const APP_VERSION = "v0.8.7";
 
+function isCompletedTask(t: any): boolean {
+  return t?.status === "completed" || !!t?.completed;
+}
+function isMissedTask(t: any): boolean {
+  return t?.status === "missed";
+}
+function isPendingTask(t: any): boolean {
+  return !isCompletedTask(t) && !isMissedTask(t);
+}
+function isOverdueTask(t: any): boolean {
+  if (isCompletedTask(t)) return false;
+  if (isMissedTask(t)) return true;
+  try {
+    return new Date(t.deadline) < new Date();
+  } catch {
+    return false;
+  }
+}
+function isTerlewatTask(t: any): boolean {
+  return isMissedTask(t) || (isPendingTask(t) && isOverdueTask(t));
+}
+function isMendatangTask(t: any): boolean {
+  return isPendingTask(t) && !isOverdueTask(t);
+}
+
 // Skeleton Components
 function Skeleton({ className }: { className?: string }) {
   return <div className={cn("animate-pulse bg-black/5 rounded", className)} />;
@@ -330,6 +355,12 @@ export default function Dashboard() {
 
   const markAssignmentComplete = async (assignmentId: string) => {
     try {
+      // Prevent completing Classroom tasks (full source of truth)
+      const target = allAssignments.find((t) => t.id === assignmentId);
+      if (target && typeof target.source === "string" && target.source.toLowerCase().includes("google")) {
+        showToast({ title: "Tidak dapat menandai", description: "Tugas Classroom mengikuti status dari Google Classroom.", variant: "info" });
+        return;
+      }
       const response = await fetch("/api/assignments/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -339,12 +370,12 @@ export default function Dashboard() {
         // Optimistic update for both assignments list and calendar
         setAllAssignments((prev) =>
           prev.map((task) =>
-            task.id === assignmentId ? { ...task, completed: true } : task,
+            task.id === assignmentId ? { ...task, completed: true, status: "completed" } : task,
           ),
         );
         setPreviewEvents((prev) =>
           prev.map((ev: any) =>
-            ev.id === assignmentId ? { ...ev, completed: true } : ev,
+            ev.id === assignmentId ? { ...ev, completed: true, status: "completed" } : ev,
           ),
         );
         showToast({
@@ -352,6 +383,9 @@ export default function Dashboard() {
           description: "Tugas telah ditandai sebagai selesai.",
           variant: "success",
         });
+      } else {
+        const data: any = await response.json().catch(() => ({}));
+        if (data?.error) showToast({ title: "Gagal", description: data.error, variant: "error" });
       }
     } catch (error) {
       console.error("Error marking assignment complete:", error);
@@ -602,15 +636,15 @@ export default function Dashboard() {
         })()}
       </nav>
 
-      {/* Overdue Tasks Popup */}
+      {/* Overdue Tasks Popup - only Moodle terlewat, Classroom is read-only */}
       <AnimatePresence>
         {showOverduePopup &&
           allAssignments.filter(
-            (t) => !t.completed && new Date(t.deadline) < new Date(),
+            (t) => isTerlewatTask(t) && !(typeof t.source === "string" && t.source.toLowerCase().includes("google")),
           ).length > 0 && (
             <OverdueTasksPopup
               tasks={allAssignments.filter(
-                (t) => !t.completed && new Date(t.deadline) < new Date(),
+                (t) => isTerlewatTask(t) && !(typeof t.source === "string" && t.source.toLowerCase().includes("google")),
               )}
               onMarkComplete={markAssignmentComplete}
               onClose={() => setShowOverduePopup(false)}
@@ -684,19 +718,13 @@ export default function Dashboard() {
                   {/* Task Statistics - Full Width */}
                   <TaskStats
                     overdueCount={
-                      allAssignments.filter(
-                        (t) =>
-                          !t.completed && new Date(t.deadline) < new Date(),
-                      ).length
+                      allAssignments.filter((t) => isTerlewatTask(t)).length
                     }
                     upcomingCount={
-                      allAssignments.filter(
-                        (t) =>
-                          !t.completed && new Date(t.deadline) >= new Date(),
-                      ).length
+                      allAssignments.filter((t) => isMendatangTask(t)).length
                     }
                     completedCount={
-                      allAssignments.filter((t) => t.completed).length
+                      allAssignments.filter((t) => isCompletedTask(t)).length
                     }
                     totalCount={allAssignments.length}
                   />
@@ -798,10 +826,10 @@ export default function Dashboard() {
                             <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><AlertTriangle className="size-3.5" /></div>
                             <h4 className="text-sm font-semibold text-black">Terlewat</h4>
                           </div>
-                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => !t.completed && new Date(t.deadline) < new Date()).length}</span>
+                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isTerlewatTask(t)).length}</span>
                         </div>
                         <div className="space-y-3">
-                          {allAssignments.filter((t) => !t.completed && new Date(t.deadline) < new Date()).length === 0 ? <EmptyTasksState message="Tidak ada tugas terlewat" /> : allAssignments.filter((t) => !t.completed && new Date(t.deadline) < new Date()).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
+                          {allAssignments.filter((t) => isTerlewatTask(t)).length === 0 ? <EmptyTasksState message="Tidak ada tugas terlewat" /> : allAssignments.filter((t) => isTerlewatTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
                         </div>
                       </div>
 
@@ -811,10 +839,10 @@ export default function Dashboard() {
                             <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><Clock className="size-3.5" /></div>
                             <h4 className="text-sm font-semibold text-black">Mendatang</h4>
                           </div>
-                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => !t.completed && new Date(t.deadline) >= new Date()).length}</span>
+                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isMendatangTask(t)).length}</span>
                         </div>
                         <div className="space-y-3">
-                          {allAssignments.filter((t) => !t.completed && new Date(t.deadline) >= new Date()).length === 0 ? <EmptyTasksState message="Tidak ada tugas mendatang" /> : allAssignments.filter((t) => !t.completed && new Date(t.deadline) >= new Date()).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
+                          {allAssignments.filter((t) => isMendatangTask(t)).length === 0 ? <EmptyTasksState message="Tidak ada tugas mendatang" /> : allAssignments.filter((t) => isMendatangTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
                         </div>
                       </div>
 
@@ -824,10 +852,10 @@ export default function Dashboard() {
                             <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><CheckCircle2 className="size-3.5" /></div>
                             <h4 className="text-sm font-semibold text-black">Selesai</h4>
                           </div>
-                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => t.completed).length}</span>
+                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isCompletedTask(t)).length}</span>
                         </div>
                         <div className="space-y-3">
-                          {allAssignments.filter((t) => t.completed).length === 0 ? <EmptyTasksState message="Belum ada tugas selesai" /> : allAssignments.filter((t) => t.completed).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
+                          {allAssignments.filter((t) => isCompletedTask(t)).length === 0 ? <EmptyTasksState message="Belum ada tugas selesai" /> : allAssignments.filter((t) => isCompletedTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
                         </div>
                       </div>
                     </div>
@@ -1046,17 +1074,22 @@ function TaskCard({
   task: any;
   onComplete: (id: string) => void;
 }) {
-  const isOverdue = !task.completed && new Date(task.deadline) < new Date();
-  const isSelesai = task.completed;
+  const isSelesai = isCompletedTask(task);
+  const isMissed = isMissedTask(task);
+  const isOverdue = isOverdueTask(task);
   const isGoogle = typeof task.source === "string" && task.source.toLowerCase().includes("google");
 
   return (
-    <div className={cn("bg-white p-4 rounded-2xl border border-black/5", isSelesai && "opacity-60")}>
+    <div className={cn("bg-white p-4 rounded-2xl border border-black/5", isSelesai && "opacity-60", isMissed && "border-red-100")}>
       <div className="space-y-3">
         <div className="flex justify-between items-start gap-3">
           <div className="space-y-1.5 flex-1 min-w-0">
             <h5 className={cn("text-sm font-medium text-black leading-tight line-clamp-2", isSelesai && "line-through text-black/40")}>{task.title}</h5>
-            <span className="inline-flex text-xs text-black/40 bg-[#F5F0EB] px-2 py-1 rounded-full truncate max-w-full">{task.course}</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="inline-flex text-xs text-black/40 bg-[#F5F0EB] px-2 py-1 rounded-full truncate max-w-full">{task.course}</span>
+              {isMissed && <span className="inline-flex text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-50 text-red-600 rounded-full">Terlewat</span>}
+              {isGoogle && <span className="inline-flex text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-50 text-green-700 rounded-full">Classroom</span>}
+            </div>
           </div>
           {!isSelesai ? (
             isGoogle ? null : (

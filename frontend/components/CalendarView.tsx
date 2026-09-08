@@ -5,7 +5,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Event { title: string; course: string | null; class_code?: string | null; deadline: Date | string; full_title?: string; original_course?: string | null; completed?: boolean; }
+interface Event { title: string; course: string | null; class_code?: string | null; deadline: Date | string; full_title?: string; original_course?: string | null; completed?: boolean; status?: string; }
 interface CalendarViewProps { events: Event[]; }
 
 export function CalendarView({ events }: CalendarViewProps) {
@@ -19,8 +19,8 @@ export function CalendarView({ events }: CalendarViewProps) {
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const goToToday = () => setCurrentMonth(new Date());
-  // Filter out completed tasks — calendar should mirror Moodle (done tasks disappear)
-  const visibleEvents = useMemo(() => events.filter((e) => !e.completed), [events]);
+  // Filter out completed/missed tasks — calendar only shows pending
+  const visibleEvents = useMemo(() => events.filter((e) => (e.status ? e.status === "pending" : !e.completed)), [events]);
   const formattedEvents = useMemo(() => visibleEvents.map((e) => ({ ...e, date: new Date(e.deadline), full_title: e.title, original_course: e.course })), [visibleEvents]);
 
   return (

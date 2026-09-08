@@ -14,4 +14,6 @@ export interface EventPreview {
   source: string;
   completed?: boolean;
   completed_at?: string | null;
+  status?: string;
+  status_updated_at?: string | null;
 }

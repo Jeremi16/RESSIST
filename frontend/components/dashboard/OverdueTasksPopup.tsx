@@ -80,6 +80,8 @@ export function OverdueTasksPopup({ tasks, onMarkComplete, onClose }: OverdueTas
   const getSourceLabel = (source: string) =>
     source === "google_classroom" ? "Google Classroom" : "SCeLE / Moodle";
 
+  const isGoogleTask = currentTask?.source === "google_classroom";
+
   return (
     <div 
       className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/30 backdrop-blur-sm"
@@ -197,18 +199,22 @@ export function OverdueTasksPopup({ tasks, onMarkComplete, onClose }: OverdueTas
               Lewati
             </button>
 
-            {/* Mark Complete */}
-            <button
-              onClick={handleMarkComplete}
-              disabled={isProcessing}
-              className={cn(
-                "flex-1 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-700 rounded-xl transition-colors flex items-center justify-center gap-1.5",
-                isProcessing && "opacity-60 animate-pulse"
-              )}
-            >
-              <CheckCircle2 className="size-3.5" />
-              {isProcessing ? "Memproses..." : "Tandai Selesai"}
-            </button>
+            {/* Mark Complete - hidden for Classroom (full source of truth) */}
+            {!isGoogleTask ? (
+              <button
+                onClick={handleMarkComplete}
+                disabled={isProcessing}
+                className={cn(
+                  "flex-1 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-700 rounded-xl transition-colors flex items-center justify-center gap-1.5",
+                  isProcessing && "opacity-60 animate-pulse"
+                )}
+              >
+                <CheckCircle2 className="size-3.5" />
+                {isProcessing ? "Memproses..." : "Tandai Selesai"}
+              </button>
+            ) : (
+              <div className="flex-1 py-2.5 text-[10px] font-semibold text-center text-slate-400 bg-slate-50 rounded-xl">Status mengikuti Classroom</div>
+            )}
 
             {/* Next */}
             <button
