@@ -194,6 +194,10 @@ func (c *Client) FetchGoogleCourses(ctx context.Context, accessToken string) ([]
 		if response.NextPageToken == "" {
 			break
 		}
+		if response.NextPageToken == pageToken {
+			log.Printf("[google] duplicate NextPageToken detected, breaking pagination")
+			break
+		}
 		pageToken = response.NextPageToken
 	}
 
@@ -221,6 +225,10 @@ func (c *Client) FetchGoogleCourseWork(ctx context.Context, accessToken string, 
 		works = append(works, response.CourseWork...)
 
 		if response.NextPageToken == "" {
+			break
+		}
+		if response.NextPageToken == pageToken {
+			log.Printf("[google] duplicate NextPageToken detected, breaking pagination course=%s", courseID)
 			break
 		}
 		pageToken = response.NextPageToken
@@ -273,11 +281,11 @@ func (c *Client) EnsureGoogleAccessToken(ctx context.Context, user *models.User)
 func (c *Client) RefreshGoogleToken(ctx context.Context, user *models.User, currentToken string) (string, error) {
 	refreshToken := text.Dereference(user.GoogleRefreshToken, "")
 	if refreshToken == "" {
-		return currentToken, nil // Can't refresh without refresh token
+		return "", fmt.Errorf("google refresh token missing - re-auth required")
 	}
 
 	if c.cfg == nil || c.cfg.GoogleClientID == "" || c.cfg.GoogleClientSecret == "" {
-		return currentToken, nil // Can't refresh without OAuth config
+		return "", fmt.Errorf("google oauth config missing - cannot refresh")
 	}
 
 	oauthConfig := oauth2.Config{
