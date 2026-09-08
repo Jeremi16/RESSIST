@@ -340,26 +340,29 @@ func buildUserResponse(user *models.User) userResponse {
 	telegramBotUsername := text.DefaultString(os.Getenv("TELEGRAM_BOT_USERNAME"), "resisst_bot")
 
 	return userResponse{
-		ID:                     user.ID,
-		Email:                  user.Email,
-		Name:                   text.DefaultString(user.Name, ""),
-		AvatarURL:              text.DefaultString(user.AvatarURL, ""),
-		WhatsAppNumber:         user.WhatsAppNumber,
-		WhatsAppEnabled:        user.WhatsAppEnabled,
-		TelegramChatID:         user.TelegramChatID,
-		TelegramEnabled:        user.TelegramEnabled,
-		MoodleEnabled:          user.MoodleEnabled,
-		MoodleCalendarURL:      user.MoodleCalendarURL,
-		GoogleClassroomEnabled: user.GoogleClassroomEnabled,
-		GoogleConnected:        user.GoogleTokenExpiry != nil,
-		TelegramBotUsername:    telegramBotUsername,
-		ReminderHours:          text.DefaultString(user.ReminderHours, "[24]"),
-		MorningBriefing:        user.MorningBriefing,
-		MutedCourses:           text.DefaultString(user.MutedCourses, "[]"),
-		CourseAliases:          coursealias.Parse(user.CourseAliases),
-		ClassCode:              user.ClassCode,
-		AvailableClassCodes:    classcode.ParseArray(user.AvailableClassCodes),
-		CreatedAt:              user.CreatedAt.UTC().Format("2006-01-02T15:04:05.000Z"),
+		ID:                           user.ID,
+		Email:                        user.Email,
+		Name:                         text.DefaultString(user.Name, ""),
+		AvatarURL:                    text.DefaultString(user.AvatarURL, ""),
+		WhatsAppNumber:               user.WhatsAppNumber,
+		WhatsAppEnabled:              user.WhatsAppEnabled,
+		TelegramChatID:               user.TelegramChatID,
+		TelegramEnabled:              user.TelegramEnabled,
+		MoodleEnabled:                user.MoodleEnabled,
+		MoodleCalendarURL:            user.MoodleCalendarURL,
+		GoogleClassroomEnabled:       user.GoogleClassroomEnabled,
+		GoogleConnected:              user.GoogleTokenExpiry != nil,
+		TelegramBotUsername:          telegramBotUsername,
+		ReminderHours:                text.DefaultString(user.ReminderHours, "[24]"),
+		MorningBriefing:              user.MorningBriefing,
+		MutedCourses:                 text.DefaultString(user.MutedCourses, "[]"),
+		CourseAliases:                coursealias.Parse(user.CourseAliases),
+		ClassCode:                    user.ClassCode,
+		AvailableClassCodes:          classcode.ParseArray(user.AvailableClassCodes),
+		LMSLastSyncedAt:              user.LMSLastSyncedAt,
+		MoodleLastSyncedAt:           user.MoodleLastSyncedAt,
+		GoogleClassroomLastSyncedAt:  user.GoogleLastSyncedAt,
+		CreatedAt:                    user.CreatedAt.UTC().Format("2006-01-02T15:04:05.000Z"),
 	}
 }
 
@@ -393,26 +396,29 @@ type userUpdateRequest struct {
 }
 
 type userResponse struct {
-	ID                     string            `json:"id"`
-	Email                  string            `json:"email"`
-	Name                   string            `json:"name"`
-	AvatarURL              string            `json:"avatar_url"`
-	WhatsAppNumber         *string           `json:"whatsapp_number"`
-	WhatsAppEnabled        bool              `json:"whatsapp_enabled"`
-	TelegramChatID         *string           `json:"telegram_chat_id"`
-	TelegramEnabled        bool              `json:"telegram_enabled"`
-	MoodleEnabled          bool              `json:"moodle_enabled"`
-	MoodleCalendarURL      *string           `json:"moodle_calendar_url"`
-	GoogleClassroomEnabled bool              `json:"google_classroom_enabled"`
-	GoogleConnected        bool              `json:"google_connected"`
-	TelegramBotUsername    string            `json:"telegram_bot_username"`
-	ReminderHours          string            `json:"reminder_hours"`
-	MorningBriefing        bool              `json:"morning_briefing"`
-	MutedCourses           string            `json:"muted_courses"`
-	CourseAliases          map[string]string `json:"course_aliases"`
-	ClassCode              *string           `json:"class_code"`
-	AvailableClassCodes    []string          `json:"available_class_codes"`
-	CreatedAt              string            `json:"created_at"`
+	ID                           string            `json:"id"`
+	Email                        string            `json:"email"`
+	Name                         string            `json:"name"`
+	AvatarURL                    string            `json:"avatar_url"`
+	WhatsAppNumber               *string           `json:"whatsapp_number"`
+	WhatsAppEnabled              bool              `json:"whatsapp_enabled"`
+	TelegramChatID               *string           `json:"telegram_chat_id"`
+	TelegramEnabled              bool              `json:"telegram_enabled"`
+	MoodleEnabled                bool              `json:"moodle_enabled"`
+	MoodleCalendarURL            *string           `json:"moodle_calendar_url"`
+	GoogleClassroomEnabled       bool              `json:"google_classroom_enabled"`
+	GoogleConnected              bool              `json:"google_connected"`
+	TelegramBotUsername          string            `json:"telegram_bot_username"`
+	ReminderHours                string            `json:"reminder_hours"`
+	MorningBriefing              bool              `json:"morning_briefing"`
+	MutedCourses                 string            `json:"muted_courses"`
+	CourseAliases                map[string]string `json:"course_aliases"`
+	ClassCode                    *string           `json:"class_code"`
+	AvailableClassCodes          []string          `json:"available_class_codes"`
+	LMSLastSyncedAt              *time.Time        `json:"lms_last_synced_at"`
+	MoodleLastSyncedAt           *time.Time        `json:"moodle_last_synced_at"`
+	GoogleClassroomLastSyncedAt  *time.Time        `json:"google_classroom_last_synced_at"`
+	CreatedAt                    string            `json:"created_at"`
 }
 
 type courseAliasRequest struct {
