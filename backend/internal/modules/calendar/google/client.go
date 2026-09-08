@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jeremi16/resisst-api/internal/config"
@@ -16,6 +18,7 @@ import (
 	"github.com/jeremi16/resisst-api/internal/pkg/text"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
 
@@ -101,48 +104,74 @@ func (c *Client) FetchGoogleClassroomAssignments(ctx context.Context, user *mode
 		return []AssignmentRecord{}, nil
 	}
 
-	return c.FetchAssignmentsFromCourses(ctx, accessToken, courses), nil
+	return c.FetchAssignmentsFromCourses(ctx, accessToken, courses)
 }
 
-// FetchAssignmentsFromCourses fetches assignments from all courses.
-func (c *Client) FetchAssignmentsFromCourses(ctx context.Context, accessToken string, courses []GoogleCourse) []AssignmentRecord {
+// FetchAssignmentsFromCourses fetches assignments from all courses concurrently.
+// Returns error if ANY course fails (strict abort) to avoid partial wipe in PersistAssignments.
+func (c *Client) FetchAssignmentsFromCourses(ctx context.Context, accessToken string, courses []GoogleCourse) ([]AssignmentRecord, error) {
 	now := time.Now()
 	cutoff := now.Add(time.Hour * 24 * upcomingWindowDays)
+
+	// Concurrency for courseWork fetching.
+	concurrency := 5
+	sem := make(chan struct{}, concurrency)
+	var mu sync.Mutex
 	assignments := make([]AssignmentRecord, 0, 64)
 
+	eg, ctx := errgroup.WithContext(ctx)
 	for _, course := range courses {
-		courseWorks, err := c.FetchGoogleCourseWork(ctx, accessToken, course.ID)
-		if err != nil {
-			continue
-		}
-
-		for _, work := range courseWorks {
-			deadline, ok := convertGoogleDeadline(work.DueDate, work.DueTime)
-			if !ok || !isValidDeadline(deadline, now, cutoff) {
-				continue
+		course := course
+		sem <- struct{}{}
+		eg.Go(func() error {
+			defer func() { <-sem }()
+			// Check ctx cancellation before request.
+			if err := ctx.Err(); err != nil {
+				return err
 			}
-			workURL := strings.TrimSpace(work.CourseWorkURL)
-			if workURL == "" {
-				workURL = fmt.Sprintf(
-					"https://classroom.google.com/c/%s/a/%s/details",
-					url.PathEscape(work.CourseID),
-					url.PathEscape(work.ID),
-				)
+			courseWorks, err := c.FetchGoogleCourseWork(ctx, accessToken, course.ID)
+			if err != nil {
+				log.Printf("[google] FetchGoogleCourseWork failed course=%s err=%v", course.ID, err)
+				return fmt.Errorf("course %s: %w", course.ID, err)
 			}
-			assignments = append(assignments, AssignmentRecord{
-				Title:       text.DefaultString(work.Title, "Untitled Assignment"),
-				Course:      text.DefaultString(course.Name, "Unknown Course"),
-				Description: text.NullableStringPointer(work.Description),
-				URL:         text.NullableStringPointer(workURL),
-				Deadline:    deadline.UTC(),
-				ExternalID:  work.ID,
-				Source:      "google_classroom",
-			})
-		}
+			var local []AssignmentRecord
+			for _, work := range courseWorks {
+				deadline, ok := convertGoogleDeadline(work.DueDate, work.DueTime)
+				if !ok || !isValidDeadline(deadline, now, cutoff) {
+					continue
+				}
+				workURL := strings.TrimSpace(work.CourseWorkURL)
+				if workURL == "" {
+					workURL = fmt.Sprintf(
+						"https://classroom.google.com/c/%s/a/%s/details",
+						url.PathEscape(work.CourseID),
+						url.PathEscape(work.ID),
+					)
+				}
+				local = append(local, AssignmentRecord{
+					Title:       text.DefaultString(work.Title, "Untitled Assignment"),
+					Course:      text.DefaultString(course.Name, "Unknown Course"),
+					Description: text.NullableStringPointer(work.Description),
+					URL:         text.NullableStringPointer(workURL),
+					Deadline:    deadline.UTC(),
+					ExternalID:  work.ID,
+					Source:      "google_classroom",
+				})
+			}
+			if len(local) > 0 {
+				mu.Lock()
+				assignments = append(assignments, local...)
+				mu.Unlock()
+			}
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
 
 	sortAssignmentsByDeadline(assignments)
-	return assignments
+	return assignments, nil
 }
 
 // FetchGoogleCourses fetches all active courses from Google Classroom.
