@@ -9,6 +9,8 @@ import { EventPreview } from "@/components/EventPreview";
 import { TelegramVerify } from "@/components/TelegramVerify";
 import { CalendarView } from "@/components/CalendarView";
 import { WhatsAppConfig } from "@/components/dashboard/WhatsAppConfig";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 import { OverdueTasksPopup } from "@/components/dashboard/OverdueTasksPopup";
 import type { EventPreview as EventPreviewType } from "@/src/lib/api-types";
 import {
@@ -699,9 +701,8 @@ export default function Dashboard() {
                 {activeTab === "overview" ? "Here's a quick overview of your workspace today." : "Sesuaikan pengaturan untuk pengalaman terbaik."}
               </p>
             </div>
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="text-xs text-black/40 hidden lg:inline">Today</span>
-              <div className="h-8 px-3 rounded-full bg-white border border-black/5 text-xs font-medium text-black/60 flex items-center">Today</div>
+            <div className="hidden sm:flex items-center">
+              <div className="h-8 px-3 rounded-full bg-white border border-black/5 text-xs font-medium text-black/60 flex items-center">Today · {format(new Date(), "d MMM yyyy", { locale: localeId })}</div>
             </div>
           </header>
 
