@@ -118,6 +118,10 @@ type DueAssignment struct {
 	ChatID        *string   `json:"telegram_chat_id"`
 	UserName      string    `json:"user_name"`
 	Completed     bool      `json:"completed"`
+	MutedCourses         string  `json:"muted_courses"`
+	UserClassCode        *string `json:"user_class_code"`
+	CourseKeywordFilters string  `json:"course_keyword_filters"`
+	ReminderHours        string  `json:"reminder_hours"`
 }
 
 type BriefingCandidate struct {
