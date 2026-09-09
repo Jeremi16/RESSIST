@@ -347,8 +347,8 @@ func (h *Handler) buildResponse(c *gin.Context, user *models.User, providers []s
 		return nil, err
 	}
 
-	// Filter tasks
-	events = classcode.Filter(events, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters)
+	// Filter tasks (per-matkul single, fallback tampil semua)
+	events = classcode.FilterWithCourseClass(events, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters, user.CourseClassFilters)
 
 	// Parse course aliases and apply them to previews
 	aliases := coursealias.Parse(user.CourseAliases)
