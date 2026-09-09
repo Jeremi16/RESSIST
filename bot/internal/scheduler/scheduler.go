@@ -82,8 +82,6 @@ func (s *Scheduler) sendMorningBriefing() {
 		}
 		now := time.Now()
 		end := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
-		var filtered []string
-		_ = filtered
 		var pending []client.Assignment
 		for _, a := range items {
 			if a.Completed {
@@ -117,6 +115,20 @@ func (s *Scheduler) sendReminders(hoursBefore int) {
 		if containsReminder(a.RemindersSent, key) {
 			continue
 		}
+		// Respect user's chosen reminder_hours (e.g. [24,6]). Skip if this bucket not selected.
+		if !isReminderHourSelected(a.ReminderHours, hoursBefore) {
+			continue
+		}
+		// Respect per-user filters (muted courses / class code / keyword)
+		if isMuted(a.Course, a.MutedCourses) {
+			continue
+		}
+		if !isClassCodeAllowed(a.ClassCode, a.UserClassCode) {
+			continue
+		}
+		if !matchesKeywordFilter(a.Title, a.Course, a.CourseKeywordFilters) {
+			continue
+		}
 		chatID, err := strconv.ParseInt(*a.ChatID, 10, 64)
 		if err != nil {
 			continue
@@ -141,6 +153,166 @@ func containsReminder(reminders, key string) bool {
 	}
 	for _, p := range strings.Split(reminders, ",") {
 		if strings.TrimSpace(p) == key {
+			return true
+		}
+	}
+	return false
+}
+
+func normalize(s string) string {
+	return strings.Join(strings.Fields(strings.ToLower(strings.TrimSpace(s))), " ")
+}
+
+func parseArray(jsonStr string) []string {
+	if strings.TrimSpace(jsonStr) == "" || strings.TrimSpace(jsonStr) == "[]" {
+		return nil
+	}
+	trimmed := strings.TrimSpace(jsonStr)
+	trimmed = strings.TrimPrefix(trimmed, "[")
+	trimmed = strings.TrimSuffix(trimmed, "]")
+	if strings.TrimSpace(trimmed) == "" {
+		return nil
+	}
+	var out []string
+	for _, part := range strings.Split(trimmed, ",") {
+		code := strings.Trim(strings.TrimSpace(part), `"`)
+		if code != "" {
+			out = append(out, code)
+		}
+	}
+	return out
+}
+
+func isReminderHourSelected(raw string, hoursBefore int) bool {
+	// Default aligns with backend User.ReminderHours default "[24]"
+	if strings.TrimSpace(raw) == "" {
+		raw = "[24]"
+	}
+	codes := parseArray(raw)
+	if len(codes) == 0 {
+		return false
+	}
+	target := strconv.Itoa(hoursBefore)
+	for _, c := range codes {
+		if strings.TrimSpace(c) == target {
+			return true
+		}
+	}
+	return false
+}
+
+func isMuted(course *string, mutedJSON string) bool {
+	courseName := ""
+	if course != nil {
+		courseName = *course
+	}
+	norm := normalize(courseName)
+	if norm == "" {
+		return false
+	}
+	for _, m := range parseArray(mutedJSON) {
+		if normalize(m) == norm {
+			return true
+		}
+	}
+	return false
+}
+
+func isClassCodeAllowed(classCode *string, userClassCodeJSON *string) bool {
+	if classCode == nil || strings.TrimSpace(*classCode) == "" {
+		return true
+	}
+	if userClassCodeJSON == nil || strings.TrimSpace(*userClassCodeJSON) == "" {
+		return true
+	}
+	codes := parseArray(*userClassCodeJSON)
+	if len(codes) == 0 {
+		return true
+	}
+	norm := normalize(*classCode)
+	for _, c := range codes {
+		if normalize(c) == norm {
+			return true
+		}
+	}
+	return false
+}
+
+func parseKeywordFilters(jsonStr string) map[string][]string {
+	filters := make(map[string][]string)
+	if strings.TrimSpace(jsonStr) == "" || strings.TrimSpace(jsonStr) == "{}" {
+		return filters
+	}
+	trimmed := strings.TrimSpace(jsonStr)
+	trimmed = strings.TrimPrefix(trimmed, "{")
+	trimmed = strings.TrimSuffix(trimmed, "}")
+	if strings.TrimSpace(trimmed) == "" {
+		return filters
+	}
+	// split on commas not inside quotes/brackets
+	var pairs []string
+	var cur strings.Builder
+	inQuote := false
+	bracketDepth := 0
+	for i, r := range trimmed {
+		if r == '"' && (i == 0 || trimmed[i-1] != '\\') {
+			inQuote = !inQuote
+		}
+		if !inQuote {
+			if r == '[' {
+				bracketDepth++
+			} else if r == ']' {
+				bracketDepth--
+			}
+		}
+		if r == ',' && !inQuote && bracketDepth == 0 {
+			pairs = append(pairs, cur.String())
+			cur.Reset()
+			continue
+		}
+		cur.WriteRune(r)
+	}
+	if cur.Len() > 0 {
+		pairs = append(pairs, cur.String())
+	}
+	for _, pair := range pairs {
+		parts := strings.SplitN(pair, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		key := strings.Trim(strings.TrimSpace(parts[0]), `"`)
+		val := strings.TrimSpace(parts[1])
+		if key == "" || !strings.HasPrefix(val, "[") || !strings.HasSuffix(val, "]") {
+			continue
+		}
+		keywords := parseArray(val)
+		if len(keywords) > 0 {
+			filters[normalize(key)] = keywords
+		}
+	}
+	return filters
+}
+
+func matchesKeywordFilter(title string, course *string, keywordJSON string) bool {
+	if strings.TrimSpace(keywordJSON) == "" || strings.TrimSpace(keywordJSON) == "{}" {
+		return true
+	}
+	filters := parseKeywordFilters(keywordJSON)
+	if len(filters) == 0 {
+		return true
+	}
+	courseName := ""
+	if course != nil {
+		courseName = *course
+	}
+	normCourse := normalize(courseName)
+	keywords, ok := filters[normCourse]
+	if !ok || len(keywords) == 0 {
+		return true
+	}
+	titleLower := strings.ToLower(title)
+	for _, k := range keywords {
+		if strings.Contains(titleLower, strings.ToLower(strings.TrimSpace(k))) {
 			return true
 		}
 	}
@@ -185,7 +357,7 @@ func buildReminder(title, course string, due time.Time) string {
 		emoji = "⚠️"
 	}
 	return fmt.Sprintf(
-		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
-		emoji, course, title, due.In(time.FixedZone("WIB", 7*3600)).Format("Monday, 2 Jan 2006 15:04"), hours,
+		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s WIB\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
+		emoji, course, title, due.In(time.FixedZone("WIB", 7*3600)).Format("Monday, 2 Jan 2006 15:04 WIB"), hours,
 	)
 }
