@@ -329,6 +329,9 @@ func (h *Handler) buildUpdateData(req *userUpdateRequest) map[string]interface{}
 	if req.AvailableClassCodes != nil {
 		updateData["available_class_codes"] = strings.TrimSpace(*req.AvailableClassCodes)
 	}
+	if req.CourseClassFilters != nil {
+		updateData["course_class_filters"] = strings.TrimSpace(*req.CourseClassFilters)
+	}
 
 	if req.MoodleEnabled != nil || req.MoodleCalendarURL != nil || req.GoogleClassroomEnabled != nil {
 		updateData["lms_last_synced_at"] = nil
@@ -369,6 +372,7 @@ func (h *Handler) buildUserResponse(user *models.User) userResponse {
 		MorningBriefing:              user.MorningBriefing,
 		MutedCourses:                 text.DefaultString(user.MutedCourses, "[]"),
 		CourseAliases:                coursealias.Parse(user.CourseAliases),
+		CourseClassFilters:           classcode.ParseCourseClassFilters(user.CourseClassFilters),
 		ClassCode:                    user.ClassCode,
 		AvailableClassCodes:          classcode.ParseArray(user.AvailableClassCodes),
 		LMSLastSyncedAt:              user.LMSLastSyncedAt,
@@ -403,6 +407,7 @@ type userUpdateRequest struct {
 	MorningBriefing        *bool   `json:"morning_briefing"`
 	MutedCourses           *string `json:"muted_courses"`
 	CourseAliases          *string `json:"course_aliases"`
+	CourseClassFilters     *string `json:"course_class_filters"`
 	ClassCode              *string `json:"class_code"`
 	AvailableClassCodes    *string `json:"available_class_codes"`
 }
@@ -425,6 +430,7 @@ type userResponse struct {
 	MorningBriefing              bool              `json:"morning_briefing"`
 	MutedCourses                 string            `json:"muted_courses"`
 	CourseAliases                map[string]string `json:"course_aliases"`
+	CourseClassFilters           map[string]string `json:"course_class_filters"`
 	ClassCode                    *string           `json:"class_code"`
 	AvailableClassCodes          []string          `json:"available_class_codes"`
 	LMSLastSyncedAt              *time.Time        `json:"lms_last_synced_at"`
