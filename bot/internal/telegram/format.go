@@ -18,6 +18,113 @@ func deref(s *string, fallback string) string {
 	return *s
 }
 
+const pageSize = 5
+
+func urgencyEmoji(due time.Time) string {
+	hours := int(time.Until(due).Hours())
+	switch {
+	case hours <= 3:
+		return "🚨"
+	case hours <= 12:
+		return "⚠️"
+	case hours <= 24:
+		return "⏰"
+	default:
+		return "📌"
+	}
+}
+
+func shortCourse(s *string) string {
+	c := deref(s, "N/A")
+	r := []rune(c)
+	if len(r) <= 12 {
+		return c
+	}
+	return string(r[:12]) + "…"
+}
+
+// truncateSmart preserves uniqueness when peers share long common prefix.
+// If titles share prefix >10, it keeps head and tail to disambiguate.
+// Otherwise plain truncateRunes.
+func truncateSmart(s string, n int, peers []client.Assignment) string {
+	r := []rune(s)
+	if len(r) <= n {
+		return s
+	}
+	// detect common prefix among peers
+	if len(peers) > 1 {
+		common := longestCommonPrefixRunes(peers)
+		if common >= 10 && len(r) > n {
+			// keep head 8 + "…" + tail to fill n
+			head := 8
+			if head > n-2 {
+				head = n - 2
+			}
+			tail := n - head - 1
+			if tail < 3 {
+				tail = 3
+			}
+			return string(r[:head]) + "…" + string(r[len(r)-tail:])
+		}
+	}
+	return string(r[:n]) + "…"
+}
+
+func longestCommonPrefixRunes(peers []client.Assignment) int {
+	if len(peers) == 0 {
+		return 0
+	}
+	base := []rune(peers[0].Title)
+	lcp := len(base)
+	for _, p := range peers[1:] {
+		rr := []rune(p.Title)
+		n := len(base)
+		if len(rr) < n {
+			n = len(rr)
+		}
+		i := 0
+		for i < n && base[i] == rr[i] {
+			i++
+		}
+		if i < lcp {
+			lcp = i
+		}
+		if lcp == 0 {
+			break
+		}
+	}
+	return lcp
+}
+
+func buttonLabel(idx int, a client.Assignment, peers []client.Assignment) string {
+	// 1-indexed for UX consistency with list
+	emoji := urgencyEmoji(a.Deadline)
+	titlePart := truncateSmart(a.Title, 18, peers)
+	// format: "🚨 1. Title"
+	return fmt.Sprintf("%s %d. %s", emoji, idx+1, titlePart)
+}
+
+func isClassroom(a client.Assignment) bool {
+	return strings.Contains(strings.ToLower(a.Source), "google")
+}
+
+func timeRemaining(due time.Time) string {
+	d := time.Until(due)
+	if d < 0 {
+		return "terlewat"
+	}
+	h := int(d.Hours())
+	if h < 24 {
+		return fmt.Sprintf("%d jam", h)
+	}
+	days := h / 24
+	rem := h % 24
+	if rem == 0 {
+		return fmt.Sprintf("%d hari", days)
+	}
+	return fmt.Sprintf("%d hari %d jam", days, rem)
+}
+
 func pending(a []client.Assignment) []client.Assignment {
 	out := make([]client.Assignment, 0, len(a))
 	for _, x := range a {
