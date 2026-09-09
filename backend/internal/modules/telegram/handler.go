@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -29,6 +30,10 @@ func NewHandler(db *gorm.DB, telegramBot *Bot) *Handler {
 }
 
 // SendTestReminder sends a test reminder to the authenticated user.
+// It tries upcoming assignments in deadline order until one passes user filters
+// (muted/class/keyword). If all are filtered, it sends a DUMMY so the user can
+// still verify the Telegram connection. Filtered-out tasks return filtered:true
+// instead of 500.
 func (h *Handler) SendTestReminder(c *gin.Context) {
 	userID, ok := middleware.AuthenticatedUserID(c)
 	if !ok {
@@ -41,43 +46,79 @@ func (h *Handler) SendTestReminder(c *gin.Context) {
 		return
 	}
 
-	var assignment models.Event
-	err := h.db.Where("user_id = ? AND deadline > ?", userID, time.Now()).Order("deadline asc").First(&assignment).Error
-
-	var title, course string
-	var deadline time.Time
-
-	if err == nil {
-		title = assignment.Title
-		course = text.Dereference(assignment.Course, "N/A")
-		deadline = assignment.Deadline
-	} else {
-		title = "Tugas Contoh (DUMMY)"
-		course = "Kelas Contoh"
-		deadline = time.Now().Add(24 * time.Hour)
-	}
-
 	wib := time.FixedZone("WIB", 7*3600)
-	err = h.bot.SendAssignmentNotification(
-		userID,
-		title,
-		course,
-		deadline.In(wib),
-		assignment.ClassCode,
-	)
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "failed to send notification",
-			"message": err.Error(),
-		})
+	var assignments []models.Event
+	h.db.Where("user_id = ? AND deadline > ?", userID, time.Now()).Order("deadline asc").Limit(10).Find(&assignments)
+
+	// Try each upcoming assignment until one passes filters (SendAssignmentNotification handles muted/class/keyword)
+	var lastFilterErr error
+	for _, a := range assignments {
+		title := a.Title
+		course := text.Dereference(a.Course, "N/A")
+		err := h.bot.SendAssignmentNotification(userID, title, course, a.Deadline.In(wib), a.ClassCode)
+		if err == nil {
+			c.JSON(http.StatusOK, gin.H{"success": true, "message": "Test reminder sent successfully"})
+			return
+		}
+		if isFilterError(err) {
+			lastFilterErr = err
+			continue
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send notification", "message": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Test reminder sent successfully",
-	})
+	// All real assignments filtered (or no assignments at all) — send dummy via direct message
+	// Dummy bypasses class/keyword filters but still checks telegram_enabled/chat_id
+	var user models.User
+	if err := h.db.Where("id = ? AND telegram_enabled = ? AND telegram_chat_id IS NOT NULL", userID, true).First(&user).Error; err != nil {
+		// No telegram connection
+		msg := "telegram not connected or not enabled"
+		if lastFilterErr != nil {
+			msg = fmt.Sprintf("semua tugas ter-filter (%s). Hubungkan Telegram untuk dummy test", lastFilterErr.Error())
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": msg})
+		return
+	}
+	chatID, _ := strconv.ParseInt(*user.TelegramChatID, 10, 64)
+	dummyDeadline := time.Now().Add(24 * time.Hour).In(wib)
+	dummyMsg := buildTestReminderMessage("Tugas Contoh (DUMMY)", "Kelas Contoh", dummyDeadline)
+	if err := h.bot.SendMessage(chatID, dummyMsg); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send notification", "message": err.Error()})
+		return
+	}
+	if lastFilterErr != nil {
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": "Tugas asli ter-filter, dummy reminder dikirim. Cek Telegram.", "filtered": true, "reason": lastFilterErr.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Test reminder sent successfully (dummy)"})
+}
+
+func isFilterError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "is muted") || strings.Contains(msg, "filtered out") || strings.Contains(msg, "doesn't match keyword")
+}
+
+func buildTestReminderMessage(title, course string, due time.Time) string {
+	hours := int(time.Until(due).Hours())
+	if hours < 0 {
+		hours = 0
+	}
+	emoji := "📌"
+	switch {
+	case hours <= 3:
+		emoji = "🚨"
+	case hours <= 12:
+		emoji = "⚠️"
+	}
+	return fmt.Sprintf(
+		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s WIB\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
+		emoji, course, title, due.Format("Monday, 2 Jan 2006 15:04 WIB"), hours,
+	)
 }
 
 // SendMorningBriefing sends a morning briefing to the authenticated user.

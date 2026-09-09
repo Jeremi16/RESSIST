@@ -85,14 +85,14 @@ func (b *Bot) SendAssignmentNotification(userID string, assignmentTitle string, 
 		"%s *Pengingat Tugas*\n\n"+
 			"📚 *Kelas:* %s\n"+
 			"📝 *Tugas:* %s\n"+
-			"⏰ *Deadline:* %s\n"+
+			"⏰ *Deadline:* %s WIB\n"+
 			"⏳ *Sisa Waktu:* %d jam\n\n"+
 			"Ayo segera dikerjakan! 💪\n\n"+
 			"🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
 		urgencyEmoji,
 		courseName,
 		assignmentTitle,
-		dueDate.Format("Monday, 2 Jan 2006 15:04"),
+		dueDate.Format("Monday, 2 Jan 2006 15:04 WIB"),
 		hours,
 	)
 
