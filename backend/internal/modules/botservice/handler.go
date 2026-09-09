@@ -148,6 +148,11 @@ type dueAssignment struct {
 	ChatID        *string    `json:"telegram_chat_id"`
 	UserName      string     `json:"user_name"`
 	Completed     bool       `json:"completed"`
+	// User prefs for bot-side filtering (muted/class/keyword + reminder_hours)
+	MutedCourses         string  `json:"muted_courses"`
+	UserClassCode        *string `json:"user_class_code"`
+	CourseKeywordFilters string  `json:"course_keyword_filters"`
+	ReminderHours        string  `json:"reminder_hours"`
 }
 
 // GetDueAssignments returns assignments due ~hoursBefore from now with owner chat info.
@@ -165,7 +170,7 @@ func (h *Handler) GetDueAssignments(c *gin.Context) {
 	var rows []dueAssignment
 	if err := h.db.WithContext(c.Request.Context()).
 		Table("events").
-		Select("events.id, events.user_id, events.title, events.course, events.class_code, events.deadline, events.reminders_sent, events.completed, users.telegram_chat_id, users.name as user_name").
+		Select("events.id, events.user_id, events.title, events.course, events.class_code, events.deadline, events.reminders_sent, events.completed, users.telegram_chat_id, users.name as user_name, users.muted_courses, users.class_code as user_class_code, users.course_keyword_filters, users.reminder_hours").
 		Joins("JOIN users ON users.id = events.user_id").
 		Where("events.deadline BETWEEN ? AND ? AND (events.status = ? OR (events.status IS NULL OR events.status = '') AND events.completed = ?) AND users.telegram_enabled = ? AND users.telegram_chat_id IS NOT NULL", start, end, "pending", false, true).
 		Scan(&rows).Error; err != nil {
