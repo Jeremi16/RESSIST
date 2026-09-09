@@ -88,26 +88,26 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white border border-black/5 rounded-2xl p-4 text-center">
-          <div className="size-8 bg-black rounded-xl flex items-center justify-center text-white mx-auto mb-2"><GraduationCap className="size-4" /></div>
-          <p className="text-xl font-semibold text-black">{totalClasses}</p><p className="text-xs text-black/40">Kelas Tersedia</p>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="bg-white border border-black/5 rounded-2xl p-3 sm:p-4 text-center min-w-0">
+          <div className="size-7 sm:size-8 bg-black rounded-xl flex items-center justify-center text-white mx-auto mb-1.5 sm:mb-2"><GraduationCap className="size-3.5 sm:size-4" /></div>
+          <p className="text-lg sm:text-xl font-semibold text-black leading-none">{totalClasses}</p><p className="text-[11px] sm:text-xs text-black/40 leading-tight mt-1 break-words">Kelas Tersedia</p>
         </div>
-        <div className="bg-white border border-black/5 rounded-2xl p-4 text-center">
-          <div className="size-8 bg-black rounded-xl flex items-center justify-center text-white mx-auto mb-2"><Users className="size-4" /></div>
-          <p className="text-xl font-semibold text-black">{filteredCoursesCount}</p><p className="text-xs text-black/40">Matkul Difilter</p>
+        <div className="bg-white border border-black/5 rounded-2xl p-3 sm:p-4 text-center min-w-0">
+          <div className="size-7 sm:size-8 bg-black rounded-xl flex items-center justify-center text-white mx-auto mb-1.5 sm:mb-2"><Users className="size-3.5 sm:size-4" /></div>
+          <p className="text-lg sm:text-xl font-semibold text-black leading-none">{filteredCoursesCount}</p><p className="text-[11px] sm:text-xs text-black/40 leading-tight mt-1 break-words">Matkul Difilter</p>
         </div>
-        <div className="bg-white border border-black/5 rounded-2xl p-4 text-center">
-          <div className="size-8 bg-black rounded-xl flex items-center justify-center text-white mx-auto mb-2"><BookOpen className="size-4" /></div>
-          <p className="text-xl font-semibold text-black">{activeCoursesCount}</p><p className="text-xs text-black/40">Mata Kuliah Aktif</p>
+        <div className="bg-white border border-black/5 rounded-2xl p-3 sm:p-4 text-center min-w-0">
+          <div className="size-7 sm:size-8 bg-black rounded-xl flex items-center justify-center text-white mx-auto mb-1.5 sm:mb-2"><BookOpen className="size-3.5 sm:size-4" /></div>
+          <p className="text-lg sm:text-xl font-semibold text-black leading-none">{activeCoursesCount}</p><p className="text-[11px] sm:text-xs text-black/40 leading-tight mt-1 break-words">Mata Kuliah Aktif</p>
         </div>
       </div>
 
       {/* Section 1: Pengaturan Mata Kuliah (Alias & Mute) */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <div className="size-8 bg-black rounded-xl flex items-center justify-center text-white"><BookOpen className="size-4" /></div>
-          <div><p className="text-sm font-semibold text-black">Pengaturan Mata Kuliah</p><p className="text-xs text-black/40">Ubah alias tampilan dan mute notifikasi per mata kuliah</p></div>
+          <div className="size-8 bg-black rounded-xl flex items-center justify-center text-white shrink-0"><BookOpen className="size-4" /></div>
+          <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-black">Pengaturan Mata Kuliah</p><p className="text-xs text-black/40 leading-relaxed">Ubah alias tampilan dan mute notifikasi per mata kuliah</p></div>
         </div>
         {availableCourses.length === 0 ? (
           <div className="p-6 text-center bg-white rounded-2xl border border-black/5 border-dashed">
@@ -131,12 +131,12 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
                       ) : (
                         <div className="flex items-center gap-2 group">
                           <div className="min-w-0"><p className={cn("text-sm truncate", muted.includes(course.name) ? "text-black/30" : "text-black")}>{resolveDisplayCourseName(course.name)}</p>{hasAlias && <p className="text-xs text-black/30 truncate">Asli: {course.name}</p>}</div>
-                          <button onClick={() => startEditing(course.id, course.name)} className="opacity-0 group-hover:opacity-100 size-6 bg-black/5 rounded-full flex items-center justify-center shrink-0 hover:bg-black hover:text-white transition-colors"><Pencil className="size-3" /></button>
+                          <button onClick={() => startEditing(course.id, course.name)} aria-label="Ubah alias" className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 size-6 bg-black/5 rounded-full flex items-center justify-center shrink-0 hover:bg-black hover:text-white transition-colors"><Pencil className="size-3" /></button>
                         </div>
                       )}
                     </div>
                   </div>
-                  <button type="button" onClick={() => handleMuteClick(course.name)} className={cn("h-7 px-3 rounded-full text-xs font-medium whitespace-nowrap transition-colors", muted.includes(course.name) ? "bg-black/10 text-black/40" : "bg-black text-white")}>{muted.includes(course.name) ? "Muted" : "Aktif"}</button>
+                  <button type="button" onClick={() => handleMuteClick(course.name)} className={cn("h-7 px-3 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors", muted.includes(course.name) ? "bg-black/10 text-black/40" : "bg-black text-white")}>{muted.includes(course.name) ? "Muted" : "Aktif"}</button>
                 </div>
               );
             })}
@@ -147,8 +147,8 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
       {/* Section 2: Filter Kelas per Mata Kuliah (Opsi A - single) */}
       <div className="space-y-3 pt-4 border-t border-black/5">
         <div className="flex items-center gap-3">
-          <div className="size-8 bg-black rounded-xl flex items-center justify-center text-white"><GraduationCap className="size-4" /></div>
-          <div><p className="text-sm font-semibold text-black">Filter Kelas</p><p className="text-xs text-black/40">Pilih kelas untuk tiap mata kuliah — hanya tugas dari kelas itu + tugas umum yang akan ditampilkan</p></div>
+          <div className="size-8 bg-black rounded-xl flex items-center justify-center text-white shrink-0"><GraduationCap className="size-4" /></div>
+          <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-black">Filter Kelas</p><p className="text-xs text-black/40 leading-relaxed">Pilih kelas untuk tiap mata kuliah — hanya tugas dari kelas itu + tugas umum yang akan ditampilkan</p></div>
         </div>
         <p className="text-xs text-black/30 px-1">Pilih manual per mata kuliah — tidak harus menunggu deteksi otomatis. Deteksi <span className="font-medium">[RA]</span>/<span className="font-medium">(RA)</span> dimana saja tetap jalan; tugas tanpa kode dianggap umum dan tetap tampil. Kosong = tidak difilter.</p>
 
@@ -169,7 +169,7 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
                     {!selected && <p className="text-xs text-black/30 mt-0.5">Tidak difilter — semua tugas tampil</p>}
                     {selected && <p className="text-xs text-black/40 mt-0.5">Filter: <span className="font-medium text-black">{selected}</span> + umum</p>}
                   </div>
-                  <div className="flex items-center gap-1.5 flex-wrap justify-end shrink-0">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-start sm:justify-end shrink-0">
                     {allClassCodes.map((code) => (
                       <button key={code} type="button" onClick={() => togglePerCourse(course.name, code)} className={cn("px-3 py-1.5 rounded-full text-xs font-medium border transition-colors", selected === code ? "bg-black border-black text-white" : "bg-white border-black/10 text-black/60 hover:border-black/20")}>{code}</button>
                     ))}

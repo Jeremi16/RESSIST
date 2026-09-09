@@ -923,7 +923,7 @@ export default function Dashboard() {
                       Kembali ke Lainnya
                     </button>
                   )}
-                  <div className="bg-white p-6 rounded-2xl border border-black/5">
+                  <div className="bg-white p-4 sm:p-6 rounded-2xl border border-black/5 min-w-0 overflow-hidden">
                     {activeTab === "kelas" && (
                       <ClassSettings
                         classCode={userData?.class_code}
