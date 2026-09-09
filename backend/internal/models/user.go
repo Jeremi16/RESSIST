@@ -32,6 +32,7 @@ type User struct {
 	MutedCourses           string     `gorm:"column:muted_courses;default:'[]'"`
 	CourseAliases          string     `gorm:"column:course_aliases;default:'{}'"`
 	CourseKeywordFilters   string     `gorm:"column:course_keyword_filters;default:'{}'"`
+	CourseClassFilters     string     `gorm:"column:course_class_filters;default:'{}'"`
 	ClassCode              *string    `gorm:"column:class_code"`
 	AvailableClassCodes    string     `gorm:"column:available_class_codes;default:'[]'"`
 	LMSLastSyncedAt        *time.Time `gorm:"column:lms_last_synced_at"`
