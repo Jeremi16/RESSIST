@@ -39,6 +39,42 @@ func (b *Bot) Send(chatID int64, text string) error {
 	return err
 }
 
+// SendWithMarkup delivers a markdown message with inline keyboard. Used by scheduler for reminder buttons.
+func (b *Bot) SendWithMarkup(chatID int64, text string, markup *tgbotapi.InlineKeyboardMarkup) error {
+	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ParseMode = "Markdown"
+	if markup != nil {
+		msg.ReplyMarkup = markup
+	}
+	_, err := b.api.Send(msg)
+	return err
+}
+
+// ReminderMarkup builds inline buttons for a reminder: [✅ Selesai] + [🔗 Buka] if URL exists.
+func ReminderMarkup(a client.Assignment) *tgbotapi.InlineKeyboardMarkup {
+	var rows [][]tgbotapi.InlineKeyboardButton
+	if !isClassroom(a) && !a.Completed {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("✅ Selesai", "done:"+a.ID),
+			tgbotapi.NewInlineKeyboardButtonData("🔍 Detail", "detail:"+a.ID),
+		))
+	} else if !a.Completed {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("🔍 Detail", "detail:"+a.ID),
+		))
+	}
+	if a.URL != nil && strings.TrimSpace(*a.URL) != "" {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonURL("🔗 Buka", strings.TrimSpace(*a.URL)),
+		))
+	}
+	if len(rows) == 0 {
+		return nil
+	}
+	m := tgbotapi.NewInlineKeyboardMarkup(rows...)
+	return &m
+}
+
 func (b *Bot) Start(ctx context.Context) error {
 	log.Printf("authorized on account %s", b.api.Self.UserName)
 
