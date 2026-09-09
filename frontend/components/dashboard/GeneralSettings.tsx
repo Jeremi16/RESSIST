@@ -47,12 +47,22 @@ export function GeneralSettings({ reminderHours, morningBriefing, mutedCourses, 
     try {
       const endpoint = type === 'reminder' ? '/api/telegram/test-reminder' : '/api/telegram/test-briefing'
       const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-      const data = await res.json()
-      if (res.ok) setTestMessage({ type: 'success', text: type === 'reminder' ? 'Reminder berhasil dikirim ke Telegram.' : 'Morning briefing berhasil dikirim.' })
-      else setTestMessage({ type: 'error', text: data.error || 'Gagal mengirim notifikasi.' })
+      const data = await res.json().catch(() => ({} as Record<string, string>))
+      if (res.ok) {
+        const msg = (data as { message?: string; filtered?: boolean }).message
+          || (type === 'reminder' ? 'Reminder berhasil dikirim ke Telegram.' : 'Morning briefing berhasil dikirim.')
+        setTestMessage({ type: 'success', text: msg })
+      } else {
+        let errText = (data as { error?: string; message?: string }).error || (data as { message?: string }).message || 'Gagal mengirim notifikasi.'
+        if (res.status === 503) errText = 'Telegram bot belum dikonfigurasi di server (TELEGRAM_BOT_TOKEN kosong). Hubungi admin.'
+        else if (res.status === 400 && errText.includes('not connected')) errText = 'Telegram belum terhubung. Hubungkan dulu via kode verifikasi.'
+        else if (errText.includes('is muted')) errText = 'Tugas ter-filter karena matkul dibisukan. Coba ubah Bisukan Mata Kuliah atau tunggu dummy terkirim.'
+        else if (errText.includes('filtered out') || errText.includes("doesn't match keyword")) errText = `Tugas ter-filter: ${errText}. Cek filter kelas/keyword.`
+        setTestMessage({ type: 'error', text: errText })
+      }
     } catch { setTestMessage({ type: 'error', text: 'Terjadi kesalahan jaringan.' }) } finally {
       if (type === 'reminder') setTestingReminder(false); else setTestingBriefing(false)
-      setTimeout(() => setTestMessage(null), 5000)
+      setTimeout(() => setTestMessage(null), 6000)
     }
   }
 
