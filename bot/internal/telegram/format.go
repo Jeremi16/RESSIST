@@ -137,23 +137,84 @@ func pending(a []client.Assignment) []client.Assignment {
 }
 
 func formatAssignmentList(title string, items []client.Assignment) string {
+	return formatAssignmentListPaged(title, items, 0)
+}
+
+func formatAssignmentListPaged(title string, items []client.Assignment, page int) string {
 	var sb strings.Builder
 	sb.WriteString(title)
-	sb.WriteString("\n\n")
-	if len(items) == 0 {
-		sb.WriteString("Yeay! Tidak ada tugas. Santai dulu yuk! ☕\n")
+	total := len(items)
+	if total == 0 {
+		sb.WriteString("\n\nYeay! Tidak ada tugas. Santai dulu yuk! ☕\n")
 		return sb.String()
 	}
-	for i, a := range items {
+	pages := (total + pageSize - 1) / pageSize
+	if page < 0 {
+		page = 0
+	}
+	if page >= pages {
+		page = pages - 1
+	}
+	sb.WriteString(fmt.Sprintf(" — hal %d/%d\n\n", page+1, pages))
+	start := page * pageSize
+	end := start + pageSize
+	if end > total {
+		end = total
+	}
+	for i := start; i < end; i++ {
+		a := items[i]
 		course := deref(a.Course, "N/A")
 		dl := a.Deadline.In(wib)
-		sb.WriteString(fmt.Sprintf("%d. *%s*\n", i+1, escape(a.Title)))
-		sb.WriteString(fmt.Sprintf("   📖 %s\n", escape(course)))
-		sb.WriteString(fmt.Sprintf("   ⏰ %s\n", dl.Format("Monday, 2 Jan 15:04")))
-		sb.WriteString(fmt.Sprintf("   🆔 `%s`\n\n", a.ID))
+		emoji := urgencyEmoji(a.Deadline)
+		sb.WriteString(fmt.Sprintf("%s *%d. %s*\n", emoji, i+1, escape(a.Title)))
+		sb.WriteString(fmt.Sprintf("   📖 %s", escape(course)))
+		if a.ClassCode != nil && strings.TrimSpace(*a.ClassCode) != "" {
+			sb.WriteString(fmt.Sprintf(" · `%s`", escape(strings.TrimSpace(*a.ClassCode))))
+		}
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf("   ⏰ %s (%s)\n", dl.Format("Monday, 2 Jan 15:04"), timeRemaining(a.Deadline)))
+		if isClassroom(a) {
+			sb.WriteString("   🔒 Classroom (ikuti Classroom)\n")
+		} else {
+			sb.WriteString(fmt.Sprintf("   🆔 `%s`\n", a.ID))
+		}
+		if a.URL != nil && strings.TrimSpace(*a.URL) != "" {
+			sb.WriteString(fmt.Sprintf("   🔗 %s\n", escape(strings.TrimSpace(*a.URL))))
+		}
+		sb.WriteString("\n")
 	}
-	sb.WriteString("Selesaikan via: `/selesai <id>`\n")
+	if total > pageSize {
+		sb.WriteString(fmt.Sprintf("_%d tugas total, %d di halaman ini_\n", total, end-start))
+	}
+	sb.WriteString("Tap tombol di bawah untuk aksi cepat.\n")
 	sb.WriteString("🌐 Detail: [ressist.web.id](https://ressist.web.id)")
+	return sb.String()
+}
+
+func formatDetail(a client.Assignment) string {
+	var sb strings.Builder
+	sb.WriteString("🔍 *Detail Tugas*\n\n")
+	sb.WriteString(fmt.Sprintf("*%s*\n\n", escape(a.Title)))
+	if a.Course != nil {
+		sb.WriteString(fmt.Sprintf("📖 *Kelas:* %s\n", escape(deref(a.Course, "N/A"))))
+	}
+	if a.ClassCode != nil && strings.TrimSpace(*a.ClassCode) != "" {
+		sb.WriteString(fmt.Sprintf("🏷️ *Kode:* `%s`\n", escape(strings.TrimSpace(*a.ClassCode))))
+	}
+	dl := a.Deadline.In(wib)
+	sb.WriteString(fmt.Sprintf("⏰ *Deadline:* %s WIB\n", dl.Format("Monday, 2 Jan 2006 15:04")))
+	sb.WriteString(fmt.Sprintf("⏳ *Sisa:* %s\n", timeRemaining(a.Deadline)))
+	sb.WriteString(fmt.Sprintf("📦 *Sumber:* %s\n", escape(a.Source)))
+	if isClassroom(a) {
+		sb.WriteString("🔒 _Classroom read-only — status mengikuti Google Classroom_\n")
+	}
+	if a.URL != nil && strings.TrimSpace(*a.URL) != "" {
+		sb.WriteString(fmt.Sprintf("🔗 *Link:* %s\n", escape(strings.TrimSpace(*a.URL))))
+	}
+	sb.WriteString(fmt.Sprintf("🆔 `%s`\n", a.ID))
+	if a.Completed {
+		sb.WriteString("\n✅ _Sudah selesai_\n")
+	}
 	return sb.String()
 }
 
