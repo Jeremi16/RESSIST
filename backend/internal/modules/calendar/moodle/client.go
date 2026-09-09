@@ -14,6 +14,7 @@ import (
 	"github.com/jeremi16/ressist-api/internal/modules/calendar/ics"
 	"github.com/jeremi16/ressist-api/internal/pkg/classcode"
 	"github.com/jeremi16/ressist-api/internal/pkg/text"
+	textpkg "github.com/jeremi16/ressist-api/internal/pkg/text"
 )
 
 const upcomingWindowDays = 60
@@ -144,17 +145,21 @@ func ShouldIncludeForUserClass(assignmentClassCode, userClassCodesJSON *string) 
 
 	var selectedCodes []string
 	if err := json.Unmarshal([]byte(*userClassCodesJSON), &selectedCodes); err != nil {
-		return true // If parse fails, include the assignment
+		// Fallback ke ParseArray yang lebih toleran
+		selectedCodes = classcode.ParseArray(*userClassCodesJSON)
+		if len(selectedCodes) == 0 {
+			return true
+		}
 	}
 
 	if len(selectedCodes) == 0 {
 		return true // No codes selected, include all
 	}
 
-	// Check if assignment class code is in the selected codes
-	assignmentCode := *assignmentClassCode
+	// Normalize comparison (RA == ra) agar konsisten dengan classcode.Filter
+	normAssignment := textpkg.Normalize(*assignmentClassCode)
 	for _, code := range selectedCodes {
-		if code == assignmentCode {
+		if textpkg.Normalize(code) == normAssignment {
 			return true
 		}
 	}
