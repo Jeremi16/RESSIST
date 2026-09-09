@@ -59,6 +59,7 @@ interface UserData {
   class_code: string | null;
   available_class_codes: string;
   course_aliases: string | Record<string, string>;
+  course_class_filters: string | Record<string, string>;
   created_at: string;
   lms_last_synced_at: string | null;
   moodle_last_synced_at: string | null;
@@ -967,6 +968,22 @@ export default function Dashboard() {
                                   !Array.isArray(raw)
                                   ? raw
                                   : {};
+                              })()
+                            : {}
+                        }
+                        courseClassFilters={
+                          userData?.course_class_filters
+                            ? (() => {
+                                const raw: any = userData.course_class_filters;
+                                if (typeof raw === "string") {
+                                  try {
+                                    const parsed = JSON.parse(raw);
+                                    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+                                  } catch {
+                                    return {};
+                                  }
+                                }
+                                return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
                               })()
                             : {}
                         }
