@@ -12,7 +12,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jeremi16/ressist-api/internal/models"
 	"github.com/jeremi16/ressist-api/internal/pkg/classcode"
-	"github.com/jeremi16/ressist-api/internal/pkg/text"
 )
 
 // Scheduler handles periodic telegram notifications.
@@ -101,50 +100,8 @@ func (s *Scheduler) sendMorningBriefing() {
 		var allAssignments []models.Event
 		s.bot.db.Where("user_id = ? AND (status = ? OR (status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", user.ID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
 
-		// Filter assignments using pkg helpers.
-		var assignments []models.Event
-		mutedList := classcode.ParseArray(user.MutedCourses)
-		mutedMap := make(map[string]bool)
-		for _, m := range mutedList {
-			mutedMap[text.Normalize(m)] = true
-		}
-
-		keywordFilters := classcode.ParseKeywordFilters(user.CourseKeywordFilters)
-		normKeywordFilters := make(map[string][]string)
-		for course, keywords := range keywordFilters {
-			normKeywordFilters[text.Normalize(course)] = keywords
-		}
-
-		for _, a := range allAssignments {
-			courseName := ""
-			if a.Course != nil {
-				courseName = *a.Course
-			}
-			normCourse := text.Normalize(courseName)
-
-			if mutedMap[normCourse] {
-				continue
-			}
-			if a.ClassCode != nil && *a.ClassCode != "" {
-				if !isClassCodeSelected(*a.ClassCode, user.ClassCode) {
-					continue
-				}
-			}
-			if keywords, ok := normKeywordFilters[normCourse]; ok && len(keywords) > 0 {
-				found := false
-				titleLower := strings.ToLower(a.Title)
-				for _, k := range keywords {
-					if strings.Contains(titleLower, strings.ToLower(k)) {
-						found = true
-						break
-					}
-				}
-				if !found {
-					continue
-				}
-			}
-			assignments = append(assignments, a)
-		}
+		// Filter assignments using pkg helper (per-matkul single, tampil semua fallback)
+		assignments := classcode.FilterWithCourseClass(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters, user.CourseClassFilters)
 
 		message := s.buildMorningBriefingMessage(user, assignments)
 		msg := tgbotapi.NewMessage(chatID, message)

@@ -37,10 +37,28 @@ func (b *Bot) SendAssignmentNotification(userID string, assignmentTitle string, 
 		}
 	}
 
-	// 2. Class Code
-	if classCode != nil && *classCode != "" {
-		if !isClassCodeSelected(*classCode, user.ClassCode) {
-			return fmt.Errorf("assignment class code %s is filtered out by user", *classCode)
+	// 2. Class Code (per-matkul single, fallback tampil semua) — efektif dari classCode atau Extract(title) agar manual langsung work tanpa sinkron
+	effectiveCode := ""
+	if classCode != nil && strings.TrimSpace(*classCode) != "" {
+		effectiveCode = strings.TrimSpace(*classCode)
+	} else if extracted := classcode.Extract(assignmentTitle); extracted != nil {
+		effectiveCode = *extracted
+	}
+	hasEffective := effectiveCode != ""
+	// Normalize perCourse keys
+	normPerCourse := make(map[string]string)
+	for k, v := range classcode.ParseCourseClassFilters(user.CourseClassFilters) {
+		normPerCourse[text.Normalize(k)] = v
+	}
+	if normPer, ok := normPerCourse[text.Normalize(courseName)]; ok && strings.TrimSpace(normPer) != "" {
+		if hasEffective && text.Normalize(effectiveCode) != text.Normalize(normPer) {
+			return fmt.Errorf("assignment class code %s is filtered out by course filter %s", effectiveCode, normPer)
+		}
+	} else if len(normPerCourse) > 0 {
+		// ada per-course map tapi course ini tidak diset -> tampil semua (no global fallback for Opsi A)
+	} else if hasEffective {
+		if !isClassCodeSelected(effectiveCode, user.ClassCode) {
+			return fmt.Errorf("assignment class code %s is filtered out by user", effectiveCode)
 		}
 	}
 
@@ -100,7 +118,7 @@ func (b *Bot) SendAssignmentNotification(userID string, assignmentTitle string, 
 }
 
 // isClassCodeSelected checks if a class code is selected by the user.
-// Uses pkg/classcode for parsing.
+// Uses pkg/classcode for parsing, normalized.
 func isClassCodeSelected(classCode string, userClassCodesJSON *string) bool {
 	if userClassCodesJSON == nil {
 		return true
@@ -109,8 +127,9 @@ func isClassCodeSelected(classCode string, userClassCodesJSON *string) bool {
 	if len(codes) == 0 {
 		return true
 	}
+	norm := text.Normalize(classCode)
 	for _, code := range codes {
-		if code == classCode {
+		if text.Normalize(code) == norm {
 			return true
 		}
 	}

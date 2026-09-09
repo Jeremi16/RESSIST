@@ -158,7 +158,7 @@ func (h *Handler) SendMorningBriefing(c *gin.Context) {
 	var allAssignments []models.Event
 	h.db.Where("user_id = ? AND (status = ? OR (status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", userID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
 
-	assignments := classcode.Filter(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters)
+	assignments := classcode.FilterWithCourseClass(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters, user.CourseClassFilters)
 
 	message := buildMorningBriefingMessage(user.Name, assignments)
 	err = h.bot.SendMessage(chatID, message)
