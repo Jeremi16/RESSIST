@@ -2,12 +2,11 @@ package assignment
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jeremi16/ressist-api/internal/models"
 	"github.com/jeremi16/ressist-api/internal/pkg/classcode"
-	"github.com/jeremi16/ressist-api/internal/pkg/text"
 	"github.com/jeremi16/ressist-api/internal/shared/middleware"
 	"gorm.io/gorm"
 )
@@ -122,8 +121,9 @@ func (h *Handler) GetAssignments(c *gin.Context) {
 		ClassCode            *string `gorm:"column:class_code"`
 		MutedCourses         string  `gorm:"column:muted_courses"`
 		CourseKeywordFilters string  `gorm:"column:course_keyword_filters"`
+		CourseClassFilters   string  `gorm:"column:course_class_filters"`
 	}
-	if err := h.db.Table("users").Select("class_code, muted_courses, course_keyword_filters").Where("id = ?", userID).Scan(&user).Error; err != nil {
+	if err := h.db.Table("users").Select("class_code, muted_courses, course_keyword_filters, course_class_filters").Where("id = ?", userID).Scan(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
 		return
 	}
@@ -140,61 +140,44 @@ func (h *Handler) GetAssignments(c *gin.Context) {
 		return
 	}
 
-	// Parse filtering data using pkg/classcode and pkg/text.
-	mutedList := classcode.ParseArray(user.MutedCourses)
-	mutedMap := make(map[string]bool)
-	for _, m := range mutedList {
-		mutedMap[text.Normalize(m)] = true
-	}
-
-	var selectedCodes []string
-	if user.ClassCode != nil {
-		selectedCodes = classcode.ParseArray(*user.ClassCode)
-	}
-	hasCodeFilter := len(selectedCodes) > 0
-	codeMap := make(map[string]bool)
-	for _, cc := range selectedCodes {
-		codeMap[text.Normalize(cc)] = true
-	}
-
-	keywordFilters := classcode.ParseKeywordFilters(user.CourseKeywordFilters)
-	normKeywordFilters := make(map[string][]string)
-	for course, keywords := range keywordFilters {
-		normKeywordFilters[text.Normalize(course)] = keywords
-	}
-
-	var filtered []declType
+	// Reuse central Filter logic via temporary models.Event slice to avoid duplication
+	events := make([]models.Event, 0, len(assignments))
 	for _, a := range assignments {
-		courseName := ""
-		if a.Course != nil {
-			courseName = *a.Course
+		events = append(events, models.Event{
+			Title:     a.Title,
+			Course:    a.Course,
+			ClassCode: a.ClassCode,
+		})
+	}
+	filteredEvents := classcode.FilterWithCourseClass(events, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters, user.CourseClassFilters)
+	// Map back to original assignments via ordered walk (Filter preserves order)
+	var filtered []declType
+	fi := 0
+	for idx, ev := range events {
+		if fi >= len(filteredEvents) {
+			break
 		}
-		normCourse := text.Normalize(courseName)
-		if mutedMap[normCourse] {
-			continue
+		fe := filteredEvents[fi]
+		courseEv := ""
+		if ev.Course != nil {
+			courseEv = *ev.Course
 		}
-
-		if hasCodeFilter && a.ClassCode != nil && *a.ClassCode != "" {
-			if !codeMap[text.Normalize(*a.ClassCode)] {
-				continue
-			}
+		courseFe := ""
+		if fe.Course != nil {
+			courseFe = *fe.Course
 		}
-
-		if keywords, ok := normKeywordFilters[normCourse]; ok && len(keywords) > 0 {
-			found := false
-			titleLower := strings.ToLower(a.Title)
-			for _, k := range keywords {
-				if strings.Contains(titleLower, strings.ToLower(k)) {
-					found = true
-					break
-				}
-			}
-			if !found {
-				continue
-			}
+		codeEv := ""
+		if ev.ClassCode != nil {
+			codeEv = *ev.ClassCode
 		}
-
-		filtered = append(filtered, a)
+		codeFe := ""
+		if fe.ClassCode != nil {
+			codeFe = *fe.ClassCode
+		}
+		if ev.Title == fe.Title && courseEv == courseFe && codeEv == codeFe {
+			filtered = append(filtered, assignments[idx])
+			fi++
+		}
 	}
 	assignments = filtered
 
