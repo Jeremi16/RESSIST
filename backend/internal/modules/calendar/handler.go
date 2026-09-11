@@ -222,10 +222,15 @@ func (h *Handler) syncProviders(ctx context.Context, user *models.User, provider
 
 	for _, provider := range providers {
 		assignments, err := h.fetchProviderAssignments(ctx, provider, user)
-		if err != nil {
-			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false})
+		var partial *sync.PartialFetchError
+		isPartial := errors.As(err, &partial)
+		if err != nil && !isPartial {
+			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false, Error: err.Error()})
 			failedSources++
 			continue
+		}
+		if isPartial && partial != nil {
+			assignments = partial.Assignments
 		}
 
 		for _, assignment := range assignments {
@@ -234,9 +239,14 @@ func (h *Handler) syncProviders(ctx context.Context, user *models.User, provider
 			}
 		}
 
-		newForProvider, err := h.syncSvc.PersistAssignments(ctx, user.ID, provider, assignments, user.CourseAliases)
+		var newForProvider []sync.NewAssignmentInfo
+		if isPartial {
+			newForProvider, err = h.syncSvc.PersistAssignmentsWithoutStale(ctx, user.ID, provider, assignments, user.CourseAliases)
+		} else {
+			newForProvider, err = h.syncSvc.PersistAssignments(ctx, user.ID, provider, assignments, user.CourseAliases)
+		}
 		if err != nil {
-			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false})
+			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false, Error: err.Error()})
 			failedSources++
 			continue
 		}
@@ -249,7 +259,21 @@ func (h *Handler) syncProviders(ctx context.Context, user *models.User, provider
 				Source:   n.Source,
 			})
 		}
-		sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: len(assignments), Success: true})
+		info := calendarSourceInfo{Provider: provider, Count: len(assignments), Success: true}
+		if isPartial && partial != nil {
+			info.Partial = true
+			info.FailedCourses = append([]string(nil), partial.FailedCourses...)
+			if partial.Err != nil {
+				info.Error = partial.Err.Error()
+			}
+			if partial.Stats != nil {
+				info.TotalCourseWork = partial.Stats.TotalCourseWork
+				info.SkippedNoDeadline = partial.Stats.SkippedNoDeadline
+				info.SkippedPast = partial.Stats.SkippedPast
+				info.SkippedFarFuture = partial.Stats.SkippedFarFuture
+			}
+		}
+		sourceInfo = append(sourceInfo, info)
 		successfulSources++
 	}
 
@@ -261,6 +285,7 @@ func (h *Handler) syncProviders(ctx context.Context, user *models.User, provider
 }
 
 // fetchProviderAssignments fetches assignments from the specified provider using modular clients.
+// On Classroom partial success it returns the subset plus *sync.PartialFetchError.
 func (h *Handler) fetchProviderAssignments(ctx context.Context, provider string, user *models.User) ([]sync.AssignmentRecord, error) {
 	switch provider {
 	case "moodle":
@@ -283,10 +308,31 @@ func (h *Handler) fetchProviderAssignments(ctx context.Context, provider string,
 		}
 		return out, nil
 	case "google_classroom":
-		records, err := h.googleClient.FetchGoogleClassroomAssignments(ctx, user)
+		records, stats, err := h.googleClient.FetchGoogleClassroomAssignmentsWithStats(ctx, user)
 		if err != nil {
+			var gPartial *google.PartialFetchError
+			if errors.As(err, &gPartial) {
+				out := convertGoogleRecordsForHandler(gPartial.Assignments)
+				return out, &sync.PartialFetchError{
+					Assignments:   out,
+					FailedCourses: append([]string(nil), gPartial.FailedCourses...),
+					Stats: &sync.FetchStats{
+						TotalCourses:      gPartial.Stats.TotalCourses,
+						SucceededCourses:  gPartial.Stats.SucceededCourses,
+						FailedCourses:     gPartial.Stats.FailedCourses,
+						FailedCourseIDs:   append([]string(nil), gPartial.Stats.FailedCourseIDs...),
+						TotalCourseWork:   gPartial.Stats.TotalCourseWork,
+						Kept:              gPartial.Stats.Kept,
+						SkippedNoDeadline: gPartial.Stats.SkippedNoDeadline,
+						SkippedPast:       gPartial.Stats.SkippedPast,
+						SkippedFarFuture:  gPartial.Stats.SkippedFarFuture,
+					},
+					Err: gPartial.Err,
+				}
+			}
 			return nil, err
 		}
+		_ = stats
 		out := make([]sync.AssignmentRecord, len(records))
 		for i, r := range records {
 			out[i] = sync.AssignmentRecord{
@@ -550,4 +596,22 @@ func (h *Handler) GetEnabledProviders(user *models.User) []string {
 // FetchProviderAssignments exposes fetch logic for Service interface compliance.
 func (h *Handler) FetchProviderAssignments(ctx context.Context, provider string, user *models.User) ([]sync.AssignmentRecord, error) {
 	return h.fetchProviderAssignments(ctx, provider, user)
+}
+
+func convertGoogleRecordsForHandler(in []google.AssignmentRecord) []sync.AssignmentRecord {
+	out := make([]sync.AssignmentRecord, len(in))
+	for i, r := range in {
+		out[i] = sync.AssignmentRecord{
+			Title:       r.Title,
+			Course:      r.Course,
+			ClassCode:   r.ClassCode,
+			Description: r.Description,
+			URL:         r.URL,
+			Deadline:    r.Deadline,
+			ExternalID:  r.ExternalID,
+			Source:      r.Source,
+			IsCompleted: r.IsCompleted,
+		}
+	}
+	return out
 }

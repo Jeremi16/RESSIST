@@ -2,6 +2,7 @@ package calendar
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -49,6 +50,8 @@ func (s *Service) GetEnabledProviders(user *models.User) []string {
 }
 
 // FetchProviderAssignments fetches assignments from the specified provider.
+// On Classroom partial success it returns the successful subset plus
+// *sync.PartialFetchError so callers can persist without stale-marking.
 func (s *Service) FetchProviderAssignments(ctx context.Context, provider string, user *models.User) ([]sync.AssignmentRecord, error) {
 	switch provider {
 	case "moodle":
@@ -58,10 +61,32 @@ func (s *Service) FetchProviderAssignments(ctx context.Context, provider string,
 		}
 		return convertMoodleRecords(records), nil
 	case "google_classroom":
-		records, err := s.googleClient.FetchGoogleClassroomAssignments(ctx, user)
+		records, stats, err := s.googleClient.FetchGoogleClassroomAssignmentsWithStats(ctx, user)
 		if err != nil {
+			var gPartial *google.PartialFetchError
+			if errors.As(err, &gPartial) {
+				converted := convertGoogleRecords(gPartial.Assignments)
+				sStats := &sync.FetchStats{
+					TotalCourses:      gPartial.Stats.TotalCourses,
+					SucceededCourses:  gPartial.Stats.SucceededCourses,
+					FailedCourses:     gPartial.Stats.FailedCourses,
+					FailedCourseIDs:   append([]string(nil), gPartial.Stats.FailedCourseIDs...),
+					TotalCourseWork:   gPartial.Stats.TotalCourseWork,
+					Kept:              gPartial.Stats.Kept,
+					SkippedNoDeadline: gPartial.Stats.SkippedNoDeadline,
+					SkippedPast:       gPartial.Stats.SkippedPast,
+					SkippedFarFuture:  gPartial.Stats.SkippedFarFuture,
+				}
+				return converted, &sync.PartialFetchError{
+					Assignments:   converted,
+					FailedCourses: append([]string(nil), gPartial.FailedCourses...),
+					Stats:         sStats,
+					Err:           gPartial.Err,
+				}
+			}
 			return nil, err
 		}
+		_ = stats
 		return convertGoogleRecords(records), nil
 	default:
 		return nil, fmt.Errorf("unsupported provider: %s", provider)
@@ -80,11 +105,18 @@ func (s *Service) SyncProviders(ctx context.Context, user *models.User, provider
 	successPerProvider := make(map[string]bool)
 	for _, provider := range providers {
 		assignments, err := s.FetchProviderAssignments(ctx, provider, user)
-		if err != nil {
+		var partial *sync.PartialFetchError
+		isPartial := errors.As(err, &partial)
+		if err != nil && !isPartial {
 			log.Printf("[calendar] FetchProviderAssignments failed provider=%s user=%s err=%v", provider, user.ID, err)
-			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false})
+			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false, Error: err.Error()})
 			failedSources++
 			continue
+		}
+		if isPartial && partial != nil {
+			assignments = partial.Assignments
+			log.Printf("[calendar] partial fetch provider=%s user=%s kept=%d failedCourses=%v err=%v",
+				provider, user.ID, len(assignments), partial.FailedCourses, partial.Err)
 		}
 
 		// Collect class codes from assignments
@@ -94,10 +126,17 @@ func (s *Service) SyncProviders(ctx context.Context, user *models.User, provider
 			}
 		}
 
-		newForProvider, err := s.syncSvc.PersistAssignments(ctx, user.ID, provider, assignments, user.CourseAliases)
+		var newForProvider []sync.NewAssignmentInfo
+		if isPartial {
+			// Skip stale-marking: failed courses were not fetched, their old
+			// tasks must not be auto-completed.
+			newForProvider, err = s.syncSvc.PersistAssignmentsWithoutStale(ctx, user.ID, provider, assignments, user.CourseAliases)
+		} else {
+			newForProvider, err = s.syncSvc.PersistAssignments(ctx, user.ID, provider, assignments, user.CourseAliases)
+		}
 		if err != nil {
 			log.Printf("[calendar] PersistAssignments failed provider=%s user=%s err=%v", provider, user.ID, err)
-			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false})
+			sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: 0, Success: false, Error: err.Error()})
 			failedSources++
 			continue
 		}
@@ -111,7 +150,25 @@ func (s *Service) SyncProviders(ctx context.Context, user *models.User, provider
 				Source:   n.Source,
 			})
 		}
-		sourceInfo = append(sourceInfo, calendarSourceInfo{Provider: provider, Count: len(assignments), Success: true})
+		info := calendarSourceInfo{Provider: provider, Count: len(assignments), Success: true}
+		if isPartial && partial != nil {
+			info.Partial = true
+			info.FailedCourses = append([]string(nil), partial.FailedCourses...)
+			if partial.Err != nil {
+				info.Error = partial.Err.Error()
+			}
+			if partial.Stats != nil {
+				info.TotalCourseWork = partial.Stats.TotalCourseWork
+				info.SkippedNoDeadline = partial.Stats.SkippedNoDeadline
+				info.SkippedPast = partial.Stats.SkippedPast
+				info.SkippedFarFuture = partial.Stats.SkippedFarFuture
+			}
+		} else if provider == "google_classroom" {
+			// Full success: still expose skip counters when available via fresh stats.
+			// (Stats already logged in google client; counters stay zero here to
+			// keep the response lean — detailed counts appear on partial.)
+		}
+		sourceInfo = append(sourceInfo, info)
 		successfulSources++
 		successPerProvider[provider] = true
 	}
