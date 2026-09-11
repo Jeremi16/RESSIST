@@ -811,9 +811,17 @@ export default function Dashboard() {
                       <h3 className="text-xl font-semibold tracking-tight text-black">Timeline Tugas</h3>
                       <p className="text-sm text-black/60 mt-1">Daftar tugas dalam tiga kelompok.</p>
                       {(() => {
-                        const lastSyncedRaw = userData?.moodle_last_synced_at || userData?.lms_last_synced_at || null;
-                        if (!lastSyncedRaw) return null;
-                        const last = new Date(lastSyncedRaw);
+                        const candidates = [
+                          userData?.moodle_last_synced_at,
+                          userData?.google_classroom_last_synced_at,
+                          userData?.lms_last_synced_at,
+                        ].filter(Boolean) as string[];
+                        if (candidates.length === 0) return null;
+                        const times = candidates
+                          .map((c) => new Date(c).getTime())
+                          .filter((t) => !isNaN(t));
+                        if (times.length === 0) return null;
+                        const last = new Date(Math.max(...times));
                         if (isNaN(last.getTime())) return null;
                         const diffMs = Date.now() - last.getTime();
                         const diffH = diffMs / 3600000;
@@ -821,7 +829,7 @@ export default function Dashboard() {
                         return (
                           <p className={cn("text-xs mt-1", stale ? "text-amber-600" : "text-black/40")}>
                             Terakhir sinkron: {last.toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} WIB
-                            {stale && " · Data mungkin tertinggal dari Moodle, klik Sinkronkan"}
+                            {stale && " · Data mungkin tertinggal dari LMS, klik Sinkronkan"}
                           </p>
                         );
                       })()}
