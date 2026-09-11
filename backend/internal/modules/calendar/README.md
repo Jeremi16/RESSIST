@@ -13,9 +13,9 @@ Tanggung jawab: unifikasi **Moodle (iCal)** + **Google Classroom** → `Assignme
 | `handler.go` (514 baris) | `GetPreview`, `TestPreview`, helpers `loadCachedEvents`, `Filter`, `convertEventsToPreviews`, `formatTimeRemaining`, `buildSourceInfo` |
 | `routes.go` | Mount `GET /preview`, `POST /test` di `v1/calendar` (APIKeyOrJWT) |
 | `types.go` | `calendarEventPreview`, `calendarSourceInfo`, `calendarTestRequest` |
-| `sync/service.go` | `SyncService{db}` — `PersistAssignments` transaksi upsert + `markStaleAsCompleted` |
+| `sync/service.go` | `SyncService{db}` — `PersistAssignments` transaksi upsert + `markStaleAsCompleted`, `PersistAssignmentsWithoutStale` untuk partial fetch |
 | `moodle/client.go` | `Client{}` stateless — `FetchMoodleCalendar GET 12s`, `ParseMoodleEvents` filter 60d + classcode |
-| `google/client.go` | `Client{db,cfg}` — `FetchGoogleClassroomAssignments` (paginate 100, errgroup 5, `FetchStudentSubmissions` TURNED_IN/RETURNED → completed) |
+| `google/client.go` | `Client{db,cfg}` — `FetchGoogleClassroomAssignmentsWithStats` (paginate 100, WaitGroup 5 partial-success, `FetchStudentSubmissions` TURNED_IN/RETURNED → completed, skip counters) |
 | `ics/parser.go` | `ParseMoodleICS` — normalize `\r\n`, folding, `UID/SUMMARY/CATEGORIES/DESCRIPTION/URL/DTSTART/DTEND`, `parseICalDate`, `cleanMoodleTitle` |
 
 ## Routes
@@ -39,11 +39,13 @@ Response `preview` (sama untuk `test`):
 
 ```
 For each provider in GetEnabledProviders(user):
-  FetchProviderAssignments(provider) → []AssignmentRecord
+  FetchProviderAssignments(provider) → []AssignmentRecord (+ *sync.PartialFetchError on partial)
     moodle: HTTP GET ICS 12s → ParseMoodleICS → filter deadline now..+60d + classcode.Extract → sort
-    google: EnsureGoogleAccessToken (refresh if exp -1m) → FetchGoogleCourses paginate 100 ACTIVE → FetchAssignmentsFromCourses errgroup 5 → FetchStudentSubmissions → convertGoogleDeadline 23:59 default → IsCompleted
+    google: EnsureGoogleAccessToken (refresh if exp -1m) → FetchGoogleCourses paginate 100 ACTIVE → FetchAssignmentsFromCoursesWithStats WaitGroup 5 (partial-success, no cancel) → FetchStudentSubmissions → convertGoogleDeadline 23:59 default → IsCompleted + skip counters (noDeadline/past/farFuture)
   collect classCodes
-  syncSvc.PersistAssignments(userID, provider, assignments, courseAliasesJSON) → []NewAssignmentInfo
+  if partial → syncSvc.PersistAssignmentsWithoutStale (skip stale-marking agar tugas kelas gagal-fetch tidak ikut completed)
+  else → syncSvc.PersistAssignments(userID, provider, assignments, courseAliasesJSON) → []NewAssignmentInfo
+  sourceInfo sekarang bawa partial/failed_courses/error/skip counters untuk observability UI
   update mooodle_last_synced_at / google_last_synced_at + lms_last_synced_at
   update available_class_codes JSON via classcode.ToJSON
 ```
