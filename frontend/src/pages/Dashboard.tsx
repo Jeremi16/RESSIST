@@ -218,7 +218,7 @@ export default function Dashboard() {
         if (parsed?.count && parsed.count > 0) {
           showToast({
             title: "Tugas Baru Ditemukan!",
-            description: `${parsed.count} tugas baru dari Moodle berhasil disinkronisasi saat login.`,
+            description: `${parsed.count} tugas baru berhasil disinkronisasi saat login.`,
             variant: "success",
           });
         }
@@ -290,11 +290,29 @@ export default function Dashboard() {
           // Refresh user timestamps so staleness indicator updates
           fetchUserData();
         }
-        if (forceRefresh && data.new_tasks_count && data.new_tasks_count > 0) {
+        const newCount =
+          (data as any)?.newAssignmentsCount ?? (data as any)?.new_tasks_count ?? 0;
+        const failedCount = (data as any)?.failedSources ?? 0;
+        const sources = Array.isArray((data as any)?.sources) ? (data as any).sources : [];
+        const partialSources = sources.filter((s: any) => s?.partial || (s && s.failed_courses && s.failed_courses.length > 0));
+        if (forceRefresh && newCount && newCount > 0) {
           showToast({
             title: "Tugas Baru Ditemukan!",
-            description: `${data.new_tasks_count} tugas baru berhasil disinkronisasi.`,
+            description: `${newCount} tugas baru berhasil disinkronisasi.`,
             variant: "success",
+          });
+        } else if (forceRefresh && (failedCount > 0 || partialSources.length > 0)) {
+          const failedNames = partialSources
+            .flatMap((s: any) => s.failed_courses || [])
+            .slice(0, 3)
+            .join(", ");
+          showToast({
+            title: "Sinkronisasi Sebagian",
+            description:
+              failedNames
+                ? `Sebagian kelas gagal diambil (${failedNames}). Tugas dari kelas lain tetap masuk.`
+                : "Sebagian sumber gagal diambil, tapi tugas yang berhasil tetap masuk.",
+            variant: "info",
           });
         } else if (forceRefresh) {
           showToast({
@@ -304,7 +322,7 @@ export default function Dashboard() {
           });
         }
       } else if (forceRefresh) {
-        const msg = (data as any)?.error || "Gagal sinkronisasi dengan Moodle";
+        const msg = (data as any)?.error || "Gagal sinkronisasi dengan LMS";
         showToast({ title: "Sinkronisasi Gagal", description: msg, variant: "error" });
       }
     } catch (error) {
