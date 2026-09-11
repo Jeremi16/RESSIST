@@ -18,11 +18,43 @@ import (
 	"github.com/jeremi16/ressist-api/internal/pkg/text"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
 
 const upcomingWindowDays = 60
+
+// CourseFetchStats carries observability counters so callers can explain
+// why tasks were skipped instead of silently returning empty.
+type CourseFetchStats struct {
+	TotalCourses      int
+	SucceededCourses  int
+	FailedCourses     int
+	FailedCourseIDs   []string
+	TotalCourseWork   int
+	Kept              int
+	SkippedNoDeadline int
+	SkippedPast       int
+	SkippedFarFuture  int
+}
+
+// PartialFetchError is returned when some courses succeeded while others
+// failed. Assignments holds the successful subset — callers must persist it
+// WITHOUT stale-marking to avoid completing tasks from failed courses.
+type PartialFetchError struct {
+	Assignments   []AssignmentRecord
+	FailedCourses []string
+	Stats         *CourseFetchStats
+	Err           error
+}
+
+func (e *PartialFetchError) Error() string {
+	if e.Err != nil {
+		return e.Err.Error()
+	}
+	return "partial fetch: some classroom courses failed"
+}
+
+func (e *PartialFetchError) Unwrap() error { return e.Err }
 
 // AssignmentRecord mirrors sync.AssignmentRecord for google package isolation.
 type AssignmentRecord struct {
@@ -107,53 +139,96 @@ func New(db *gorm.DB, cfg *config.Config) *Client {
 
 // FetchGoogleClassroomAssignments fetches assignments from Google Classroom.
 func (c *Client) FetchGoogleClassroomAssignments(ctx context.Context, user *models.User) ([]AssignmentRecord, error) {
+	records, _, err := c.FetchGoogleClassroomAssignmentsWithStats(ctx, user)
+	return records, err
+}
+
+// FetchGoogleClassroomAssignmentsWithStats is the observability-aware variant.
+// On partial success it returns the successful subset plus *PartialFetchError.
+func (c *Client) FetchGoogleClassroomAssignmentsWithStats(ctx context.Context, user *models.User) ([]AssignmentRecord, *CourseFetchStats, error) {
 	accessToken, err := c.EnsureGoogleAccessToken(ctx, user)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	courses, err := c.FetchGoogleCourses(ctx, accessToken)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(courses) == 0 {
-		return []AssignmentRecord{}, nil
+		return []AssignmentRecord{}, &CourseFetchStats{}, nil
 	}
 
-	return c.FetchAssignmentsFromCourses(ctx, accessToken, courses)
+	return c.FetchAssignmentsFromCoursesWithStats(ctx, accessToken, courses)
 }
 
 // FetchAssignmentsFromCourses fetches assignments from all courses concurrently.
-// Returns error if ANY course fails (strict abort) to avoid partial wipe in PersistAssignments.
+// On partial success it returns the successful subset plus *PartialFetchError
+// (callers that ignore the subset keep the old strict-abort behaviour).
+// On full failure (zero kept + at least one course failed) it returns nil + error.
 func (c *Client) FetchAssignmentsFromCourses(ctx context.Context, accessToken string, courses []GoogleCourse) ([]AssignmentRecord, error) {
+	records, _, err := c.FetchAssignmentsFromCoursesWithStats(ctx, accessToken, courses)
+	return records, err
+}
+
+// FetchAssignmentsFromCoursesWithStats fetches assignments from all courses concurrently.
+// One failing course no longer cancels the others (WaitGroup, no errgroup
+// cancellation) so a single 403/404 does not wipe out every other course.
+func (c *Client) FetchAssignmentsFromCoursesWithStats(ctx context.Context, accessToken string, courses []GoogleCourse) ([]AssignmentRecord, *CourseFetchStats, error) {
 	now := time.Now()
 	cutoff := now.Add(time.Hour * 24 * upcomingWindowDays)
 
+	stats := &CourseFetchStats{TotalCourses: len(courses)}
 	// Concurrency for courseWork fetching.
 	concurrency := 5
 	sem := make(chan struct{}, concurrency)
 	var mu sync.Mutex
+	var wg sync.WaitGroup
 	assignments := make([]AssignmentRecord, 0, 64)
 
-	eg, ctx := errgroup.WithContext(ctx)
 	for _, course := range courses {
 		course := course
-		sem <- struct{}{}
-		eg.Go(func() error {
+		// Bound concurrency without blocking shutdown forever on ctx cancel.
+		select {
+		case sem <- struct{}{}:
+		case <-ctx.Done():
+			mu.Lock()
+			stats.FailedCourses++
+			stats.FailedCourseIDs = append(stats.FailedCourseIDs, course.ID)
+			mu.Unlock()
+			continue
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 			defer func() { <-sem }()
-			// Check ctx cancellation before request.
-			if err := ctx.Err(); err != nil {
-				return err
-			}
 			courseWorks, err := c.FetchGoogleCourseWork(ctx, accessToken, course.ID)
 			if err != nil {
 				log.Printf("[google] FetchGoogleCourseWork failed course=%s err=%v", course.ID, err)
-				return fmt.Errorf("course %s: %w", course.ID, err)
+				mu.Lock()
+				stats.FailedCourses++
+				stats.FailedCourseIDs = append(stats.FailedCourseIDs, course.ID)
+				mu.Unlock()
+				return
 			}
+			mu.Lock()
+			stats.SucceededCourses++
+			stats.TotalCourseWork += len(courseWorks)
+			mu.Unlock()
 			var local []AssignmentRecord
+			var skippedNoDeadline, skippedPast, skippedFar int
 			for _, work := range courseWorks {
 				deadline, ok := convertGoogleDeadline(work.DueDate, work.DueTime)
-				if !ok || !isValidDeadline(deadline, now, cutoff) {
+				if !ok {
+					skippedNoDeadline++
+					continue
+				}
+				if !deadline.After(now) {
+					skippedPast++
+					continue
+				}
+				if !deadline.Before(cutoff) {
+					skippedFar++
 					continue
 				}
 				// Check submission state for accurate completed (best-effort, ignore errors).
@@ -193,20 +268,44 @@ func (c *Client) FetchAssignmentsFromCourses(ctx context.Context, accessToken st
 					IsCompleted: isCompleted,
 				})
 			}
+			mu.Lock()
+			stats.SkippedNoDeadline += skippedNoDeadline
+			stats.SkippedPast += skippedPast
+			stats.SkippedFarFuture += skippedFar
+			stats.Kept += len(local)
 			if len(local) > 0 {
-				mu.Lock()
 				assignments = append(assignments, local...)
-				mu.Unlock()
 			}
-			return nil
-		})
+			mu.Unlock()
+		}()
 	}
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
+	wg.Wait()
 
 	sortAssignmentsByDeadline(assignments)
-	return assignments, nil
+
+	if stats.FailedCourses > 0 {
+		log.Printf("[google] partial fetch courses=%d ok=%d failed=%d kept=%d skipped(noDeadline=%d past=%d far=%d) failedIDs=%v",
+			stats.TotalCourses, stats.SucceededCourses, stats.FailedCourses, stats.Kept,
+			stats.SkippedNoDeadline, stats.SkippedPast, stats.SkippedFarFuture, stats.FailedCourseIDs)
+	} else {
+		log.Printf("[google] fetch ok courses=%d coursework=%d kept=%d skipped(noDeadline=%d past=%d far=%d)",
+			stats.TotalCourses, stats.TotalCourseWork, stats.Kept,
+			stats.SkippedNoDeadline, stats.SkippedPast, stats.SkippedFarFuture)
+	}
+
+	if len(assignments) == 0 && stats.FailedCourses > 0 {
+		return nil, stats, fmt.Errorf("google classroom fetch failed for %d course(s): %v", stats.FailedCourses, stats.FailedCourseIDs)
+	}
+	if stats.FailedCourses > 0 {
+		return assignments, stats, &PartialFetchError{
+			Assignments:   assignments,
+			FailedCourses: append([]string(nil), stats.FailedCourseIDs...),
+			Stats:         stats,
+			Err:           fmt.Errorf("google classroom partial failure: %d/%d courses failed", stats.FailedCourses, stats.TotalCourses),
+		}
+	}
+
+	return assignments, stats, nil
 }
 
 // FetchGoogleCourses fetches all active courses from Google Classroom.
