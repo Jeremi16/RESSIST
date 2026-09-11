@@ -366,7 +366,7 @@ func (h *Handler) buildUserResponse(user *models.User) userResponse {
 		MoodleEnabled:                user.MoodleEnabled,
 		MoodleCalendarURL:            user.MoodleCalendarURL,
 		GoogleClassroomEnabled:       user.GoogleClassroomEnabled,
-		GoogleConnected:              user.GoogleTokenExpiry != nil,
+		GoogleConnected:              user.GoogleAccessToken != nil && text.Dereference(user.GoogleAccessToken, "") != "",
 		TelegramBotUsername:          telegramBotUsername,
 		ReminderHours:                text.DefaultString(user.ReminderHours, "[24]"),
 		MorningBriefing:              user.MorningBriefing,
