@@ -86,6 +86,30 @@ func (s *SyncService) PersistAssignments(
 	assignments []AssignmentRecord,
 	courseAliasesJSON string,
 ) ([]NewAssignmentInfo, error) {
+	return s.persist(ctx, userID, provider, assignments, courseAliasesJSON, false)
+}
+
+// PersistAssignmentsWithoutStale upserts assignments but skips stale-marking.
+// Use this for partial fetches (some courses failed) to avoid incorrectly
+// completing tasks from courses that were not fetched.
+func (s *SyncService) PersistAssignmentsWithoutStale(
+	ctx context.Context,
+	userID string,
+	provider string,
+	assignments []AssignmentRecord,
+	courseAliasesJSON string,
+) ([]NewAssignmentInfo, error) {
+	return s.persist(ctx, userID, provider, assignments, courseAliasesJSON, true)
+}
+
+func (s *SyncService) persist(
+	ctx context.Context,
+	userID string,
+	provider string,
+	assignments []AssignmentRecord,
+	courseAliasesJSON string,
+	skipStale bool,
+) ([]NewAssignmentInfo, error) {
 	now := time.Now().UTC()
 	assignmentsByKey := buildAssignmentsByKey(assignments, provider)
 	keys := getAssignmentKeys(assignmentsByKey)
@@ -136,6 +160,10 @@ func (s *SyncService) PersistAssignments(
 					return err
 				}
 			}
+		}
+
+		if skipStale {
+			return nil
 		}
 
 		if provider == "moodle" {
