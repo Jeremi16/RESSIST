@@ -34,6 +34,40 @@ type NewAssignmentInfo struct {
 	Source   string    `json:"source"`
 }
 
+// FetchStats carries observability counters for a provider fetch, so callers
+// can tell the user why tasks were skipped instead of silently returning empty.
+type FetchStats struct {
+	TotalCourses      int      `json:"total_courses"`
+	SucceededCourses  int      `json:"succeeded_courses"`
+	FailedCourses     int      `json:"failed_courses"`
+	FailedCourseIDs   []string `json:"failed_course_ids,omitempty"`
+	TotalCourseWork   int      `json:"total_course_work"`
+	Kept              int      `json:"kept"`
+	SkippedNoDeadline int      `json:"skipped_no_deadline"`
+	SkippedPast       int      `json:"skipped_past_deadline"`
+	SkippedFarFuture  int      `json:"skipped_far_future"`
+}
+
+// PartialFetchError is returned when a provider fetch partially succeeded:
+// some courses succeeded (Assignments non-empty) while others failed.
+// Callers MUST persist Assignments with stale-marking disabled to avoid
+// incorrectly completing tasks from the failed courses.
+type PartialFetchError struct {
+	Assignments   []AssignmentRecord
+	FailedCourses []string
+	Stats         *FetchStats
+	Err           error
+}
+
+func (e *PartialFetchError) Error() string {
+	if e.Err != nil {
+		return e.Err.Error()
+	}
+	return "partial fetch: some courses failed"
+}
+
+func (e *PartialFetchError) Unwrap() error { return e.Err }
+
 // SyncService handles assignment synchronization logic.
 type SyncService struct {
 	db *gorm.DB
