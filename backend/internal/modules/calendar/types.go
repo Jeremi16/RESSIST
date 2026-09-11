@@ -30,6 +30,14 @@ type calendarSourceInfo struct {
 	Provider string `json:"provider"`
 	Count    int    `json:"count"`
 	Success  bool   `json:"success"`
+	// Observability for Classroom partial/skip (omitempty keeps old clients working).
+	Error             string   `json:"error,omitempty"`
+	FailedCourses     []string `json:"failed_courses,omitempty"`
+	Partial           bool     `json:"partial,omitempty"`
+	TotalCourseWork   int      `json:"total_course_work,omitempty"`
+	SkippedNoDeadline int      `json:"skipped_no_deadline,omitempty"`
+	SkippedPast       int      `json:"skipped_past_deadline,omitempty"`
+	SkippedFarFuture  int      `json:"skipped_far_future,omitempty"`
 }
 
 type calendarTestRequest struct {
