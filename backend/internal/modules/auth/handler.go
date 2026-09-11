@@ -32,6 +32,7 @@ type NewAssignmentInfo = sync.NewAssignmentInfo
 // CalendarSyncService persists assignments and returns newly created ones.
 type CalendarSyncService interface {
 	PersistAssignments(ctx context.Context, userID string, provider string, assignments []AssignmentRecord, courseAliasesJSON string) ([]NewAssignmentInfo, error)
+	PersistAssignmentsWithoutStale(ctx context.Context, userID string, provider string, assignments []AssignmentRecord, courseAliasesJSON string) ([]NewAssignmentInfo, error)
 }
 
 // CalendarProvider abstracts LMS provider discovery and assignment fetching.
@@ -254,9 +255,16 @@ func (h *Handler) syncUserLMS(ctx context.Context, user *models.User, providers 
 	successPerProvider := make(map[string]bool)
 	for _, provider := range providers {
 		assignments, err := h.calendar.FetchProviderAssignments(ctx, provider, user)
-		if err != nil {
+		var partial *sync.PartialFetchError
+		isPartial := errors.As(err, &partial)
+		if err != nil && !isPartial {
 			log.Printf("[auth] FetchProviderAssignments failed provider=%s user=%s err=%v", provider, user.ID, err)
 			continue
+		}
+		if isPartial && partial != nil {
+			assignments = partial.Assignments
+			log.Printf("[auth] partial fetch provider=%s user=%s kept=%d failedCourses=%v",
+				provider, user.ID, len(assignments), partial.FailedCourses)
 		}
 
 		if h.syncSvc == nil {
@@ -265,7 +273,12 @@ func (h *Handler) syncUserLMS(ctx context.Context, user *models.User, providers 
 			continue
 		}
 
-		newAssignments, err := h.syncSvc.PersistAssignments(ctx, user.ID, provider, assignments, user.CourseAliases)
+		var newAssignments []sync.NewAssignmentInfo
+		if isPartial {
+			newAssignments, err = h.syncSvc.PersistAssignmentsWithoutStale(ctx, user.ID, provider, assignments, user.CourseAliases)
+		} else {
+			newAssignments, err = h.syncSvc.PersistAssignments(ctx, user.ID, provider, assignments, user.CourseAliases)
+		}
 		if err != nil {
 			log.Printf("[auth] PersistAssignments failed provider=%s user=%s err=%v", provider, user.ID, err)
 			continue
