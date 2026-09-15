@@ -310,32 +310,6 @@ app.post("/auth/backend/sync", async (c) => {
 
   createSession(c, { userId: meData.id, email: meData.email || "" });
 
-  let syncResult: {
-    synced?: boolean;
-    newAssignmentsCount?: number;
-    newAssignments?: unknown[];
-  } = {};
-  try {
-    const syncResponse = await fetch(`${backendBaseUrl}/v1/auth/sync`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${refreshData.access_token}` },
-    });
-    if (syncResponse.ok) {
-      try {
-        const parsed = (await syncResponse.json()) as {
-          synced?: boolean;
-          newAssignmentsCount?: number;
-          newAssignments?: unknown[];
-        };
-        syncResult = parsed;
-      } catch {
-        // keep default
-      }
-    }
-  } catch {
-    // keep default
-  }
-
   const setCookieHeader = refreshResponse.headers.get("set-cookie");
   const rotated = setCookieHeader?.match(/refresh_token=([^;]+)/)?.[1];
   if (rotated) {
@@ -348,15 +322,15 @@ app.post("/auth/backend/sync", async (c) => {
     });
   }
 
-  return c.json({
-    success: true,
-    synced: syncResult.synced ?? false,
-    newAssignmentsCount: syncResult.newAssignmentsCount ?? 0,
-    newAssignments: Array.isArray(syncResult.newAssignments)
-      ? syncResult.newAssignments
-      : [],
-  });
+  return c.json({ success: true });
 });
+
+// ---------- auth: LMS sync latar (dipicu Login setelah navigate, tanpa await) ----------
+// Dipisah dari /auth/backend/sync agar login → dashboard instan.
+// Response mengikuti /v1/auth/sync: { synced, newAssignmentsCount, newAssignments }.
+app.post("/auth/backend/sync-lms", (c) =>
+  proxy(c, "/v1/auth/sync", { method: "POST" }),
+);
 
 // ---------- api keys (manage via website, JWT only) ----------
 app.get("/api-keys", (c) => proxy(c, "/v1/api-keys", { method: "GET" }));

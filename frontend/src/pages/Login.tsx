@@ -32,7 +32,6 @@ function LoginContent() {
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
   const [error, setError] = useState("");
-  const [isSyncing, setIsSyncing] = useState(false);
   const hasSyncedBackendSession = useRef(false);
   const hasShownSessionExpiredToast = useRef(false);
 
@@ -61,30 +60,44 @@ function LoginContent() {
     if (authParam !== "success") return;
     if (hasSyncedBackendSession.current) return;
     hasSyncedBackendSession.current = true;
-    let cancelled = false;
-    const syncBackendSession = async () => {
+    // Session-sync cepat (wajib, di-await) lalu langsung ke dashboard.
+    // LMS sync berat jalan background tanpa blocking; hasilnya disiarkan via
+    // event + sessionStorage agar Dashboard bisa menampilkan toast belakangan.
+    const syncLmsInBackground = () => {
+      fetch("/api/auth/backend/sync-lms", { method: "POST" })
+        .then(async (res) => {
+          if (!res.ok) return;
+          const payload = (await res.json().catch(() => ({}))) as { newAssignmentsCount?: number; newAssignments?: unknown[] };
+          const count = payload.newAssignmentsCount ?? 0;
+          if (count <= 0) return;
+          try {
+            sessionStorage.setItem("ressist.sync.new-assignments", JSON.stringify({ count, items: Array.isArray(payload.newAssignments) ? payload.newAssignments : [] }));
+          } catch {
+            // ignore
+          }
+          window.dispatchEvent(new CustomEvent("ressist:new-assignments", { detail: { count } }));
+        })
+        .catch(() => {
+          // silent — Dashboard fetch + tombol Sinkronkan meng-cover
+        });
+    };
+    const syncAndRedirect = async () => {
       try {
         const response = await fetch("/api/auth/backend/sync", { method: "POST" });
         if (!response.ok) {
-          console.warn("[login-sync] backend/sync failed:", response.status);
+          setError("Gagal mensinkronisasi sesi. Silakan coba lagi.");
+          hasSyncedBackendSession.current = false;
           return;
         }
-        const payload = (await response.json()) as { synced?: boolean; newAssignmentsCount?: number; newAssignments?: unknown[]; error?: string };
-        if (payload.error) console.warn("[login-sync] sync error:", payload.error);
-        if ((payload.newAssignmentsCount ?? 0) > 0) {
-          sessionStorage.setItem("ressist.sync.new-assignments", JSON.stringify({ count: payload.newAssignmentsCount ?? 0, items: Array.isArray(payload.newAssignments) ? payload.newAssignments : [] }));
-        }
-        if (payload.synced === false) {
-          console.warn("[login-sync] synced=false — LMS belum terkonfigurasi atau gagal");
-        }
-      } catch (err) { if (!cancelled) console.error("[login-sync] exception:", err); }
-    };
-    const syncAndRedirect = async () => {
-      setIsSyncing(true);
-      try { await syncBackendSession(); navigate("/dashboard"); } catch { setError("Gagal mensinkronisasi sesi. Silakan coba lagi."); setIsSyncing(false); }
+      } catch {
+        setError("Gagal mensinkronisasi sesi. Silakan coba lagi.");
+        hasSyncedBackendSession.current = false;
+        return;
+      }
+      syncLmsInBackground();
+      navigate("/dashboard");
     };
     syncAndRedirect();
-    return () => { cancelled = true; };
   }, [navigate, searchParams]);
 
   const handleGoogleLogin = () => { window.location.href = "/api/auth/google/login"; };
@@ -146,14 +159,6 @@ function LoginContent() {
           </div>
         </motion.div>
       </main>
-
-      {isSyncing && (
-        <div className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
-          <div className="size-10 border-2 border-black border-t-transparent rounded-full animate-spin mb-4" />
-          <h2 className="text-base font-semibold text-black">Menyiapkan Sesi...</h2>
-          <p className="text-sm text-black/60 mt-1">Mohon tunggu sebentar.</p>
-        </div>
-      )}
     </div>
   );
 }

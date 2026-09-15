@@ -185,6 +185,27 @@ export default function Dashboard() {
     }
   }, []);
 
+  // Toast susulan jika LMS sync background (dipicu Login) selesai setelah mount
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const count = (e as CustomEvent<{ count?: number }>)?.detail?.count ?? 0;
+      if (count <= 0) return;
+      try {
+        sessionStorage.removeItem("ressist.sync.new-assignments");
+      } catch {
+        // ignore
+      }
+      showToast({
+        title: "Tugas Baru Ditemukan!",
+        description: `${count} tugas baru berhasil disinkronisasi saat login.`,
+        variant: "success",
+      });
+      fetchAssignments();
+    };
+    window.addEventListener("ressist:new-assignments", handler);
+    return () => window.removeEventListener("ressist:new-assignments", handler);
+  }, []);
+
   const fetchCourses = async () => {
     try {
       const response = await fetch("/api/courses");

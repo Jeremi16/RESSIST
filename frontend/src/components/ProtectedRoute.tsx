@@ -26,11 +26,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   }, [location.pathname]);
 
   if (state === "checking") {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="size-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <div className="min-h-screen bg-[#F5F0EB]" />;
   }
 
   if (state === "unauth") {
