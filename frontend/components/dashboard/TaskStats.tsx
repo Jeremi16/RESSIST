@@ -8,9 +8,10 @@ interface TaskStatsProps {
   upcomingCount: number
   completedCount: number
   totalCount: number
+  isLoading?: boolean
 }
 
-export function TaskStats({ overdueCount, upcomingCount, completedCount, totalCount }: TaskStatsProps) {
+export function TaskStats({ overdueCount, upcomingCount, completedCount, totalCount, isLoading = false }: TaskStatsProps) {
   const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   const stats = [
@@ -34,9 +35,18 @@ export function TaskStats({ overdueCount, upcomingCount, completedCount, totalCo
             <stat.icon className="size-4" />
           </div>
           <p className="text-xs font-medium tracking-wide text-black/40">{stat.label}</p>
-          <p className="text-2xl font-semibold tracking-tight text-black mt-1">{stat.value}</p>
-          <p className="text-xs text-black/40 mt-1">{stat.desc}</p>
-          {stat.showProgress && totalCount > 0 && (
+          {isLoading ? (
+            <>
+              <div className="animate-pulse h-8 w-12 bg-black/5 rounded mt-1" />
+              <div className="animate-pulse h-3 w-20 bg-black/5 rounded mt-1" />
+            </>
+          ) : (
+            <>
+              <p className="text-2xl font-semibold tracking-tight text-black mt-1">{stat.value}</p>
+              <p className="text-xs text-black/40 mt-1">{stat.desc}</p>
+            </>
+          )}
+          {stat.showProgress && !isLoading && totalCount > 0 && (
             <div className="mt-3 h-1.5 bg-black/5 rounded-full overflow-hidden">
               <motion.div initial={{ width: 0 }} animate={{ width: `${stat.progress}%` }} transition={{ delay: 0.3, duration: 0.6 }} className="h-full bg-black rounded-full" />
             </div>

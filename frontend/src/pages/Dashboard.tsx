@@ -107,70 +107,26 @@ function Skeleton({ className }: { className?: string }) {
   return <div className={cn("animate-pulse bg-black/5 rounded", className)} />;
 }
 
-function StatsCardSkeleton() {
-  return (
-    <div className="bg-white p-4 rounded-2xl border border-black/5 flex items-center gap-4">
-      <Skeleton className="size-10 rounded-xl shrink-0" />
-      <div className="space-y-2 flex-1 min-w-0">
-        <Skeleton className="h-3 w-16" />
-        <Skeleton className="h-5 w-20" />
-      </div>
-    </div>
-  );
+function CountBadgeSkeleton() {
+  return <Skeleton className="h-6 w-8 rounded-full" />;
 }
 
-function CalendarSkeleton() {
+function TaskCardSkeleton() {
   return (
-    <div className="bg-white p-5 rounded-2xl border border-black/5">
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <Skeleton className="h-5 w-28" />
-        <Skeleton className="h-7 w-20 rounded-full" />
-      </div>
+    <div className="bg-white p-4 rounded-2xl border border-black/5">
       <div className="space-y-3">
-        <Skeleton className="h-8 w-full rounded-xl" />
-        <div className="grid grid-cols-7 gap-1.5">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full rounded-xl" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TimelineSkeleton() {
-  return (
-    <div className="bg-white p-4 rounded-2xl border border-black/5 space-y-3">
-      <Skeleton className="h-5 w-24" />
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="p-4 rounded-2xl border border-black/5 flex justify-between gap-4">
-          <div className="space-y-2 flex-1">
+        <div className="flex justify-between items-start gap-3">
+          <div className="space-y-2 flex-1 min-w-0">
             <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-5 w-20 rounded-full" />
           </div>
-          <Skeleton className="h-7 w-16 rounded-full" />
+          <Skeleton className="size-8 rounded-full shrink-0" />
         </div>
-      ))}
-    </div>
-  );
-}
-
-function StatusCardSkeleton() {
-  return (
-    <div className="bg-black p-6 rounded-2xl">
-      <Skeleton className="h-5 w-28 mb-6 bg-white/10" />
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Skeleton className="size-8 rounded-lg bg-white/10 shrink-0" />
-              <Skeleton className="h-3 w-16 bg-white/10" />
-            </div>
-            <Skeleton className="size-2 rounded-full bg-white/10" />
-          </div>
-        ))}
+        <div className="flex items-center justify-between pt-2 border-t border-black/5">
+          <Skeleton className="h-3 w-28" />
+          <Skeleton className="h-3 w-8" />
+        </div>
       </div>
-      <Skeleton className="h-9 w-full mt-6 rounded-full bg-white/10" />
     </div>
   );
 }
@@ -523,54 +479,8 @@ export default function Dashboard() {
     navigate("/login", { replace: true });
   };
 
-  if (isLoadingUser) {
-    return (
-      <div className="min-h-screen bg-[#F5F0EB] flex">
-        <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-black/5 hidden lg:flex flex-col p-6 z-30">
-          <div className="flex items-center gap-2.5 mb-8">
-            <Skeleton className="size-8 rounded-lg" />
-            <Skeleton className="h-5 w-20" />
-          </div>
-          <div className="space-y-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-9 w-full rounded-xl" />
-            ))}
-          </div>
-          <div className="mt-auto pt-6 border-t border-black/5">
-            <Skeleton className="h-10 w-full rounded-xl" />
-          </div>
-        </aside>
-        <main className="flex-1 lg:ml-64 min-h-screen p-4 sm:p-6 lg:p-8 pt-14 pb-24 lg:pt-8 lg:pb-8">
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-80 mb-8" />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <StatsCardSkeleton />
-            <StatsCardSkeleton />
-            <StatsCardSkeleton />
-            <StatsCardSkeleton />
-          </div>
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            <div className="xl:col-span-8 space-y-6">
-              <CalendarSkeleton />
-            </div>
-            <div className="xl:col-span-4 space-y-6">
-              <StatusCardSkeleton />
-              <Skeleton className="h-48 w-full rounded-2xl" />
-            </div>
-          </div>
-        </main>
-        {/* Mobile Bottom Bar Skeleton - 4 primary + Lainnya */}
-        <div className="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-white border-t border-black/5 px-1 pt-2 pb-3 flex items-center justify-around">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-1.5 flex-1 px-1">
-              <Skeleton className="size-7 rounded-xl" />
-              <Skeleton className="h-2 w-10 rounded-full" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const isInitialTasks = isLoadingAssignments && allAssignments.length === 0;
+  const isInitialCalendar = isLoadingCalendar && previewEvents.length === 0;
 
   const TABS = [
     { id: "overview", label: "Ringkasan", icon: LayoutDashboard },
@@ -747,6 +657,7 @@ export default function Dashboard() {
                       allAssignments.filter((t) => isCompletedTask(t)).length
                     }
                     totalCount={allAssignments.length}
+                    isLoading={isInitialTasks}
                   />
 
                   <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -756,7 +667,19 @@ export default function Dashboard() {
                           <h3 className="text-sm font-semibold text-black">Kalender</h3>
                           <span className="text-xs text-black/40">View tasks and project deadlines</span>
                         </div>
-                        <CalendarView events={previewEvents.length > 0 ? previewEvents : []} />
+                        <div className="relative">
+                          <CalendarView events={previewEvents.length > 0 ? previewEvents : []} />
+                          {isInitialCalendar && (
+                            <div className="absolute inset-0 rounded-2xl bg-white/60 backdrop-blur-[1px] p-4 space-y-3">
+                              <Skeleton className="h-8 w-full rounded-xl" />
+                              <div className="grid grid-cols-7 gap-1.5">
+                                {Array.from({ length: 14 }).map((_, i) => (
+                                  <Skeleton key={i} className="h-12 w-full rounded-xl" />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -834,30 +757,23 @@ export default function Dashboard() {
                         );
                       })()}
                     </div>
-                    <button onClick={handleSyncTasks} disabled={isLoadingAssignments || isLoadingCalendar} className="h-9 px-5 bg-black text-white rounded-full text-sm font-medium inline-flex items-center gap-2 hover:bg-black/90 disabled:opacity-50 transition-colors">
+                    <button onClick={handleSyncTasks} disabled={isLoadingUser || isLoadingAssignments || isLoadingCalendar} className="h-9 px-5 bg-black text-white rounded-full text-sm font-medium inline-flex items-center gap-2 hover:bg-black/90 disabled:opacity-50 transition-colors">
                       <RefreshCw className={cn("size-4", (isLoadingAssignments || isLoadingCalendar) && "animate-spin")} />
                       {isLoadingAssignments || isLoadingCalendar ? "Menyinkronkan..." : "Sinkronkan"}
                     </button>
                   </div>
 
-                  {isLoadingAssignments && allAssignments.length === 0 ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                      <TimelineSkeleton />
-                      <TimelineSkeleton />
-                      <TimelineSkeleton />
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between px-1">
                           <div className="flex items-center gap-2">
                             <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><AlertTriangle className="size-3.5" /></div>
                             <h4 className="text-sm font-semibold text-black">Terlewat</h4>
                           </div>
-                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isTerlewatTask(t)).length}</span>
+                          {isInitialTasks ? <CountBadgeSkeleton /> : <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isTerlewatTask(t)).length}</span>}
                         </div>
                         <div className="space-y-3">
-                          {allAssignments.filter((t) => isTerlewatTask(t)).length === 0 ? <EmptyTasksState message="Tidak ada tugas terlewat" /> : allAssignments.filter((t) => isTerlewatTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
+                          {isInitialTasks ? (<><TaskCardSkeleton /><TaskCardSkeleton /></>) : (allAssignments.filter((t) => isTerlewatTask(t)).length === 0 ? <EmptyTasksState message="Tidak ada tugas terlewat" /> : allAssignments.filter((t) => isTerlewatTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />))}
                         </div>
                       </div>
 
@@ -867,10 +783,10 @@ export default function Dashboard() {
                             <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><Clock className="size-3.5" /></div>
                             <h4 className="text-sm font-semibold text-black">Mendatang</h4>
                           </div>
-                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isMendatangTask(t)).length}</span>
+                          {isInitialTasks ? <CountBadgeSkeleton /> : <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isMendatangTask(t)).length}</span>}
                         </div>
                         <div className="space-y-3">
-                          {allAssignments.filter((t) => isMendatangTask(t)).length === 0 ? <EmptyTasksState message="Tidak ada tugas mendatang" /> : allAssignments.filter((t) => isMendatangTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
+                          {isInitialTasks ? (<><TaskCardSkeleton /><TaskCardSkeleton /></>) : (allAssignments.filter((t) => isMendatangTask(t)).length === 0 ? <EmptyTasksState message="Tidak ada tugas mendatang" /> : allAssignments.filter((t) => isMendatangTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />))}
                         </div>
                       </div>
 
@@ -880,14 +796,13 @@ export default function Dashboard() {
                             <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><CheckCircle2 className="size-3.5" /></div>
                             <h4 className="text-sm font-semibold text-black">Selesai</h4>
                           </div>
-                          <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isCompletedTask(t)).length}</span>
+                          {isInitialTasks ? <CountBadgeSkeleton /> : <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isCompletedTask(t)).length}</span>}
                         </div>
                         <div className="space-y-3">
-                          {allAssignments.filter((t) => isCompletedTask(t)).length === 0 ? <EmptyTasksState message="Belum ada tugas selesai" /> : allAssignments.filter((t) => isCompletedTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />)}
+                          {isInitialTasks ? (<><TaskCardSkeleton /><TaskCardSkeleton /></>) : (allAssignments.filter((t) => isCompletedTask(t)).length === 0 ? <EmptyTasksState message="Belum ada tugas selesai" /> : allAssignments.filter((t) => isCompletedTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />))}
                         </div>
                       </div>
                     </div>
-                  )}
                 </div>
               )}
 
