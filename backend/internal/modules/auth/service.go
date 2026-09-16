@@ -31,6 +31,12 @@ var (
 	ErrUserIdentityConflict  = errors.New("google account conflicts with existing user")
 )
 
+// reuseGraceWindow adalah toleransi pemakaian ulang refresh token yang baru
+// saja dirotasi. BFF (khususnya di serverless seperti Vercel) menembak
+// beberapa request paralel dengan cookie lama yang sama, sehingga request
+// yang kalah race TIDAK boleh dianggap pencurian token.
+const reuseGraceWindow = 120 * time.Second
+
 type GoogleUserInfo struct {
 	Sub           string `json:"sub"`
 	Email         string `json:"email"`
@@ -263,7 +269,7 @@ func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userA
 		return nil, "", err
 	}
 	if existing.RevokedAt != nil {
-		if now.Sub(*existing.RevokedAt) < 30*time.Second {
+		if now.Sub(*existing.RevokedAt) < reuseGraceWindow {
 			var user models.User
 			if err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error; err == nil {
 				return &user, "", nil
@@ -311,6 +317,19 @@ func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userA
 	})
 	if err != nil {
 		if errors.Is(err, ErrRefreshTokenReuse) {
+			// Kalah race rotasi concurrent (dua request baca token yang sama
+			// sebagai valid, satu menang commit). Perlakukan sebagai benign:
+			// request tetap sukses, cookie browser akan diperbarui oleh
+			// response pemenang yang membawa token baru. RevokeAll HANYA
+			// untuk pemakaian ulang di luar grace window (indikasi pencurian).
+			var current models.RefreshToken
+			if rerr := s.db.WithContext(ctx).Where("token_hash = ?", hashed).First(&current).Error; rerr == nil &&
+				current.RevokedAt != nil && now.Sub(*current.RevokedAt) < reuseGraceWindow {
+				var user models.User
+				if uerr := s.db.WithContext(ctx).Where("id = ?", current.UserID).First(&user).Error; uerr == nil {
+					return &user, "", nil
+				}
+			}
 			_ = s.RevokeAllUserRefreshTokens(ctx, user.ID)
 		}
 		return nil, "", err
