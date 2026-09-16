@@ -160,9 +160,10 @@ type dueAssignment struct {
 // Lets the stateless bot send reminders without DB access.
 func (h *Handler) GetDueAssignments(c *gin.Context) {
 	hoursBefore := atoiDefault(c.Query("hours_before"), 24)
-	windowMinutes := atoiDefault(c.Query("window_minutes"), 30)
+	windowMinutes := atoiDefault(c.Query("window_minutes"), 12)
 
-	now := time.Now()
+	wib := time.FixedZone("WIB", 7*3600)
+	now := time.Now().In(wib)
 	target := now.Add(time.Duration(hoursBefore) * time.Hour)
 	start := target.Add(-time.Duration(windowMinutes) * time.Minute)
 	end := target.Add(time.Duration(windowMinutes) * time.Minute)
@@ -172,7 +173,7 @@ func (h *Handler) GetDueAssignments(c *gin.Context) {
 		Table("events").
 		Select("events.id, events.user_id, events.title, events.course, events.class_code, events.deadline, events.reminders_sent, events.completed, users.telegram_chat_id, users.name as user_name, users.muted_courses, users.class_code as user_class_code, users.course_keyword_filters, users.reminder_hours").
 		Joins("JOIN users ON users.id = events.user_id").
-		Where("events.deadline BETWEEN ? AND ? AND (events.status = ? OR (events.status IS NULL OR events.status = '') AND events.completed = ?) AND users.telegram_enabled = ? AND users.telegram_chat_id IS NOT NULL", start, end, "pending", false, true).
+		Where("events.deadline BETWEEN ? AND ? AND ((events.status = ? OR events.status IS NULL OR events.status = '') AND events.completed = ?) AND users.telegram_enabled = ? AND users.telegram_chat_id IS NOT NULL", start, end, "pending", false, true).
 		Scan(&rows).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
 		return
