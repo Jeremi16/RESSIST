@@ -152,11 +152,12 @@ func (h *Handler) SendMorningBriefing(c *gin.Context) {
 
 	chatID, _ := strconv.ParseInt(*user.TelegramChatID, 10, 64)
 
-	now := time.Now()
-	endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
+	wib := time.FixedZone("WIB", 7*3600)
+	now := time.Now().In(wib)
+	endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, wib)
 
 	var allAssignments []models.Event
-	h.db.Where("user_id = ? AND (status = ? OR (status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", userID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
+	h.db.Where("user_id = ? AND ((status = ? OR status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", userID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
 
 	assignments := classcode.FilterWithCourseClass(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters, user.CourseClassFilters)
 

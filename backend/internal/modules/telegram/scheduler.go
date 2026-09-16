@@ -94,11 +94,11 @@ func (s *Scheduler) sendMorningBriefing() {
 			continue
 		}
 
-		now := time.Now()
+		now := time.Now().In(time.FixedZone("WIB", 7*3600))
 		endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
 
 		var allAssignments []models.Event
-		s.bot.db.Where("user_id = ? AND (status = ? OR (status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", user.ID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
+		s.bot.db.Where("user_id = ? AND ((status = ? OR status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", user.ID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
 
 		// Filter assignments using pkg helper (per-matkul single, tampil semua fallback)
 		assignments := classcode.FilterWithCourseClass(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters, user.CourseClassFilters)
@@ -151,7 +151,7 @@ func (s *Scheduler) sendReminders(hoursBeforeDeadline int) {
 	end := targetTime.Add(30 * time.Minute)
 
 	var assignments []models.Event
-	err := s.bot.db.Where("deadline BETWEEN ? AND ? AND (status = ? OR (status IS NULL OR status = '') AND completed = ?)", start, end, "pending", false).Find(&assignments).Error
+	err := s.bot.db.Where("deadline BETWEEN ? AND ? AND ((status = ? OR status IS NULL OR status = '') AND completed = ?)", start, end, "pending", false).Find(&assignments).Error
 	if err != nil {
 		log.Printf("error fetching assignments for reminders: %v", err)
 		return
