@@ -96,7 +96,7 @@ export default function Docs() {
           <p className="text-sm text-black/60 leading-relaxed">
             Ressist menyediakan API untuk cek tugas programmatic via <code className="px-1.5 py-0.5 bg-[#F5F0EB] rounded text-xs">X-API-Key</code>. Cocok untuk
             script <code className="px-1.5 py-0.5 bg-[#F5F0EB] rounded text-xs">curl</code>, bot pribadi, atau integrasi kampus. Berbeda dengan login website yang
-            pakai cookie <code className="px-1.5 py-0.5 bg-[#F5F0EB] rounded text-xs">refresh_token</code> + JWT 15 menit, API Key bersifat stateless, panjang
+            pakai cookie <code className="px-1.5 py-0.5 bg-[#F5F0EB] rounded text-xs">refresh_token</code> + JWT 60 menit, API Key bersifat stateless, panjang
             umur, dan tidak butuh browser.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

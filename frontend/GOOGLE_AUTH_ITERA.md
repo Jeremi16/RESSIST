@@ -161,7 +161,7 @@ AUTH_JWT_SECRET="..."
 ## Keamanan
 
 1. **Domain Validation**: Hardcoded check untuk `@iter.ac.id`
-2. **Session**: JWT token dengan expiry 7 hari
+2. **Session**: JWT cookie + refresh token, expiry 3 hari + sliding (via `SESSION_TTL_DAYS` / `REFRESH_TOKEN_TTL_HOURS=72`)
 3. **CSRF Protection**: State parameter di OAuth flow
 4. **HttpOnly Cookie**: Session cookie tidak bisa diakses JS
 5. **Secure**: Cookie hanya HTTPS di production

@@ -15,6 +15,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fetchWithSessionRetry } from "@/src/lib/session-fetch";
 
 interface UserData {
   id: string;
@@ -40,7 +41,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch("/api/user");
+        const response = await fetchWithSessionRetry("/api/user");
         if (response.ok) {
           const data = await response.json();
           setUserData(data);

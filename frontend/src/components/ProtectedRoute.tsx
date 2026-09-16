@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { fetchWithSessionRetry } from "@/src/lib/session-fetch";
 
 // Pengganti middleware.ts untuk SPA:
 // middleware lama verify JWT (jose) di edge sebelum HTML dikirim.
@@ -14,7 +15,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/user", { credentials: "same-origin" });
+        const res = await fetchWithSessionRetry("/api/user", { credentials: "same-origin" });
         if (!cancelled) setState(res.ok ? "ok" : "unauth");
       } catch {
         if (!cancelled) setState("unauth");

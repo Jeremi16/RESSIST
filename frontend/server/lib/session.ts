@@ -1,5 +1,5 @@
 // Port lib/session.ts (next/headers cookies() -> hono/cookie).
-// Cookie sesi frontend: el-learning-session (JWT userId/email, 7 hari).
+// Cookie sesi frontend: el-learning-session (JWT userId/email, TTL via SESSION_TTL_DAYS).
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import type { Context } from "hono";
 import jwt from "jsonwebtoken";
@@ -9,6 +9,18 @@ export const SESSION_SECRET =
   process.env.SESSION_SECRET || "fallback-secret-for-development-only";
 export const COOKIE_NAME = "el-learning-session";
 export const REFRESH_COOKIE_NAME = "refresh_token";
+
+// TTL sesi 3 hari + sliding (backend memperpanjang refresh token tiap rotasi).
+// Override via SESSION_TTL_DAYS. Harus selaras dengan REFRESH_TOKEN_TTL_HOURS
+// backend (72) agar cookie dan record DB kedaluwarsa bersamaan.
+function getSessionTtlDays(): number {
+  const raw = Number(process.env.SESSION_TTL_DAYS || "3");
+  if (!Number.isFinite(raw) || raw <= 0) return 3;
+  return Math.floor(raw);
+}
+
+export const SESSION_TTL_DAYS = getSessionTtlDays();
+export const SESSION_MAX_AGE_SECONDS = SESSION_TTL_DAYS * 24 * 60 * 60;
 
 export interface SessionPayload {
   userId: string;
@@ -26,10 +38,10 @@ const baseCookieAttrs = () => ({
 export function createSession(c: Context, payload: SessionPayload | string) {
   const sessionData =
     typeof payload === "string" ? { userId: payload, email: "" } : payload;
-  const token = jwt.sign(sessionData, SESSION_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign(sessionData, SESSION_SECRET, { expiresIn: SESSION_MAX_AGE_SECONDS });
   setCookie(c, COOKIE_NAME, token, {
     ...baseCookieAttrs(),
-    maxAge: 7 * 24 * 60 * 60,
+    maxAge: SESSION_MAX_AGE_SECONDS,
   });
 }
 

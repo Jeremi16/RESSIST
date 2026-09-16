@@ -38,6 +38,7 @@ import { ProfileSettings } from "@/components/dashboard/ProfileSettings";
 import { ClassSettings } from "@/components/dashboard/ClassSettings";
 import { TimelineFilter } from "@/components/dashboard/TimelineFilter";
 import { ApiKeysSettings } from "@/components/dashboard/ApiKeysSettings";
+import { fetchWithSessionRetry } from "@/src/lib/session-fetch";
 
 interface UserData {
   id: string;
@@ -208,7 +209,7 @@ export default function Dashboard() {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch("/api/courses");
+      const response = await fetchWithSessionRetry("/api/courses");
       if (response.status === 401) {
         // Silent fail - fetchUserData will handle redirect
         return;
@@ -225,7 +226,7 @@ export default function Dashboard() {
   const fetchUserData = async () => {
     try {
       setIsLoadingUser(true);
-      const response = await fetch("/api/user");
+      const response = await fetchWithSessionRetry("/api/user");
       if (response.status === 401) {
         await redirectToLogin();
         return;
@@ -254,7 +255,7 @@ export default function Dashboard() {
       if (forceRefresh) query.append("force", "true");
       if (sort) query.append("sort", sort);
 
-      const response = await fetch(`/api/test-calendar?${query.toString()}`);
+      const response = await fetchWithSessionRetry(`/api/test-calendar?${query.toString()}`);
       if (response.status === 401) {
         await redirectToLogin();
         return;
@@ -398,7 +399,7 @@ export default function Dashboard() {
   const handleUpdate = async (updateData: any) => {
     setIsSaving(true);
     try {
-      const response = await fetch("/api/user", {
+      const response = await fetchWithSessionRetry("/api/user", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
@@ -468,7 +469,7 @@ export default function Dashboard() {
     setIsTesting(true);
     setPreviewError("");
     try {
-      const response = await fetch("/api/test-calendar", {
+      const response = await fetchWithSessionRetry("/api/test-calendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
