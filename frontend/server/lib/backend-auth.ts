@@ -3,7 +3,7 @@
 // -> Bearer access_token -> fetch BACKEND/v1/... (+ rotasi refresh_token).
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import type { Context } from "hono";
-import { COOKIE_NAME, REFRESH_COOKIE_NAME, clearSession } from "./session";
+import { COOKIE_NAME, REFRESH_COOKIE_NAME, SESSION_MAX_AGE_SECONDS, clearSession } from "./session";
 import { getBackendBaseUrl, getCookieDomain, isProduction } from "./env";
 
 export interface BackendAuthCallResult {
@@ -45,7 +45,7 @@ export function applyBackendAuthCookies(
     path: "/",
     secure: isProduction(),
     sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: SESSION_MAX_AGE_SECONDS,
     ...(domain ? { domain } : {}),
   });
 }
@@ -56,6 +56,46 @@ const refreshPromises = new Map<
   Promise<{ accessToken: string; rotatedRefreshToken?: string } | null>
 >();
 
+// Cache access token per refresh_token agar BFF tidak me-refresh ke backend
+// di setiap /api/* (sebelumnya tiap request = 1 rotasi = rawan race).
+// Diisi juga di bawah token HASIL rotasi, karena cookie browser berganti ke
+// token baru setelah rotasi — tanpa ini cache tidak pernah hit dua kali.
+// TTL 50 menit < access TTL backend (60 menit) agar tidak pernah pakai token basi.
+const ACCESS_CACHE_TTL_MS = 50 * 60 * 1000;
+const accessCache = new Map<
+  string,
+  { accessToken: string; rotatedRefreshToken?: string; exp: number }
+>();
+
+function getCachedAccess(
+  refreshToken: string,
+): { accessToken: string; rotatedRefreshToken?: string } | null {
+  const hit = accessCache.get(refreshToken);
+  if (!hit) return null;
+  if (hit.exp <= Date.now()) {
+    accessCache.delete(refreshToken);
+    return null;
+  }
+  return { accessToken: hit.accessToken, rotatedRefreshToken: hit.rotatedRefreshToken };
+}
+
+function putCachedAccess(
+  keys: string[],
+  value: { accessToken: string; rotatedRefreshToken?: string },
+): void {
+  if (accessCache.size > 2000) {
+    const now = Date.now();
+    for (const [k, v] of accessCache) {
+      if (v.exp <= now) accessCache.delete(k);
+    }
+    if (accessCache.size > 2000) accessCache.clear();
+  }
+  const exp = Date.now() + ACCESS_CACHE_TTL_MS;
+  for (const k of keys) {
+    accessCache.set(k, { ...value, exp });
+  }
+}
+
 async function refreshAccessToken(
   c: Context,
 ): Promise<{ accessToken: string; rotatedRefreshToken?: string } | null> {
@@ -64,6 +104,9 @@ async function refreshAccessToken(
     console.warn("[refreshAccessToken] No refresh_token cookie found");
     return null;
   }
+
+  const cached = getCachedAccess(refreshToken);
+  if (cached) return cached;
 
   if (refreshPromises.has(refreshToken)) {
     return refreshPromises.get(refreshToken)!;
@@ -88,12 +131,21 @@ async function refreshAccessToken(
       const payload = (await response.json()) as { access_token?: string };
       if (!payload.access_token) return null;
 
-      return {
+      const result = {
         accessToken: payload.access_token,
         rotatedRefreshToken: extractRefreshToken(
           response.headers.get("set-cookie"),
         ),
       };
+      // Index di bawah token lama DAN token baru (kalau rotasi) agar request
+      // berikut (yang bawa cookie baru) tetap hit cache.
+      putCachedAccess(
+        result.rotatedRefreshToken
+          ? [refreshToken, result.rotatedRefreshToken]
+          : [refreshToken],
+        result,
+      );
+      return result;
     } catch (error) {
       console.error("Refresh token error:", error);
       return null;

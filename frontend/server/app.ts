@@ -11,6 +11,7 @@ import {
 import {
   COOKIE_NAME,
   REFRESH_COOKIE_NAME,
+  SESSION_MAX_AGE_SECONDS,
   clearSession,
   createSession,
 } from "./lib/session";
@@ -190,7 +191,7 @@ app.get("/auth/google/callback", async (c) => {
         path: "/",
         secure: isProduction(),
         sameSite: "lax",
-        maxAge: 30 * 24 * 60 * 60,
+        maxAge: SESSION_MAX_AGE_SECONDS,
         ...(getCookieDomain() ? { domain: getCookieDomain() } : {}),
       });
     }
@@ -310,15 +311,18 @@ app.post("/auth/backend/sync", async (c) => {
 
   createSession(c, { userId: meData.id, email: meData.email || "" });
 
-  const setCookieHeader = refreshResponse.headers.get("set-cookie");
-  const rotated = setCookieHeader?.match(/refresh_token=([^;]+)/)?.[1];
+  // Backend bisa mengirim beberapa header Set-Cookie — baca semuanya agar
+  // token hasil rotasi tidak hilang (cookie hilang = sesi mati saat grace habis).
+  const rotated = getSetCookieHeaders(refreshResponse)
+    .map((sc) => sc.match(/refresh_token=([^;]+)/)?.[1])
+    .find(Boolean);
   if (rotated) {
     setCookie(c, REFRESH_COOKIE_NAME, rotated, {
       httpOnly: true,
       path: "/",
       secure: isProduction(),
       sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60,
+      maxAge: SESSION_MAX_AGE_SECONDS,
     });
   }
 
