@@ -29,6 +29,12 @@ func New(c *client.Client, send func(chatID int64, text string) error) *Schedule
 }
 
 // Start registers cron jobs and blocks until ctx cancelled.
+//
+// Reminder design (fix untuk "24/12/6/1 tidak bekerja"):
+// Satu job tiap 10 menit mengecek SEMUA bucket (24,12,6,3,1) dengan
+// window ±10 menit di sisi backend. Desain lama (satu cron sehari per
+// bucket, mis. 24h hanya jam 09:00) membuat deadline di jam lain
+// tidak pernah kena window ±30 menit.
 func (s *Scheduler) Start(ctx context.Context) error {
 	jobs := []struct {
 		spec string
@@ -36,11 +42,7 @@ func (s *Scheduler) Start(ctx context.Context) error {
 		name string
 	}{
 		{"0 7 * * *", s.sendMorningBriefing, "morning briefing"},
-		{"0 9 * * *", func() { s.sendReminders(24) }, "24h reminder"},
-		{"0 12 * * *", func() { s.sendReminders(12) }, "12h reminder"},
-		{"0 18 * * *", func() { s.sendReminders(6) }, "6h reminder"},
-		{"0 21 * * *", func() { s.sendReminders(3) }, "3h reminder"},
-		{"0 * * * *", func() { s.sendReminders(1) }, "1h reminder"},
+		{"*/10 * * * *", s.sendAllReminders, "all reminders (24/12/6/3/1h)"},
 	}
 	for _, j := range jobs {
 		fn, name := j.fn, j.name
@@ -101,13 +103,27 @@ func (s *Scheduler) sendMorningBriefing() {
 	}
 }
 
+// sendAllReminders dipanggil tiap 10 menit dan mengecek semua bucket.
+// Window 12 menit (interval 10 + buffer 2) agar tidak ada deadline yang
+// lolos di sela jadwal, dan MarkReminderSent mencegah duplikat.
+func (s *Scheduler) sendAllReminders() {
+	for _, h := range []int{24, 12, 6, 3, 1} {
+		s.sendReminders(h)
+	}
+}
+
 func (s *Scheduler) sendReminders(hoursBefore int) {
 	key := fmt.Sprintf("%dh", hoursBefore)
-	rows, err := s.client.GetDueAssignments(hoursBefore, 30)
+	// Window disamakan dengan interval cron (10 mnt + buffer).
+	rows, err := s.client.GetDueAssignments(hoursBefore, 12)
 	if err != nil {
 		log.Printf("due assignments (%s) failed: %v", key, err)
 		return
 	}
+	if len(rows) > 0 {
+		log.Printf("reminders (%s): %d due rows", key, len(rows))
+	}
+	sent := 0
 	for _, a := range rows {
 		if a.Completed || a.ChatID == nil {
 			continue
@@ -143,7 +159,12 @@ func (s *Scheduler) sendReminders(hoursBefore int) {
 		}
 		if err := s.client.MarkReminderSent(a.ID, key); err != nil {
 			log.Printf("mark-sent %s failed: %v", a.ID, err)
+		} else {
+			sent++
 		}
+	}
+	if sent > 0 {
+		log.Printf("reminders (%s): sent %d", key, sent)
 	}
 }
 
@@ -184,9 +205,9 @@ func parseArray(jsonStr string) []string {
 }
 
 func isReminderHourSelected(raw string, hoursBefore int) bool {
-	// Default aligns with backend User.ReminderHours default "[24]"
+	// Default selaras dengan User.ReminderHours baru "[24,12,6,1]".
 	if strings.TrimSpace(raw) == "" {
-		raw = "[24]"
+		raw = "[24,12,6,1]"
 	}
 	codes := parseArray(raw)
 	if len(codes) == 0 {

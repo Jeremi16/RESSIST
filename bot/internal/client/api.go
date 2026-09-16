@@ -103,6 +103,7 @@ type Assignment struct {
 	ClassCode  *string    `json:"class_code"`
 	Deadline   time.Time  `json:"deadline"`
 	Completed  bool       `json:"completed"`
+	Status     string     `json:"status"`
 	Source     string     `json:"source"`
 	URL        *string    `json:"url"`
 }
