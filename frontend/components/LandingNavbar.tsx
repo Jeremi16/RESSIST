@@ -3,6 +3,7 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
+import { useAuthStatus } from "@/src/hooks/use-auth-status";
 
 interface LandingNavbarProps {
   showBackButton?: boolean;
@@ -15,6 +16,8 @@ export function LandingNavbar({
   backHref = "/",
   className,
 }: LandingNavbarProps) {
+  // Hook selalu dipanggil (aturan hooks), hasilnya hanya dipakai varian default.
+  const authStatus = useAuthStatus();
   return (
     <header
       className={cn(
@@ -41,6 +44,18 @@ export function LandingNavbar({
             <ChevronLeft className="size-4" />
             Kembali
           </Link>
+        ) : authStatus === "authed" ? (
+          <Link
+            to="/dashboard"
+            className="bg-black text-white h-9 px-5 rounded-full text-sm font-medium hover:bg-black/90 transition-colors inline-flex items-center justify-center"
+          >
+            Dashboard
+          </Link>
+        ) : authStatus === "checking" ? (
+          <span
+            aria-hidden
+            className="h-9 w-[104px] rounded-full bg-black/10 animate-pulse"
+          />
         ) : (
           <Link
             to="/login"

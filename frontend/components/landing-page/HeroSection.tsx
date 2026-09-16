@@ -5,8 +5,14 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { useAuthStatus } from "@/src/hooks/use-auth-status";
 
 export function HeroSection() {
+  const authStatus = useAuthStatus();
+  const ctaClass = cn(
+    buttonVariants({ size: "lg" }),
+    "bg-black text-white rounded-full h-11 px-7 text-sm font-medium hover:bg-black/90 transition-colors inline-flex items-center justify-center gap-2",
+  );
   return (
     <section className="bg-[#F5F0EB] py-20 lg:py-28 overflow-hidden">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-8">
@@ -28,16 +34,22 @@ export function HeroSection() {
               Dibuat atas keresahan mahasiswa pejuang IPK.
             </p>
 
-            <Link
-              to="/register"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "bg-black text-white rounded-full h-11 px-7 text-sm font-medium hover:bg-black/90 transition-colors inline-flex items-center justify-center gap-2",
-              )}
-            >
-              Mulai Sekarang
-              <ArrowRight className="size-4" />
-            </Link>
+            {authStatus === "authed" ? (
+              <Link to="/dashboard" className={ctaClass}>
+                Buka Dashboard
+                <ArrowRight className="size-4" />
+              </Link>
+            ) : authStatus === "checking" ? (
+              <span
+                aria-hidden
+                className="h-11 w-[180px] rounded-full bg-black/10 animate-pulse inline-flex"
+              />
+            ) : (
+              <Link to="/register" className={ctaClass}>
+                Mulai Sekarang
+                <ArrowRight className="size-4" />
+              </Link>
+            )}
           </motion.div>
         </div>
       </div>
