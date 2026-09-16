@@ -640,8 +640,8 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 min-h-screen pt-14 pb-24 lg:pt-0 lg:pb-0">
-        <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto">
+      <main className="flex-1 lg:ml-64 min-h-screen min-w-0 max-w-full overflow-x-clip pt-14 pb-24 lg:pt-0 lg:pb-0">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto min-w-0 max-w-full overflow-x-clip">
           <header className="mb-6 flex items-center justify-between gap-4 border-b border-black/5 pb-6">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight text-black">
@@ -876,10 +876,9 @@ export default function Dashboard() {
                     {(activeTab === "kelas" ||
                 activeTab === "lms" ||
                 activeTab === "notifikasi" ||
-                activeTab === "tugas" ||
                 activeTab === "profile" ||
                 activeTab === "api") && (
-                <div className="w-full">
+                <div className="w-full min-w-0 max-w-full overflow-x-clip">
                     {(activeTab === "kelas" || activeTab === "notifikasi" || activeTab === "api") && (
                     <button
                       onClick={() => setActiveTab("lainnya")}
@@ -889,7 +888,7 @@ export default function Dashboard() {
                       Kembali ke Lainnya
                     </button>
                   )}
-                  <div className="bg-white p-4 sm:p-6 rounded-2xl border border-black/5 min-w-0 overflow-hidden">
+                  <div className="bg-white p-4 sm:p-6 rounded-2xl border border-black/5 min-w-0 max-w-full overflow-hidden overflow-x-clip">
                     {activeTab === "kelas" && (
                       <ClassSettings
                         classCode={userData?.class_code}
