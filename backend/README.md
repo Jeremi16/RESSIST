@@ -76,8 +76,8 @@ Semua via `os.Getenv` + `godotenv` (`internal/config/config.go:62`). Daftar leng
 | `GOOGLE_CLIENT_ID` / `SECRET` / `REDIRECT_URL` | `` | OAuth2 (`/v1/auth/google/callback` prefer) |
 | `ALLOWED_EMAIL_DOMAIN` | `student.itera.ac.id` | Domain check di `auth.Service.UpsertGoogleUser` |
 | `JWT_ACCESS_SECRET` | `` | HMAC HS256, `iss=ressist-api` `aud=ressist-frontend` |
-| `ACCESS_TOKEN_TTL_MINUTES` | `15` | TTL access JWT |
-| `REFRESH_TOKEN_TTL_HOURS` | `720` | 30 hari, simpan `sha256` di `refresh_tokens` |
+| `ACCESS_TOKEN_TTL_MINUTES` | `60` | TTL access JWT |
+| `REFRESH_TOKEN_TTL_HOURS` | `72` | 3 hari + sliding (tiap rotasi expiry diperpanjang), simpan `sha256` di `refresh_tokens`. Rotasi concurrent aman: kalah race tidak me-revoke (grace 120 dtk) |
 | `FRONTEND_URL` | `http://localhost:3000` | Redirect setelah OAuth |
 | `FRONTEND_SUCCESS_PATH` | `/login?auth=success` | Path sukses |
 | `FRONTEND_ERROR_PATH` | `/login` | Path error |

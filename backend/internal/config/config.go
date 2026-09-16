@@ -84,8 +84,10 @@ func Load() (*Config, error) {
 		AllowedEmailDomain: getEnv("ALLOWED_EMAIL_DOMAIN", "student.itera.ac.id"),
 
 		JWTAccessSecret:      getEnv("JWT_ACCESS_SECRET", ""),
-		AccessTokenTTLMinute: getEnvAsInt("ACCESS_TOKEN_TTL_MINUTES", 15),
-		RefreshTokenTTLHour:  getEnvAsInt("REFRESH_TOKEN_TTL_HOURS", 720),
+		// Access token 60 menit: BFF me-refresh otomatis, user tidak merasakan.
+		// Refresh token 72 jam (3 hari) + sliding: tiap rotasi expiry diperpanjang.
+		AccessTokenTTLMinute: getEnvAsInt("ACCESS_TOKEN_TTL_MINUTES", 60),
+		RefreshTokenTTLHour:  getEnvAsInt("REFRESH_TOKEN_TTL_HOURS", 72),
 
 		FrontendURL:         getEnv("FRONTEND_URL", "http://localhost:3000"),
 		FrontendSuccessPath: getEnv("FRONTEND_SUCCESS_PATH", "/login?auth=success"),
