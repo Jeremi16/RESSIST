@@ -225,9 +225,14 @@ Scopes: `openid` + `userinfo.email` + `userinfo.profile` + `classroom.courses.re
 
 ---
 
+## Dokumentasi
+
+*   [`docs/README.md`](docs/README.md) — index runbook backend
+*   [`docs/backup.md`](docs/backup.md) — backup & restore Postgres dari sisi backend (`DATABASE_URL`)
+
 ## Referensi
 
 *   Full API: [`API_DOCUMENTATION.md`](API_DOCUMENTATION.md)
 *   OpenAPI: `GET /openapi.json`
-*   Backup: [`ops/backup/README.md`](../ops/backup/README.md)
+*   Backup (canonical): [`ops/backup/README.md`](../ops/backup/README.md) — lihat juga [`docs/backup.md`](docs/backup.md)
 *   Bot: [`bot/README.md`](../bot/README.md)

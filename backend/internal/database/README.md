@@ -29,3 +29,7 @@ db, err := database.New(cfg.DatabaseURL, cfg.AutoMigrate)
 ## Health
 
 Readiness probe `GET /readyz` (`shared/router/router.go:56`) melakukan `sqlDB.PingContext(2s)` — jika gagal return `503 {status:not_ready, error:db_ping_failed}`.
+
+## Backup
+
+Runbook backup/restore dari sisi backend (mapping `DATABASE_URL` ↔ `LOCAL_DB_URL`, restore & verification) ada di [`../../docs/backup.md`](../../docs/backup.md). Source of truth script tetap di [`../../../ops/backup/README.md`](../../../ops/backup/README.md).
