@@ -993,11 +993,11 @@ export default function Dashboard() {
                             reminderHours={(() => {
                               try {
                                 const parsed = JSON.parse(
-                                  userData?.reminder_hours || "[24]",
+                                  userData?.reminder_hours || "[24,12,6,1]",
                                 );
-                                return Array.isArray(parsed) ? parsed : [24];
+                                return Array.isArray(parsed) ? parsed : [24, 12, 6, 1];
                               } catch {
-                                return [24];
+                                return [24, 12, 6, 1];
                               }
                             })()}
                             morningBriefing={userData?.morning_briefing || false}

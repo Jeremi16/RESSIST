@@ -27,7 +27,7 @@ type User struct {
 	GoogleAccessToken      *string    `gorm:"column:google_access_token"`
 	GoogleRefreshToken     *string    `gorm:"column:google_refresh_token"`
 	GoogleTokenExpiry      *time.Time `gorm:"column:google_token_expiry"`
-	ReminderHours          string     `gorm:"column:reminder_hours;default:'[24]'"`
+	ReminderHours          string     `gorm:"column:reminder_hours;default:'[24,12,6,1]'"`
 	MorningBriefing        bool       `gorm:"column:morning_briefing;default:false"`
 	MutedCourses           string     `gorm:"column:muted_courses;default:'[]'"`
 	CourseAliases          string     `gorm:"column:course_aliases;default:'{}'"`

@@ -42,6 +42,9 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 		// Backfill status for existing rows: completed=true -> status=completed, else pending/missed stays pending
 		// Also ensure status column has default for old rows where status is empty
 		_ = db.Exec(`UPDATE events SET status = CASE WHEN completed = true THEN 'completed' ELSE 'pending' END WHERE status IS NULL OR status = ''`).Error
+		// Backfill empty reminder_hours ke default baru agar reminder 12/6/1 ikut jalan.
+		// User yang eksplisit memilih "[24]" tidak diubah (hargai pilihan).
+		_ = db.Exec(`UPDATE users SET reminder_hours = '[24,12,6,1]' WHERE reminder_hours IS NULL OR TRIM(reminder_hours) = '' OR TRIM(reminder_hours) = '[]'`).Error
 	}
 
 	return db, nil

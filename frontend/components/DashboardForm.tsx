@@ -67,9 +67,9 @@ export function DashboardForm({
   );
   const [reminderHours, setReminderHours] = useState<number[]>(() => {
     try {
-      return JSON.parse(initialData.reminder_hours || "[24]");
+      return JSON.parse(initialData.reminder_hours || "[24,12,6,1]");
     } catch {
-      return [24];
+      return [24, 12, 6, 1];
     }
   });
   const [morningBriefing, setMorningBriefing] = useState(
