@@ -39,6 +39,7 @@ import { ClassSettings } from "@/components/dashboard/ClassSettings";
 import { TimelineFilter } from "@/components/dashboard/TimelineFilter";
 import { ApiKeysSettings } from "@/components/dashboard/ApiKeysSettings";
 import { fetchWithSessionRetry } from "@/src/lib/session-fetch";
+import { invalidateAuthStatus } from "@/src/hooks/use-auth-status";
 
 interface UserData {
   id: string;
@@ -158,6 +159,7 @@ export default function Dashboard() {
     } catch (e) {
       console.error("Auto-logout failed:", e);
     }
+    invalidateAuthStatus();
     navigate("/login?reason=session-expired", { replace: true });
   };
 
@@ -498,6 +500,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    invalidateAuthStatus();
     navigate("/login", { replace: true });
   };
 

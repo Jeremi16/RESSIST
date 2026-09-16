@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetchWithSessionRetry } from "@/src/lib/session-fetch";
+import { invalidateAuthStatus } from "@/src/hooks/use-auth-status";
 
 interface UserData {
   id: string;
@@ -51,6 +52,7 @@ export default function ProfilePage() {
           } catch (e) {
             console.error("Auto-logout failed:", e);
           }
+          invalidateAuthStatus();
           navigate("/login?reason=session-expired", { replace: true });
         }
       } catch (error) {
