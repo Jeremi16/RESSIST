@@ -14,6 +14,7 @@ import {
   SESSION_MAX_AGE_SECONDS,
   clearSession,
   createSession,
+  verifySession,
 } from "./lib/session";
 import { getAppBaseUrl, getBackendBaseUrl, getCookieDomain, isProduction } from "./lib/env";
 
@@ -129,6 +130,12 @@ function getSetCookieHeaders(res: Response): string[] {
 }
 
 app.get("/auth/google/login", async (c) => {
+  // Sudah punya sesi? Lewati OAuth — langsung ke dashboard.
+  // Menutup jalur navigasi langsung (bookmark, back-button) yang tidak
+  // lewat cek client-side di halaman login.
+  if (verifySession(c) !== null) {
+    return c.redirect(`${getAppBaseUrl()}/dashboard`, 302);
+  }
   const backendUrl = `${getBackendBaseUrl()}/v1/auth/google/login`;
   const res = await fetch(backendUrl, {
     method: "GET",
@@ -260,6 +267,14 @@ app.post("/auth/logout", async (c) => {
   await revokeBackendSession(c);
   clearSession(c);
   return c.json({ success: true, message: "Logged out successfully" });
+});
+
+// ---------- auth: status ----------
+// Cek ringan khusus UI (navbar, halaman login): hanya verifikasi cookie sesi
+// frontend, TANPA memanggil backend (tanpa rotasi refresh, tanpa beban DB).
+// Selalu 200 agar client tidak perlu membedakan 401 vs network error.
+app.get("/auth/status", (c) => {
+  return c.json({ authenticated: verifySession(c) !== null });
 });
 
 // ---------- auth: backend sync ( dipakai Login ?auth=success ) ----------
