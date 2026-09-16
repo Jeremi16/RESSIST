@@ -469,7 +469,7 @@ func (b *Bot) handleStatus(msg *tgbotapi.Message) {
 	b.reply(msg.Chat.ID, fmt.Sprintf(
 		"👤 *Status Akun*\n\nNama: %s\nTelegram: %s\nMorning briefing: %v\nReminder hours: %s\nMuted courses: %s\nClass code: %s",
 		escape(full.Name), boolID(full.TelegramEnabled), full.MorningBriefing,
-		escape(emptyDefault(full.ReminderHours, "[24]")), escape(emptyDefault(full.MutedCourses, "[]")), escape(classCode),
+		escape(emptyDefault(full.ReminderHours, "[24,12,6,1]")), escape(emptyDefault(full.MutedCourses, "[]")), escape(classCode),
 	))
 }
 

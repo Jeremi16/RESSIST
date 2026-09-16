@@ -69,6 +69,7 @@ func (s *Scheduler) sendMorningBriefing() {
 		log.Printf("briefing candidates failed: %v", err)
 		return
 	}
+	log.Printf("morning briefing: %d candidates", len(candidates))
 	for _, u := range candidates {
 		if u.TelegramChat == nil {
 			continue
@@ -82,18 +83,25 @@ func (s *Scheduler) sendMorningBriefing() {
 			log.Printf("assignments for %s failed: %v", u.ID, err)
 			continue
 		}
-		now := time.Now()
-		end := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
+		wib := time.FixedZone("WIB", 7*3600)
+		now := time.Now().In(wib)
+		end := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, wib)
 		var pending []client.Assignment
 		for _, a := range items {
 			if a.Completed {
 				continue
 			}
+			if a.Status == "completed" || a.Status == "missed" {
+				continue
+			}
+			// GetAssignments sudah difilter server-side (muted/class/keyword),
+			// jadi di sini cukup filter rentang deadline.
 			if a.Deadline.Before(now.Add(-1*time.Hour)) || a.Deadline.After(end) {
 				continue
 			}
 			pending = append(pending, a)
 		}
+		log.Printf("morning briefing: user %s has %d pending (from %d assignments)", u.ID, len(pending), len(items))
 		text := buildBriefing(u.Name, pending)
 		if err := s.send(chatID, text); err != nil {
 			log.Printf("briefing to %s failed: %v", u.ID, err)
