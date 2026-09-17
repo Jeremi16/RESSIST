@@ -45,7 +45,17 @@ suspend fun throwForStatus(response: HttpResponse): Nothing {
 
 suspend inline fun <reified T> HttpResponse.bodyOrThrow(): T {
     if (!status.isSuccess()) throwForStatus(this)
-    return body()
+    try {
+        return body()
+    } catch (e: kotlinx.serialization.SerializationException) {
+        // Backend shape drift (see LenientSerializers): surface as a typed
+        // error with a readable message instead of a raw crash dump.
+        throw RessistApiException(
+            status.value,
+            "invalid_response",
+            "Respons server tak dikenali: ${e.message?.take(160)}",
+        )
+    }
 }
 
 /**
