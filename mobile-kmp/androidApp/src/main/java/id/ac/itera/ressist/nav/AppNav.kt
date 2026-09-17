@@ -1,19 +1,13 @@
 package id.ac.itera.ressist.nav
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assignment
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,34 +16,36 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
 import id.ac.itera.ressist.auth.AuthManager
 import id.ac.itera.ressist.ui.common.LoadingBox
+import id.ac.itera.ressist.ui.common.RessistBottomBar
+import id.ac.itera.ressist.ui.common.RessistIcons
+import id.ac.itera.ressist.ui.common.RessistTab
 import id.ac.itera.ressist.ui.kalender.KalenderScreen
+import id.ac.itera.ressist.ui.kelas.KelasScreen
+import id.ac.itera.ressist.ui.lainnya.LainnyaScreen
 import id.ac.itera.ressist.ui.lms.LmsScreen
 import id.ac.itera.ressist.ui.login.LoginScreen
 import id.ac.itera.ressist.ui.overview.OverviewScreen
+import id.ac.itera.ressist.ui.pengaturan.TampilanScreen
+import id.ac.itera.ressist.ui.pengingat.PengingatScreen
 import id.ac.itera.ressist.ui.profil.ProfilScreen
 import id.ac.itera.ressist.ui.tugas.TugasScreen
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.koinInject
 
-private data class Tab(val label: String, val icon: ImageVector)
-
+/** Bottom nav: 4 primer + Lainnya (Profil pindah ke Lainnya). */
 private val TABS = listOf(
-    Tab("Beranda", Icons.Filled.Home),
-    Tab("Tugas", Icons.Filled.Assignment),
-    Tab("Kalender", Icons.Filled.CalendarMonth),
-    Tab("LMS", Icons.Filled.School),
-    Tab("Profil", Icons.Filled.Person),
+    RessistTab("Ringkasan", RessistIcons.Home),
+    RessistTab("Tugas", RessistIcons.Assignment),
+    RessistTab("LMS", RessistIcons.School),
+    RessistTab("Pengingat", RessistIcons.Notifications),
+    RessistTab("Lainnya", RessistIcons.MoreHoriz),
 )
 
 /** Asks POST_NOTIFICATIONS once on Android 13+ (reminders are local). */
@@ -110,28 +106,51 @@ fun AppNav(authManager: AuthManager = koinInject()) {
 @Composable
 private fun MainScaffold() {
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    // Sub-navigasi internal:
+    // - Tampilan penuh kalender dibuka dari kartu Overview.
+    // - Detail Tampilan/Kelas/Profil dibuka dari tab Lainnya.
+    var showCalendar by rememberSaveable { mutableStateOf(false) }
+    var lainnyaDetail by rememberSaveable { mutableStateOf<String?>(null) }
     RequestNotificationPermission()
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            NavigationBar {
-                TABS.forEachIndexed { i, t ->
-                    NavigationBarItem(
-                        selected = tab == i,
-                        onClick = { tab = i },
-                        icon = { Icon(t.icon, contentDescription = t.label) },
-                        label = { Text(t.label) },
-                    )
-                }
-            }
+            RessistBottomBar(
+                tabs = TABS,
+                selected = tab,
+                onSelect = {
+                    tab = it
+                    showCalendar = false
+                    lainnyaDetail = null
+                },
+            )
         },
     ) { padding ->
         val modifier = Modifier.padding(padding)
         when (tab) {
-            0 -> OverviewScreen(modifier)
+            0 -> if (showCalendar) {
+                KalenderScreen(modifier, onBack = { showCalendar = false })
+            } else {
+                OverviewScreen(
+                    modifier,
+                    onOpenLms = { tab = 2 },
+                    onOpenCalendar = { showCalendar = true },
+                )
+            }
             1 -> TugasScreen(modifier)
-            2 -> KalenderScreen(modifier)
-            3 -> LmsScreen(modifier)
-            else -> ProfilScreen(modifier)
+            2 -> LmsScreen(modifier)
+            3 -> PengingatScreen(modifier = modifier)
+            else -> when (lainnyaDetail) {
+                "tampilan" -> TampilanScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
+                "kelas" -> KelasScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
+                "profil" -> ProfilScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
+                else -> LainnyaScreen(
+                    onOpenKelas = { lainnyaDetail = "kelas" },
+                    onOpenProfil = { lainnyaDetail = "profil" },
+                    onOpenTampilan = { lainnyaDetail = "tampilan" },
+                    modifier = modifier,
+                )
+            }
         }
     }
 }
