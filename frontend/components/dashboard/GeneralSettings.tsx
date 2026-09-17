@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Clock, Save, Loader2, CheckCircle2, Bell, BellOff, Sun, Send, Sunrise, AlertCircle, Volume2, VolumeX } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { apiFetch } from '@/src/lib/api-client'
 
 interface GeneralSettingsProps {
   reminderHours: number[]
@@ -46,7 +47,7 @@ export function GeneralSettings({ reminderHours, morningBriefing, mutedCourses, 
     setTestMessage(null)
     try {
       const endpoint = type === 'reminder' ? '/api/telegram/test-reminder' : '/api/telegram/test-briefing'
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      const res = await apiFetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
       const data = await res.json().catch(() => ({} as Record<string, string>))
       if (res.ok) {
         const msg = (data as { message?: string; filtered?: boolean }).message

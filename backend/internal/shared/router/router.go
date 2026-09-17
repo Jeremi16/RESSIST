@@ -45,7 +45,7 @@ func New(
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.AllowedOrigins,
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
-		AllowHeaders:     []string{"Authorization", "Content-Type", "X-Request-ID", "X-API-Key"},
+		AllowHeaders:     []string{"Authorization", "Content-Type", "X-Request-ID", "X-API-Key", "X-Refresh-Token"},
 		ExposeHeaders:    []string{"X-Request-ID"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -148,6 +148,7 @@ func New(
 func registerAuthRoutes(group *gin.RouterGroup, h *auth.Handler, parser middleware.TokenParser, authRateLimit gin.HandlerFunc) {
 	group.GET("/google/login", authRateLimit, h.GoogleLogin)
 	group.GET("/google/callback", authRateLimit, h.GoogleCallback)
+	group.POST("/google/native", authRateLimit, h.GoogleNative)
 	group.POST("/refresh", authRateLimit, h.Refresh)
 	group.POST("/logout", authRateLimit, h.Logout)
 	group.GET("/me", middleware.AccessToken(parser), h.Me)

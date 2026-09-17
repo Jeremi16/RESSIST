@@ -50,6 +50,9 @@ type Service struct {
 	cfg      *config.Config
 	tokens   *TokenService
 	oauthCfg *oauth2.Config
+	// oauthNative exchanges serverAuthCode from Android native sign-in.
+	// Same client ID/secret, but no web redirect URL.
+	oauthNative *oauth2.Config
 	client   *http.Client
 }
 
@@ -71,11 +74,26 @@ func NewService(db *gorm.DB, cfg *config.Config, tokens *TokenService) (*Service
 			"https://www.googleapis.com/auth/classroom.coursework.me.readonly",
 		},
 	}
+	oauthNative := &oauth2.Config{
+		ClientID:     cfg.GoogleClientID,
+		ClientSecret: cfg.GoogleClientSecret,
+		RedirectURL:  "",
+		Endpoint:     google.Endpoint,
+		Scopes: []string{
+			"openid",
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+			"https://www.googleapis.com/auth/classroom.course-work.readonly",
+			"https://www.googleapis.com/auth/classroom.courses.readonly",
+			"https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+		},
+	}
 	return &Service{
 		db:       db,
 		cfg:      cfg,
 		tokens:   tokens,
 		oauthCfg: oauthCfg,
+		oauthNative: oauthNative,
 		client:   &http.Client{Timeout: 15 * time.Second},
 	}, nil
 }
@@ -90,6 +108,28 @@ func (s *Service) BuildGoogleLoginURL(state string, hasExistingSession bool) str
 
 func (s *Service) ExchangeGoogleCode(ctx context.Context, code string) (*oauth2.Token, error) {
 	return s.oauthCfg.Exchange(ctx, code)
+}
+
+// ExchangeNativeCode exchanges a serverAuthCode obtained from Android
+// native Google sign-in (no web redirect URL, no state cookie).
+func (s *Service) ExchangeNativeCode(ctx context.Context, code string) (*oauth2.Token, error) {
+	return s.oauthNative.Exchange(ctx, code)
+}
+
+// refreshTTLForClient returns the sliding TTL for a refresh token chain.
+func (s *Service) refreshTTLForClient(client string) time.Duration {
+	if client == "mobile" {
+		hours := s.cfg.MobileRefreshTokenTTLHour
+		if hours <= 0 {
+			hours = 720
+		}
+		return time.Duration(hours) * time.Hour
+	}
+	hours := s.cfg.RefreshTokenTTLHour
+	if hours <= 0 {
+		hours = 72
+	}
+	return time.Duration(hours) * time.Hour
 }
 
 func (s *Service) FetchGoogleUser(ctx context.Context, accessToken string) (*GoogleUserInfo, error) {
@@ -218,15 +258,23 @@ func (s *Service) ParseAccessToken(raw string) (*middleware.AccessClaims, error)
 }
 
 func (s *Service) CreateRefreshToken(ctx context.Context, userID string, userAgent string, ipAddress string) (string, error) {
+	return s.CreateRefreshTokenForClient(ctx, userID, userAgent, ipAddress, "web")
+}
+
+func (s *Service) CreateRefreshTokenForClient(ctx context.Context, userID string, userAgent string, ipAddress string, client string) (string, error) {
+	if client != "mobile" {
+		client = "web"
+	}
 	raw, err := generateSecureToken(48)
 	if err != nil {
 		return "", err
 	}
-	expiresAt := time.Now().UTC().Add(time.Duration(s.cfg.RefreshTokenTTLHour) * time.Hour)
+	expiresAt := time.Now().UTC().Add(s.refreshTTLForClient(client))
 	record := models.RefreshToken{
 		UserID:    userID,
 		TokenHash: hashToken(raw),
 		ExpiresAt: expiresAt,
+		Client:    client,
 		UserAgent: userAgent,
 		IPAddress: ipAddress,
 	}
@@ -285,6 +333,16 @@ func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userA
 			Update("revoked_at", &now).Error
 		return nil, "", ErrExpiredRefreshToken
 	}
+	// Absolute max lifetime: even with sliding rotation, force re-login.
+	if maxDays := s.cfg.RefreshTokenAbsoluteMaxDays; maxDays > 0 {
+		if now.Sub(existing.CreatedAt) > time.Duration(maxDays)*24*time.Hour {
+			_ = s.db.WithContext(ctx).
+				Model(&models.RefreshToken{}).
+				Where("id = ? AND revoked_at IS NULL", existing.ID).
+				Update("revoked_at", &now).Error
+			return nil, "", ErrExpiredRefreshToken
+		}
+	}
 	var user models.User
 	if err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error; err != nil {
 		return nil, "", err
@@ -293,10 +351,15 @@ func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userA
 	if err != nil {
 		return nil, "", err
 	}
+	client := existing.Client
+	if client != "mobile" {
+		client = "web"
+	}
 	newRecord := models.RefreshToken{
 		UserID:    user.ID,
 		TokenHash: hashToken(newRaw),
-		ExpiresAt: now.Add(time.Duration(s.cfg.RefreshTokenTTLHour) * time.Hour),
+		ExpiresAt: now.Add(s.refreshTTLForClient(client)),
+		Client:    client,
 		UserAgent: userAgent,
 		IPAddress: ipAddress,
 	}

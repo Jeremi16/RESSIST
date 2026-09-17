@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { fetchWithSessionRetry } from "@/src/lib/session-fetch";
+import { apiFetch } from "@/src/lib/api-client";
 import { invalidateAuthStatus } from "@/src/hooks/use-auth-status";
 
 // Pengganti middleware.ts untuk SPA:
@@ -16,7 +16,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetchWithSessionRetry("/api/user", { credentials: "same-origin" });
+        const res = await apiFetch("/api/user", { credentials: "same-origin" });
         if (cancelled) return;
         if (!res.ok) invalidateAuthStatus();
         setState(res.ok ? "ok" : "unauth");

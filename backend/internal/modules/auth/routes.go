@@ -16,11 +16,13 @@ func (h *Handler) registerAuthRoutes(rg *gin.RouterGroup, parser middleware.Toke
 	if rateLimit != nil {
 		rg.GET("/google/login", rateLimit, h.GoogleLogin)
 		rg.GET("/google/callback", rateLimit, h.GoogleCallback)
+		rg.POST("/google/native", rateLimit, h.GoogleNative)
 		rg.POST("/refresh", rateLimit, h.Refresh)
 		rg.POST("/logout", rateLimit, h.Logout)
 	} else {
 		rg.GET("/google/login", h.GoogleLogin)
 		rg.GET("/google/callback", h.GoogleCallback)
+		rg.POST("/google/native", h.GoogleNative)
 		rg.POST("/refresh", h.Refresh)
 		rg.POST("/logout", h.Logout)
 	}

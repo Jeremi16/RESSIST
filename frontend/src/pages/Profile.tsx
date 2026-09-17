@@ -15,7 +15,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { fetchWithSessionRetry } from "@/src/lib/session-fetch";
+import { apiFetch } from "@/src/lib/api-client";
 import { invalidateAuthStatus } from "@/src/hooks/use-auth-status";
 
 interface UserData {
@@ -42,13 +42,13 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetchWithSessionRetry("/api/user");
+        const response = await apiFetch("/api/user");
         if (response.ok) {
           const data = await response.json();
           setUserData(data);
         } else if (response.status === 401) {
           try {
-            await fetch("/api/auth/logout", { method: "POST" });
+            await apiFetch("/api/auth/logout", { method: "POST" });
           } catch (e) {
             console.error("Auto-logout failed:", e);
           }

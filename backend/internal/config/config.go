@@ -30,6 +30,13 @@ type Config struct {
 	JWTAccessSecret      string
 	AccessTokenTTLMinute int
 	RefreshTokenTTLHour  int
+	// MobileRefreshTokenTTLHour is used for native Android (Capacitor)
+	// refresh tokens issued via POST /v1/auth/google/native.
+	// Web keeps RefreshTokenTTLHour (72h), mobile defaults to 720h (30 days).
+	MobileRefreshTokenTTLHour int
+	// RefreshTokenAbsoluteMaxDays caps sliding refresh forever.
+	// Even with sliding rotation, a token chain older than this forces re-login.
+	RefreshTokenAbsoluteMaxDays int
 
 	FrontendURL         string
 	FrontendSuccessPath string
@@ -88,6 +95,8 @@ func Load() (*Config, error) {
 		// Refresh token 72 jam (3 hari) + sliding: tiap rotasi expiry diperpanjang.
 		AccessTokenTTLMinute: getEnvAsInt("ACCESS_TOKEN_TTL_MINUTES", 60),
 		RefreshTokenTTLHour:  getEnvAsInt("REFRESH_TOKEN_TTL_HOURS", 72),
+		MobileRefreshTokenTTLHour: getEnvAsInt("MOBILE_REFRESH_TOKEN_TTL_HOURS", 720),
+		RefreshTokenAbsoluteMaxDays: getEnvAsInt("REFRESH_TOKEN_ABSOLUTE_MAX_DAYS", 90),
 
 		FrontendURL:         getEnv("FRONTEND_URL", "http://localhost:3000"),
 		FrontendSuccessPath: getEnv("FRONTEND_SUCCESS_PATH", "/login?auth=success"),

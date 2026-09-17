@@ -13,6 +13,9 @@ type RefreshToken struct {
 	TokenHash string     `gorm:"uniqueIndex;not null"`
 	ExpiresAt time.Time  `gorm:"index;not null"`
 	RevokedAt *time.Time `gorm:"index"`
+	// Client distinguishes web (cookie/BFF) vs mobile (native/Capacitor).
+	// Values: "web" (default) or "mobile". Used to apply per-client TTL on rotation.
+	Client    string `gorm:"size:16;not null;default:web;index"`
 	UserAgent string
 	IPAddress string
 	CreatedAt time.Time
@@ -24,6 +27,9 @@ type RefreshToken struct {
 func (t *RefreshToken) BeforeCreate(_ *gorm.DB) error {
 	if t.ID == "" {
 		t.ID = uuid.NewString()
+	}
+	if t.Client == "" {
+		t.Client = "web"
 	}
 	return nil
 }

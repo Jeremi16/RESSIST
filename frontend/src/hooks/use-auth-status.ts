@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/src/lib/api-client";
 
 export type AuthStatus = "checking" | "authed" | "guest";
 
@@ -12,7 +13,7 @@ function fetchAuthStatus(): Promise<boolean> {
   if (!cachedPromise) {
     cachedPromise = (async () => {
       try {
-        const res = await fetch("/api/auth/status", {
+        const res = await apiFetch("/api/auth/status", {
           credentials: "same-origin",
         });
         if (!res.ok) return false;

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Copy, Check, RefreshCw, ExternalLink, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { apiFetch } from '@/src/lib/api-client'
 
 interface TelegramVerifyProps { chatId?: string | null; botUsername?: string; onConnect?: () => void }
 
@@ -18,7 +19,7 @@ export function TelegramVerify({ chatId, botUsername = 'ressist_bot', onConnect 
   const generateCode = async () => {
     setIsGenerating(true)
     try {
-      const response = await fetch('/api/user/telegram/verify-code', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      const response = await apiFetch('/api/user/telegram/verify-code', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
       if (!response.ok) throw new Error('Failed')
       const data = await response.json()
       setVerifyCode(data.code); setExpiresAt(data.expires_at); setProgress(100)

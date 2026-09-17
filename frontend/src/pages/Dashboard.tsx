@@ -38,7 +38,7 @@ import { ProfileSettings } from "@/components/dashboard/ProfileSettings";
 import { ClassSettings } from "@/components/dashboard/ClassSettings";
 import { TimelineFilter } from "@/components/dashboard/TimelineFilter";
 import { ApiKeysSettings } from "@/components/dashboard/ApiKeysSettings";
-import { fetchWithSessionRetry } from "@/src/lib/session-fetch";
+import { apiFetch } from "@/src/lib/api-client";
 import { invalidateAuthStatus } from "@/src/hooks/use-auth-status";
 
 interface UserData {
@@ -155,7 +155,7 @@ export default function Dashboard() {
 
   const redirectToLogin = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await apiFetch("/api/auth/logout", { method: "POST" });
     } catch (e) {
       console.error("Auto-logout failed:", e);
     }
@@ -211,7 +211,7 @@ export default function Dashboard() {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetchWithSessionRetry("/api/courses");
+      const response = await apiFetch("/api/courses");
       if (response.status === 401) {
         // Silent fail - fetchUserData will handle redirect
         return;
@@ -228,7 +228,7 @@ export default function Dashboard() {
   const fetchUserData = async () => {
     try {
       setIsLoadingUser(true);
-      const response = await fetchWithSessionRetry("/api/user");
+      const response = await apiFetch("/api/user");
       if (response.status === 401) {
         await redirectToLogin();
         return;
@@ -257,7 +257,7 @@ export default function Dashboard() {
       if (forceRefresh) query.append("force", "true");
       if (sort) query.append("sort", sort);
 
-      const response = await fetchWithSessionRetry(`/api/test-calendar?${query.toString()}`);
+      const response = await apiFetch(`/api/test-calendar?${query.toString()}`);
       if (response.status === 401) {
         await redirectToLogin();
         return;
@@ -319,7 +319,7 @@ export default function Dashboard() {
   const fetchAssignments = async () => {
     setIsLoadingAssignments(true);
     try {
-      const response = await fetch("/api/assignments");
+      const response = await apiFetch("/api/assignments");
       if (response.ok) {
         const data = await response.json();
         setAllAssignments(Array.isArray(data) ? data : data.assignments || []);
@@ -341,7 +341,7 @@ export default function Dashboard() {
       // fetchAssignments akan dipanggil setelah preview selesai;
       // panggil lagi untuk pastikan kolom Mendatang/Selesai sinkron dengan DB terbaru.
       try {
-        const response = await fetch("/api/assignments");
+        const response = await apiFetch("/api/assignments");
         if (response.ok) {
           const data = await response.json();
           setAllAssignments(Array.isArray(data) ? data : data.assignments || []);
@@ -362,7 +362,7 @@ export default function Dashboard() {
         showToast({ title: "Tidak dapat menandai", description: "Tugas Classroom mengikuti status dari Google Classroom.", variant: "info" });
         return;
       }
-      const response = await fetch("/api/assignments/complete", {
+      const response = await apiFetch("/api/assignments/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assignment_id: assignmentId }),
@@ -401,7 +401,7 @@ export default function Dashboard() {
   const handleUpdate = async (updateData: any) => {
     setIsSaving(true);
     try {
-      const response = await fetchWithSessionRetry("/api/user", {
+      const response = await apiFetch("/api/user", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
@@ -471,7 +471,7 @@ export default function Dashboard() {
     setIsTesting(true);
     setPreviewError("");
     try {
-      const response = await fetchWithSessionRetry("/api/test-calendar", {
+      const response = await apiFetch("/api/test-calendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -499,7 +499,7 @@ export default function Dashboard() {
   };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await apiFetch("/api/auth/logout", { method: "POST" });
     invalidateAuthStatus();
     navigate("/login", { replace: true });
   };

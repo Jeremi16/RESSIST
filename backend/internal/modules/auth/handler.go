@@ -117,10 +117,99 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, urlutil.Join(h.cfg.FrontendURL, h.cfg.FrontendSuccessPath))
 }
 
+// GoogleNative handles Android native sign-in (Capacitor).
+// Body: {"server_auth_code": "..."} from GoogleSignInClient.
+// No state cookie — the code itself is single-use and bound to the
+// Android OAuth client. Returns Ressist tokens as JSON (no httpOnly cookie)
+// because WebView origin (capacitor://localhost) can't use SameSite cookies reliably.
+func (h *Handler) GoogleNative(c *gin.Context) {
+	var body struct {
+		ServerAuthCode string `json:"server_auth_code"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil || strings.TrimSpace(body.ServerAuthCode) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "server_auth_code is required"})
+		return
+	}
+
+	token, err := h.auth.ExchangeNativeCode(c.Request.Context(), strings.TrimSpace(body.ServerAuthCode))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "exchange_failed"})
+		return
+	}
+
+	info, err := h.auth.FetchGoogleUser(c.Request.Context(), token.AccessToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "userinfo_failed"})
+		return
+	}
+
+	user, err := h.auth.UpsertGoogleUser(c.Request.Context(), info)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrEmailDomainNotAllowed):
+			c.JSON(http.StatusForbidden, gin.H{"error": "email_domain_not_allowed"})
+		case errors.Is(err, ErrInvalidGoogleUserInfo):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "google_userinfo_invalid"})
+		case errors.Is(err, ErrUserIdentityConflict):
+			c.JSON(http.StatusConflict, gin.H{"error": "user_identity_conflict"})
+		default:
+			log.Printf("oauth native upsert user failed: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user_upsert_failed"})
+		}
+		return
+	}
+
+	if err := h.auth.UpsertGoogleTokens(c.Request.Context(), user.ID, token); err != nil {
+		log.Printf("oauth native upsert token failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "token_upsert_failed"})
+		return
+	}
+
+	rawRefresh, err := h.auth.CreateRefreshTokenForClient(
+		c.Request.Context(), user.ID, c.GetHeader("User-Agent"), c.ClientIP(), "mobile",
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "refresh_create_failed"})
+		return
+	}
+
+	accessToken, expiresAt, err := h.auth.GenerateAccessToken(*user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to issue access token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  accessToken,
+		"token_type":    "Bearer",
+		"expires_at":    expiresAt.UTC().Format(time.RFC3339),
+		"refresh_token": rawRefresh,
+		"user":          gin.H{"id": user.ID, "email": user.Email, "name": user.Name},
+	})
+}
+
 // Refresh handles token refresh.
+// Web sends the httpOnly cookie; mobile (Capacitor) sends X-Refresh-Token
+// header or {"refresh_token": "..."} body since cookies are unreliable
+// on capacitor://localhost origin.
 func (h *Handler) Refresh(c *gin.Context) {
 	rawRefreshToken, err := c.Cookie(refreshTokenCookieName)
+	isMobile := false
 	if err != nil || rawRefreshToken == "" {
+		rawRefreshToken = strings.TrimSpace(c.GetHeader("X-Refresh-Token"))
+	}
+	if rawRefreshToken == "" {
+		var body struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		_ = c.ShouldBindJSON(&body)
+		rawRefreshToken = strings.TrimSpace(body.RefreshToken)
+	}
+	if _, cookieErr := c.Cookie(refreshTokenCookieName); cookieErr != nil && rawRefreshToken != "" {
+		// No cookie but token supplied via header/body => native mobile client.
+		isMobile = true
+	}
+	if rawRefreshToken == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing refresh token"})
 		return
 	}
@@ -143,19 +232,38 @@ func (h *Handler) Refresh(c *gin.Context) {
 	}
 
 	if newRefresh != "" {
-		h.setCookie(c, refreshTokenCookieName, newRefresh, h.cfg.RefreshTokenTTLHour*3600)
+		ttlHours := h.cfg.RefreshTokenTTLHour
+		if isMobile && h.cfg.MobileRefreshTokenTTLHour > 0 {
+			ttlHours = h.cfg.MobileRefreshTokenTTLHour
+		}
+		h.setCookie(c, refreshTokenCookieName, newRefresh, ttlHours*3600)
 	}
-	c.JSON(http.StatusOK, gin.H{
+	resp := gin.H{
 		"access_token": accessToken,
 		"token_type":   "Bearer",
 		"expires_at":   expiresAt.UTC().Format(time.RFC3339),
 		"user":         gin.H{"id": user.ID, "email": user.Email, "name": user.Name},
-	})
+	}
+	if isMobile && newRefresh != "" {
+		// Mobile can't read httpOnly cookies reliably — return rotated token in body.
+		resp["refresh_token"] = newRefresh
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
-// Logout handles user logout.
+// Logout handles user logout. Accepts cookie (web) or X-Refresh-Token/body (mobile).
 func (h *Handler) Logout(c *gin.Context) {
 	rawRefreshToken, _ := c.Cookie(refreshTokenCookieName)
+	if rawRefreshToken == "" {
+		rawRefreshToken = strings.TrimSpace(c.GetHeader("X-Refresh-Token"))
+	}
+	if rawRefreshToken == "" {
+		var body struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		_ = c.ShouldBindJSON(&body)
+		rawRefreshToken = strings.TrimSpace(body.RefreshToken)
+	}
 	if rawRefreshToken != "" {
 		_ = h.auth.RevokeRefreshToken(c.Request.Context(), rawRefreshToken)
 	}

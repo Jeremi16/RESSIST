@@ -13,6 +13,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/src/lib/api-client";
 
 interface ApiKeyItem {
   id: string;
@@ -39,7 +40,7 @@ export function ApiKeysSettings() {
   const fetchKeys = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/api-keys");
+      const res = await apiFetch("/api/api-keys");
       const data = await res.json();
       if (res.ok) setKeys(data.keys || []);
     } catch (e) {
@@ -63,7 +64,7 @@ export function ApiKeysSettings() {
     try {
       let expires_in_days: number | undefined;
       if (expiry !== "never") expires_in_days = parseInt(expiry, 10);
-      const res = await fetch("/api/api-keys", {
+      const res = await apiFetch("/api/api-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), expires_in_days }),
@@ -88,7 +89,7 @@ export function ApiKeysSettings() {
     if (!confirm("Hapus API key ini? Akses pakai key ini akan langsung terputus.")) return;
     setDeletingId(id);
     try {
-      const res = await fetch(`/api/api-keys/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/api-keys/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const d = await res.json();
         alert(d.error || "Gagal menghapus");

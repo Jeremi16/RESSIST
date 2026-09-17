@@ -1,4 +1,6 @@
-// Helper sesi: retry 1x saat 401 sebelum menganggap sesi mati.
+// Legacy web-only helper — prefer apiFetch from "@/src/lib/api-client"
+// which keeps this 401-retry behaviour on web and adds Bearer rotation on native.
+// Kept for reference; no active imports (WhatsApp stubs use plain fetch).
 //
 // 401 pertama bisa transient (race rotasi refresh token antar instance BFF,
 // latency jaringan). Tanpa retry, frontend langsung memanggil
