@@ -35,12 +35,22 @@ android {
 
     // Release signing reuses the Capacitor keystore (same appId = update path).
     // Passwords live in mobile-kmp/keystore.properties (gitignored, never commit).
+    // The debug build ALSO uses this key (option B): Google OAuth matches the
+    // signing fingerprint, so Run-from-Android-Studio presents the same SHA-1
+    // as release and login works without registering the default debug key.
     val keystorePropsFile = rootProject.file("keystore.properties")
     if (keystorePropsFile.exists()) {
         val props = Properties().apply { load(keystorePropsFile.inputStream()) }
+        val releaseKeystore = rootProject.file(props.getProperty("storeFile"))
         signingConfigs {
             create("release") {
-                storeFile = rootProject.file(props.getProperty("storeFile"))
+                storeFile = releaseKeystore
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
+            }
+            getByName("debug") {
+                storeFile = releaseKeystore
                 storePassword = props.getProperty("storePassword")
                 keyAlias = props.getProperty("keyAlias")
                 keyPassword = props.getProperty("keyPassword")
@@ -88,14 +98,13 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.compose.icons.core)
-    implementation(libs.androidx.compose.icons.extended)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.koin.core)
     implementation(libs.androidx.datastore.preferences)
