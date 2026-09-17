@@ -138,6 +138,20 @@ fun ProfilScreen(
                 ) {
                     Text(if (state.isLoggingOut) "Keluar..." else "Keluar")
                 }
+                OutlinedButton(
+                    onClick = viewModel::switchAccount,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !state.isLoggingOut,
+                    shape = CircleShape,
+                ) {
+                    Text("Keluar & ganti akun Google")
+                }
+                Text(
+                    "Login ulang memakai akun terakhir tanpa popup Google.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
                 Text(
                     "Ressist KMP 0.3.0",
                     style = MaterialTheme.typography.bodySmall,
