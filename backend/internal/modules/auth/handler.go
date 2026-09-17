@@ -184,6 +184,7 @@ func (h *Handler) GoogleNative(c *gin.Context) {
 		"token_type":    "Bearer",
 		"expires_at":    expiresAt.UTC().Format(time.RFC3339),
 		"refresh_token": rawRefresh,
+		"is_new_user":   time.Since(user.CreatedAt) < 30*time.Second,
 		"user":          gin.H{"id": user.ID, "email": user.Email, "name": user.Name},
 	})
 }
