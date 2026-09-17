@@ -82,7 +82,7 @@ Semua via `os.Getenv` + `godotenv` (`internal/config/config.go:62`). Daftar leng
 | `FRONTEND_SUCCESS_PATH` | `/login?auth=success` | Path sukses |
 | `FRONTEND_ERROR_PATH` | `/login` | Path error |
 | `COOKIE_DOMAIN` / `COOKIE_SECURE` | `` / `env==production` | `refresh_token` httpOnly |
-| `ALLOWED_ORIGINS` | `http://localhost:3000` | CORS `AllowOrigins` (comma-separated) |
+| `ALLOWED_ORIGINS` | `http://localhost:3000` | CORS comma-separated. `http(s)` → `AllowOrigins`, custom-scheme (`capacitor://`) → `AllowOriginFunc`. Invalid dilewati + warning, tidak panic |
 | `TELEGRAM_BOT_TOKEN` | `` | Kosong → telegram sender disabled |
 | `BOT_SERVICE_TOKEN` | `` | `X-Bot-Token` untuk `/internal/*` (kosong → 503) |
 | `API_KEY_PREFIX` | `rsk_` | Prefix API key |

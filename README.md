@@ -147,7 +147,7 @@ Aturan frontend env:
 
 ### Backend + Bot — Coolify / Docker Compose
 *   `docker-compose.yml` sudah production-ready: healthcheck `wget /livez`, `GIN_MODE=release`, `AUTO_MIGRATE=true`.
-*   Coolify: set `CORS_ALLOWED_ORIGINS=https://<vercel-app>` dan sinkron `BOT_SERVICE_TOKEN` + `JWT_ACCESS_SECRET` di kedua service.
+*   Coolify: set `ALLOWED_ORIGINS=https://<vercel-app>,capacitor://localhost` dan sinkron `BOT_SERVICE_TOKEN` + `JWT_ACCESS_SECRET` di kedua service.
 *   Alternatif single-serve frontend di VPS: uncomment `frontend` service di compose atau `nixpacks.toml` (`SERVE_STATIC=1 bun run server/index.ts`).
 
 ### Backup

@@ -42,8 +42,18 @@ func New(
 	r.Use(middleware.JSONAccessLogger())
 	r.Use(gin.Recovery())
 	r.Use(middleware.HTTPMetrics())
+	// Custom-scheme origins (capacitor://, ionic://, ...) cannot go into
+	// AllowOrigins (gin-contrib/cors panics) — match them via AllowOriginFunc.
+	customOriginSet := make(map[string]struct{}, len(cfg.AllowedCustomOrigins))
+	for _, o := range cfg.AllowedCustomOrigins {
+		customOriginSet[o] = struct{}{}
+	}
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.AllowedOrigins,
+		AllowOriginFunc: func(origin string) bool {
+			_, ok := customOriginSet[origin]
+			return ok
+		},
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
 		AllowHeaders:     []string{"Authorization", "Content-Type", "X-Request-ID", "X-API-Key", "X-Refresh-Token"},
 		ExposeHeaders:    []string{"X-Request-ID"},

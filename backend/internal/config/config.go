@@ -1,6 +1,8 @@
 package config
 
 import (
+	"log"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -49,6 +51,10 @@ type Config struct {
 	TelegramBotUsername string
 
 	AllowedOrigins []string
+	// AllowedCustomOrigins holds non-http(s) origins (e.g. capacitor://localhost,
+	// ionic://localhost) matched via cors AllowOriginFunc. gin-contrib/cors
+	// panics if such schemes are put in AllowOrigins, so they must be split.
+	AllowedCustomOrigins []string
 
 	// BotServiceToken authenticates the standalone ressist-bot service.
 	// Bot calls /internal/* with X-Bot-Token and /v1/* with
@@ -108,7 +114,11 @@ func Load() (*Config, error) {
 		TelegramBotToken:    getEnv("TELEGRAM_BOT_TOKEN", ""),
 		TelegramBotUsername: getEnv("TELEGRAM_BOT_USERNAME", "ressist_bot"),
 
-		AllowedOrigins: getEnvAsList("ALLOWED_ORIGINS", "http://localhost:3000"),
+		// ALLOWED_ORIGINS is comma-separated and may mix http(s) origins with
+		// custom-scheme origins (capacitor://...). Split them so gin-contrib/cors
+		// never receives a non-http(s) entry in AllowOrigins (it panics).
+		// Invalid entries (bare domain, path, "*") are skipped with a warning.
+		// httpOrigins and customOrigins are assigned below after cfg is built.
 
 		BotServiceToken: getEnv("BOT_SERVICE_TOKEN", ""),
 
@@ -124,7 +134,59 @@ func Load() (*Config, error) {
 		LMSSyncTimeoutSeconds:  getEnvAsInt("LMS_SYNC_TIMEOUT_SECONDS", 90),
 	}
 
+	httpOrigins, customOrigins := SplitCorsOrigins(getEnvAsList("ALLOWED_ORIGINS", "http://localhost:3000"))
+	cfg.AllowedOrigins = httpOrigins
+	cfg.AllowedCustomOrigins = customOrigins
+
 	return cfg, nil
+}
+
+// SplitCorsOrigins separates raw ALLOWED_ORIGINS entries into http(s) origins
+// (safe for cors AllowOrigins) and custom-scheme origins (for AllowOriginFunc).
+// Invalid entries are skipped with a warning instead of panicking at startup.
+func SplitCorsOrigins(raw []string) (httpOrigins []string, customOrigins []string) {
+	httpOrigins = make([]string, 0, len(raw))
+	customOrigins = make([]string, 0, len(raw))
+	seen := make(map[string]struct{}, len(raw))
+
+	for _, entry := range raw {
+		v := strings.TrimSpace(entry)
+		v = strings.TrimSuffix(v, "/")
+		if v == "" {
+			continue
+		}
+		if v == "*" {
+			// "*" cannot be combined with AllowCredentials:true, skip loudly.
+			log.Printf("warn: skip cors origin %q: wildcard not allowed with credentials", entry)
+			continue
+		}
+		u, err := url.Parse(v)
+		if err != nil || u.Scheme == "" || u.Host == "" {
+			log.Printf("warn: skip invalid cors origin %q: must be like https://example.com or capacitor://localhost", entry)
+			continue
+		}
+		if u.Path != "" && u.Path != "/" {
+			log.Printf("warn: skip invalid cors origin %q: origin must not contain path", entry)
+			continue
+		}
+		canonical := u.Scheme + "://" + u.Host
+		if _, ok := seen[canonical]; ok {
+			continue
+		}
+		seen[canonical] = struct{}{}
+
+		switch u.Scheme {
+		case "http", "https":
+			httpOrigins = append(httpOrigins, canonical)
+		default:
+			customOrigins = append(customOrigins, canonical)
+		}
+	}
+
+	if len(httpOrigins) == 0 && len(customOrigins) == 0 {
+		httpOrigins = []string{"http://localhost:3000"}
+	}
+	return httpOrigins, customOrigins
 }
 
 func getEnv(key string, fallback string) string {

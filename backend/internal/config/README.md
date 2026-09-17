@@ -36,4 +36,7 @@ Lihat `backend/.env.example:1` (36 baris).
 ## Catatan
 
 *   `godotenv.Load()` optional — di production (Coolify/compose) env sudah di-inject, file `.env` tidak wajib.
-*   `AllowedOrigins` di-split `,` dan di-trim (`getEnvAsList`).
+*   `AllowedOrigins` (http/https, untuk `AllowOrigins`) + `AllowedCustomOrigins`
+    (custom-scheme ex. `capacitor://localhost`, untuk `AllowOriginFunc`) via
+    `SplitCorsOrigins` — di-split `,` dan di-trim (`getEnvAsList`), invalid
+    dilewati dengan warning agar `cors.New` tidak panic.
