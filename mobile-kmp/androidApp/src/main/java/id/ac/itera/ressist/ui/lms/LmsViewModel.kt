@@ -6,7 +6,6 @@ import id.ac.itera.ressist.api.SessionExpiredException
 import id.ac.itera.ressist.api.UserUpdate
 import id.ac.itera.ressist.auth.AuthManager
 import id.ac.itera.ressist.data.repository.CalendarRepository
-import id.ac.itera.ressist.data.repository.CourseRepository
 import id.ac.itera.ressist.data.repository.UserRepository
 import id.ac.itera.ressist.domain.model.CalendarPreview
 import id.ac.itera.ressist.domain.model.User
@@ -22,7 +21,6 @@ data class LmsUiState(
     val isSaving: Boolean = false,
     val isTesting: Boolean = false,
     val user: User? = null,
-    val courses: List<String> = emptyList(),
     val moodleUrl: String = "",
     val testResult: CalendarPreview? = null,
     val notice: String? = null,
@@ -31,7 +29,6 @@ data class LmsUiState(
 
 class LmsViewModel(
     private val users: UserRepository,
-    private val courses: CourseRepository,
     private val calendar: CalendarRepository,
     private val authManager: AuthManager,
 ) : ViewModel() {
@@ -48,12 +45,10 @@ class LmsViewModel(
         viewModelScope.launch {
             try {
                 val user = users.get()
-                val courseNames = runCatching { courses.list().map { c -> c.name } }.getOrDefault(emptyList())
                 _state.update {
                     it.copy(
                         isLoading = false,
                         user = user,
-                        courses = courseNames,
                         moodleUrl = user.moodleCalendarUrl.orEmpty(),
                     )
                 }
@@ -112,16 +107,6 @@ class LmsViewModel(
                 _state.update { it.copy(isSaving = false, error = e.userMessage()) }
             }
         }
-    }
-
-    fun setClassCode(code: String) =
-        save(UserUpdate(classCode = code), "Kode kelas: $code")
-
-    fun toggleMute(course: String) {
-        val user = _state.value.user ?: return
-        val muted = user.mutedCourses.toMutableList()
-        if (muted.contains(course)) muted.remove(course) else muted.add(course)
-        save(UserUpdate(mutedCourses = muted), "Preferensi mute diperbarui")
     }
 
     fun testMoodle() {
