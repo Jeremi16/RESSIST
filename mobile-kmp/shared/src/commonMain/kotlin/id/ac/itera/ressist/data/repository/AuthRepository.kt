@@ -20,7 +20,7 @@ class AuthRepository(
     suspend fun loginNative(serverAuthCode: String): AuthAccount {
         val tokens = authApi.googleNative(serverAuthCode)
         storage.save(tokens.accessToken, tokens.refreshToken.orEmpty(), tokens.expiresAt)
-        return tokens.user.toDomain()
+        return tokens.user.toDomain().copy(isNewUser = tokens.isNewUser)
     }
 
     suspend fun me(): AuthAccount =
