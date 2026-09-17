@@ -60,4 +60,10 @@ class TimeUtilsTest {
         assertNull(parseInstantOrNull("bukan-tanggal"))
         assertNull(parseInstantOrNull(null))
     }
+
+    @Test
+    fun formatRemaining_sentinelValuesNeverThrow() {
+        assertEquals("Tanpa deadline", formatTimeRemainingId(Instant.DISTANT_FUTURE, now))
+        assertEquals("Terlewat", formatTimeRemainingId(Instant.DISTANT_PAST, now))
+    }
 }

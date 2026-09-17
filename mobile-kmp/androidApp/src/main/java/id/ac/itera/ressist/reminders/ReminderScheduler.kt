@@ -86,6 +86,10 @@ class ReminderScheduler(
         val user = runCatching { users.get() }.getOrNull() ?: return
         val buckets = runCatching { assignments.buckets(now) }.getOrNull() ?: return
         buckets.upcoming.take(MAX_TASKS).forEach { task ->
+            // Skip sentinel deadlines (backend rows without a deadline):
+            // toEpochMilliseconds() overflows on them and AlarmManager
+            // cannot schedule them anyway.
+            if (task.deadline == Instant.DISTANT_FUTURE || task.deadline == Instant.DISTANT_PAST) return@forEach
             reminderInstants(task.deadline, user.reminderHours).forEach { instant ->
                 if (instant > now) {
                     schedule(

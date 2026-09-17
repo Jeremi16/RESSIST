@@ -54,16 +54,25 @@ private val BULAN = arrayOf(
     "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
 )
 
-/** "20 Sep 2026 • 23:59" in device timezone. */
+/** "20 Sep 2026 • 23:59" in device timezone. Never throws: backend rows with a
+ * missing deadline map to Instant.DISTANT_FUTURE, which toLocalDateTime()
+ * cannot represent (IllegalArgumentException → force close in composition). */
 fun Instant.formatId(): String {
-    val dt = toLocalDateTime(TimeZone.currentSystemDefault())
-    val hh = dt.hour.toString().padStart(2, '0')
-    val mm = dt.minute.toString().padStart(2, '0')
-    return "${dt.dayOfMonth} ${BULAN[dt.monthNumber]} ${dt.year} • $hh:$mm"
+    if (this == Instant.DISTANT_FUTURE || this == Instant.DISTANT_PAST) return "Tanpa deadline"
+    return runCatching {
+        val dt = toLocalDateTime(TimeZone.currentSystemDefault())
+        val hh = dt.hour.toString().padStart(2, '0')
+        val mm = dt.minute.toString().padStart(2, '0')
+        "${dt.dayOfMonth} ${BULAN[dt.monthNumber]} ${dt.year} • $hh:$mm"
+    }.getOrElse { "Tanpa deadline" }
 }
 
-/** "2026-09-20" key for grouping. */
+/** "2026-09-20" key for grouping. Never throws (see [formatId]). */
 fun Instant.dayKey(): String {
-    val dt = toLocalDateTime(TimeZone.currentSystemDefault())
-    return "%04d-%02d-%02d".format(dt.year, dt.monthNumber, dt.dayOfMonth)
+    if (this == Instant.DISTANT_FUTURE) return "9999-Tanpa-deadline"
+    if (this == Instant.DISTANT_PAST) return "0000-Tanpa-deadline"
+    return runCatching {
+        val dt = toLocalDateTime(TimeZone.currentSystemDefault())
+        "%04d-%02d-%02d".format(dt.year, dt.monthNumber, dt.dayOfMonth)
+    }.getOrElse { "9999-Tanpa-deadline" }
 }

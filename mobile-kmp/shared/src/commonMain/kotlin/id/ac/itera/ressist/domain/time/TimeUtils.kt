@@ -27,9 +27,11 @@ fun parseReminderHours(raw: String?): List<Int> {
 
 fun encodeReminderHours(hours: List<Int>): String = "[${hours.joinToString(",")}]"
 
-/** Indonesian relative deadline label for list rows. */
+/** Indonesian relative deadline label for list rows. Never throws on sentinel values. */
 fun formatTimeRemainingId(deadline: Instant, now: Instant = Clock.System.now()): String {
-    val diff = deadline - now
+    if (deadline == Instant.DISTANT_FUTURE) return "Tanpa deadline"
+    if (deadline == Instant.DISTANT_PAST) return "Terlewat"
+    val diff = runCatching { deadline - now }.getOrElse { return "Tanpa deadline" }
     if (diff.isNegative()) {
         val late = -diff
         return when {
