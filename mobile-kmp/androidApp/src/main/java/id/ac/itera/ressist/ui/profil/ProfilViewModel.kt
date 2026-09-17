@@ -81,7 +81,25 @@ class ProfilViewModel(
         }
     }
 
+    /**
+     * Keluar dari Ressist saja — sesi Google di perangkat SENGAJA dipertahankan
+     * agar login ulang berikutnya bisa silent (tanpa popup consent/pilih akun).
+     * Lihat [switchAccount] untuk keluar + putus akun Google.
+     */
     fun logout() {
+        _state.update { it.copy(isLoggingOut = true) }
+        viewModelScope.launch {
+            runCatching { scheduler.cancelAll() }
+            authManager.logout()
+            _state.update { it.copy(isLoggingOut = false) }
+        }
+    }
+
+    /**
+     * Keluar + putus akun Google di perangkat — login berikutnya akan
+     * menampilkan popup/pilih akun lagi. Dipakai saat user ingin ganti akun.
+     */
+    fun switchAccount() {
         _state.update { it.copy(isLoggingOut = true) }
         viewModelScope.launch {
             runCatching { scheduler.cancelAll() }
