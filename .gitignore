@@ -45,6 +45,7 @@ mobile-kmp/keystore.properties
 
 # Editor
 .zed/
+.idea/
 
 # OS files
 .DS_Store
