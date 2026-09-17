@@ -33,6 +33,13 @@ build_output.txt
 backend/api.exe
 backend/ressist-api.exe
 
+# mobile-kmp (Kotlin Multiplatform)
+mobile-kmp/.gradle/
+mobile-kmp/**/build/
+mobile-kmp/local.properties
+mobile-kmp/*.jks
+mobile-kmp/keystore.properties
+
 # Backup files
 *.backup
 

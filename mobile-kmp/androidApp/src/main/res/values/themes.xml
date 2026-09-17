@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Brand background matches the Capacitor splash (#F5F0EB). -->
+<resources>
+    <color name="ressist_cream">#F5F0EB</color>
+    <style name="Theme.Ressist" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/ressist_cream</item>
+        <item name="android:statusBarColor">@color/ressist_cream</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

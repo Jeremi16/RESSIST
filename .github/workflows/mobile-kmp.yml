@@ -1,0 +1,59 @@
+name: mobile-kmp
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile-kmp/**"
+      - ".github/workflows/mobile-kmp.yml"
+  pull_request:
+    paths:
+      - "mobile-kmp/**"
+      - ".github/workflows/mobile-kmp.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-kmp-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: scaffold build (shared + androidApp debug)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-kmp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create local.properties (CI defaults)
+        # NOTE: GOOGLE_WEB_CLIENT_ID is a public identifier (also shipped in the
+        # web bundle as VITE_GOOGLE_WEB_CLIENT_ID) — safe to hardcode here.
+        # The keystore stays secret and is never needed for debug builds.
+        run: |
+          printf '%s\n' \
+            "sdk.dir=$ANDROID_SDK_ROOT" \
+            "ressist.apiBaseUrl=https://ressist-api.nodryx.com" \
+            "ressist.googleWebClientId=858279804864-eo1st7na40s49jn8hgkjvv4n0822g7rd.apps.googleusercontent.com" > local.properties
+
+      - name: Assemble debug
+        run: ./gradlew :shared:assemble :androidApp:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ressist-kmp-debug
+          path: mobile-kmp/androidApp/build/outputs/apk/debug/*.apk

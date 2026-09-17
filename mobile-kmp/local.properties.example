@@ -1,0 +1,4 @@
+# Copy to local.properties and adjust. Never commit local.properties.
+sdk.dir=C\:\\Users\\Jeremi\\AppData\\Local\\Android\\Sdk
+ressist.apiBaseUrl=http://10.0.2.2:8080
+ressist.googleWebClientId=
