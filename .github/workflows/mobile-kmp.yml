@@ -46,7 +46,7 @@ jobs:
         run: |
           printf '%s\n' \
             "sdk.dir=$ANDROID_SDK_ROOT" \
-            "ressist.apiBaseUrl=https://ressist-api.nodryx.com" \
+            "ressist.apiBaseUrl=https://ressist-api.jsx.qzz.io" \
             "ressist.googleWebClientId=858279804864-eo1st7na40s49jn8hgkjvv4n0822g7rd.apps.googleusercontent.com" > local.properties
 
       - name: Assemble debug

@@ -69,7 +69,7 @@ Syarat & checklist:
    paralel sampai KMP dinyatakan stabil (crash-free 99% 14 hari, F6).
 5. Device uji butuh backend terjangkau: emulator → `10.0.2.2:8080`,
    HP fisik → IP LAN laptop (`ressist.apiBaseUrl` di `local.properties`).
-   Atau arahkan ke prod `https://ressist-api.nodryx.com`.
+   Atau arahkan ke prod `https://ressist-api.jsx.qzz.io`.
 
 ## Roadmap
 

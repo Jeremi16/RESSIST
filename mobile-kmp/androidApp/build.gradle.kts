@@ -55,7 +55,7 @@ android {
             // Production backend, hardcoded so every machine builds identical
             // release artifacts regardless of local.properties (debug keeps
             // using ressist.apiBaseUrl for emulator/LAN development).
-            buildConfigField("String", "API_BASE_URL", "\"https://ressist-api.nodryx.com\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://ressist-api.jsx.qzz.io\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
