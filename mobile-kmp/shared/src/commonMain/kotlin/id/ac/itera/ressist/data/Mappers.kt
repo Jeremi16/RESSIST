@@ -66,6 +66,7 @@ fun UserDto.toDomain() = User(
     morningBriefing = morningBriefing,
     mutedCourses = mutedCourses,
     courseAliases = courseAliases,
+    courseClassFilters = courseClassFilters,
     classCode = classCode,
     availableClassCodes = availableClassCodes,
     lmsLastSyncedAt = parseInstantOrNull(lmsLastSyncedAt),

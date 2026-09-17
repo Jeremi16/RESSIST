@@ -74,6 +74,7 @@ data class User(
     val morningBriefing: Boolean,
     val mutedCourses: List<String>,
     val courseAliases: Map<String, String>,
+    val courseClassFilters: Map<String, String>,
     val classCode: String?,
     val availableClassCodes: List<String>,
     val lmsLastSyncedAt: Instant?,

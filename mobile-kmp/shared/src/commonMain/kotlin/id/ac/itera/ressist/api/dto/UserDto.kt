@@ -26,6 +26,8 @@ data class UserDto(
     @SerialName("muted_courses") val mutedCourses: List<String> = emptyList(),
     @Serializable(with = LenientStringMapSerializer::class)
     @SerialName("course_aliases") val courseAliases: Map<String, String> = emptyMap(),
+    @Serializable(with = LenientStringMapSerializer::class)
+    @SerialName("course_class_filters") val courseClassFilters: Map<String, String> = emptyMap(),
     @SerialName("class_code") val classCode: String? = null,
     @Serializable(with = LenientStringListSerializer::class)
     @SerialName("available_class_codes") val availableClassCodes: List<String> = emptyList(),

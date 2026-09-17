@@ -2,16 +2,19 @@ package id.ac.itera.ressist.api
 
 import id.ac.itera.ressist.api.dto.SuccessDto
 import id.ac.itera.ressist.api.dto.UserDto
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonArray
-import kotlinx.serialization.json.putJsonObject
 
 /**
  * Field-level update for PUT /v1/user — only non-null fields are sent
  * (explicitNulls=false in [RessistJson] also guards data-class bodies).
+ *
+ * Collection fields are sent as JSON STRINGS (e.g. "[\"RA\"]", "{\"a\":\"b\"}")
+ * because the backend binds them into *string. [classCode] is passed through
+ * raw — callers send the JSON-array string (e.g. "[\"RA\",\"RB\"]") like web.
  */
 data class UserUpdate(
     val name: String? = null,
@@ -25,13 +28,16 @@ data class UserUpdate(
     val morningBriefing: Boolean? = null,
     val mutedCourses: List<String>? = null,
     val courseAliases: Map<String, String>? = null,
+    val availableClassCodes: List<String>? = null,
+    val courseClassFilters: Map<String, String>? = null,
 ) {
     fun isEmpty(): Boolean =
         name == null && classCode == null && moodleEnabled == null &&
             moodleCalendarUrl == null && googleClassroomEnabled == null &&
             telegramEnabled == null && telegramChatId == null &&
             reminderHours == null && morningBriefing == null &&
-            mutedCourses == null && courseAliases == null
+            mutedCourses == null && courseAliases == null &&
+            availableClassCodes == null && courseClassFilters == null
 
     fun toJson(): JsonObject = buildJsonObject {
         name?.let { put("name", it) }
@@ -43,12 +49,10 @@ data class UserUpdate(
         telegramChatId?.let { put("telegram_chat_id", it) }
         reminderHours?.let { put("reminder_hours", "[${it.joinToString(",")}]") }
         morningBriefing?.let { put("morning_briefing", it) }
-        mutedCourses?.let { list ->
-            putJsonArray("muted_courses") { list.forEach { add(JsonPrimitive(it)) } }
-        }
-        courseAliases?.let { map ->
-            putJsonObject("course_aliases") { map.forEach { (k, v) -> put(k, v) } }
-        }
+        mutedCourses?.let { put("muted_courses", Json.encodeToString(it)) }
+        courseAliases?.let { put("course_aliases", Json.encodeToString(it)) }
+        availableClassCodes?.let { put("available_class_codes", Json.encodeToString(it)) }
+        courseClassFilters?.let { put("course_class_filters", Json.encodeToString(it)) }
     }
 }
 
