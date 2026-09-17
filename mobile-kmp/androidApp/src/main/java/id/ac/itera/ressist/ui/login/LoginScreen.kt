@@ -142,7 +142,12 @@ fun LoginScreen(
                             CircularProgressIndicator()
                         } else {
                             OutlinedButton(
-                                onClick = { launcher.launch(google.signInIntent) },
+                                onClick = {
+                                    if (!google.isConfigured) viewModel.showNotConfiguredError()
+                                    else viewModel.onGoogleButtonClick {
+                                        launcher.launch(google.signInIntent)
+                                    }
+                                },
                                 modifier = Modifier.fillMaxWidth().height(44.dp),
                                 shape = androidx.compose.foundation.shape.CircleShape,
                             ) {
