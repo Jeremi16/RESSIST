@@ -7,6 +7,8 @@ data class AuthAccount(
     val email: String,
     val name: String,
     val avatarUrl: String? = null,
+    /** True bila login ini membuat user baru di backend (login pertama). */
+    val isNewUser: Boolean = false,
 )
 
 data class Assignment(
