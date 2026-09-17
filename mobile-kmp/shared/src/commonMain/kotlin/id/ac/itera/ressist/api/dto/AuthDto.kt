@@ -30,6 +30,8 @@ data class TokenResponseDto(
     @SerialName("expires_at") val expiresAt: String? = null,
     /** Present on native login; on refresh only for mobile (rotated). */
     @SerialName("refresh_token") val refreshToken: String? = null,
+    /** True bila backend baru saja membuat user (login pertama). Default false. */
+    @SerialName("is_new_user") val isNewUser: Boolean = false,
     val user: AuthUserDto = AuthUserDto(),
 )
 
