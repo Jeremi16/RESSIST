@@ -33,37 +33,148 @@ const V010_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${V010_
 const V010_SIZE = "2.86 MB";
 const V010_RELEASED = "18 September 2026";
 
-const SIDEBAR = docsSidebar([
-  { label: "v0.2.1", to: "#v0-2-1" },
-  { label: "v0.2.0", to: "#v0-2-0" },
-  { label: "v0.1.0", to: "#v0-1-0" },
-]);
+type ReleaseEntry = {
+  id: string;
+  version: string;
+  fileName: string;
+  filePath: string;
+  size: string;
+  released: string;
+  title: string;
+  description: string;
+  highlights: string[];
+};
 
-const V021_HIGHLIGHTS = [
-  "Badge Classroom di kartu Tugas dihapus agar tampilan kartu bersih.",
-  "Tombol Back HP kini kembali ke menu sebelumnya, tidak langsung keluar aplikasi.",
-  `Ringan — hanya sekitar ${APK_SIZE}.`,
+// Single source of truth — urutan terbaru dulu. Menambah rilis baru
+// cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
+const RELEASES: ReleaseEntry[] = [
+  {
+    id: "v0-2-1",
+    version: APK_VERSION,
+    fileName: APK_NAME,
+    filePath: APK_PATH,
+    size: APK_SIZE,
+    released: APK_RELEASED,
+    title: "Kartu Bersih & Navigasi Rapi",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Badge Classroom di kartu Tugas dihapus agar tampilan kartu bersih.",
+      "Tombol Back HP kini kembali ke menu sebelumnya, tidak langsung keluar aplikasi.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-2-0",
+    version: V020_VERSION,
+    fileName: V020_NAME,
+    filePath: V020_PATH,
+    size: V020_SIZE,
+    released: V020_RELEASED,
+    title: "Rebrand Biru & Pengingat Lokal",
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Rebrand putih-biru dengan logo R Ressist di seluruh aplikasi.",
+      "Tab Tugas ala Mihon: tab + badge angka + indikator animasi + tombol sinkron.",
+      "Ringkasan: kartu statistik tonal, kartu Status Koneksi dihapus.",
+      "Morning Briefing jam 07:00 WIB via notifikasi lokal Android.",
+      "Tab Lainnya ala Mihon + halaman Tentang.",
+      "Kelas dipecah jadi Mata Kuliah & Filter Kelas.",
+      "Status Sistem: cek izin real-time + tombol ke Setelan.",
+      `Ringan — hanya sekitar ${V020_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-1-0",
+    version: V010_VERSION,
+    fileName: V010_NAME,
+    filePath: V010_PATH,
+    size: V010_SIZE,
+    released: V010_RELEASED,
+    title: "Rilis Perdana Aplikasi Android",
+    description: `Versi pertama aplikasi Android (${APK_MIN_ANDROID}). Semua yang kamu butuhkan untuk tidak ketinggalan deadline — dalam genggaman.`,
+    highlights: [
+      "Ringkasan tugas: Terlewat, Akan Datang, dan Selesai.",
+      "Daftar tugas + tandai selesai langsung dari aplikasi.",
+      "Kalender deadline agar tidak ketinggalan jadwal.",
+      "Koneksi Moodle (kuliah2.itera.ac.id) & Google Classroom.",
+      "Pengingat otomatis sebelum deadline langsung di HP.",
+      `Ringan — hanya sekitar ${V010_SIZE}.`,
+    ],
+  },
 ];
 
-const V020_HIGHLIGHTS = [
-  "Rebrand putih-biru dengan logo R Ressist di seluruh aplikasi.",
-  "Tab Tugas ala Mihon: tab + badge angka + tombol sinkron.",
-  "Morning Briefing jam 07:00 WIB via notifikasi lokal Android.",
-  "Tab Lainnya baru + halaman Tentang; Kelas dipecah jadi Mata Kuliah & Filter Kelas.",
-  `Ringan — hanya sekitar ${APK_SIZE}.`,
-];
+const LATEST = RELEASES[0];
 
-const V010_HIGHLIGHTS = [
-  "Rilis perdana aplikasi Android Ressist.",
-  "Login dan sinkronisasi tugas Moodle (kuliah2.itera.ac.id) & Google Classroom.",
-  "Pengingat deadline otomatis langsung di HP.",
-  `Ringan — hanya sekitar ${APK_SIZE}.`,
-];
+const SIDEBAR = docsSidebar(
+  RELEASES.map((r) => ({ label: r.version, to: `#${r.id}` })),
+);
+
+function ReleaseSection({ entry }: { entry: ReleaseEntry }) {
+  return (
+    <motion.section
+      id={entry.id}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="scroll-mt-24 relative pl-12 sm:pl-14"
+    >
+      <div className="absolute left-0 top-0 size-8 sm:size-9 rounded-xl bg-[#0059D0] text-white flex items-center justify-center">
+        <Rocket className="size-4" />
+      </div>
+
+      <div className="bg-white rounded-2xl border border-black/5 p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold text-black tracking-tight mb-1.5">
+              {entry.title}
+            </h3>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-black/40">
+              <span className="flex items-center gap-1.5 font-medium text-black">
+                <Tag className="size-3.5" />
+                {entry.version}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CalendarDays className="size-3.5" />
+                {entry.released}
+              </span>
+            </div>
+          </div>
+          <a
+            href={entry.filePath}
+            download={entry.fileName}
+            className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors"
+          >
+            <Download className="size-4" />
+            Download ({entry.size})
+          </a>
+        </div>
+
+        <p className="text-sm text-black/60 leading-relaxed mb-5">
+          {entry.description}
+        </p>
+
+        <h4 className="text-xs font-medium tracking-wide text-black/40 mb-2.5">
+          Yang Baru
+        </h4>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {entry.highlights.map((item) => (
+            <li
+              key={item}
+              className="flex items-start gap-2 text-sm text-black/70 bg-[#60A8F8]/10 px-3 py-2.5 rounded-xl"
+            >
+              <Check className="size-4 text-[#0059D0] shrink-0 mt-0.5" />
+              <span className="leading-snug">{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </motion.section>
+  );
+}
 
 export default function ChangeLog() {
   return (
     <DocsLayout
-      versionLabel={APK_VERSION}
+      versionLabel={LATEST.version}
       downloadHref={`/app#stabil`}
       sidebar={SIDEBAR}
     >
@@ -87,10 +198,10 @@ export default function ChangeLog() {
             <span className="px-2.5 py-1 rounded-full bg-white text-black text-xs font-medium">
               Latest
             </span>
-            <span className="text-white/60 text-sm">{APK_VERSION}</span>
+            <span className="text-white/60 text-sm">{LATEST.version}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mb-2">
-            Kartu Bersih & Navigasi Rapi
+            {LATEST.title}
           </h2>
           <p className="text-white/60 text-sm leading-relaxed max-w-2xl">
             Kartu Tugas tanpa badge Classroom yang mengganggu, dan tombol
@@ -98,185 +209,9 @@ export default function ChangeLog() {
           </p>
         </motion.div>
 
-        {/* Entri v0.2.1 */}
-        <motion.section
-          id="v0-2-1"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="scroll-mt-24 relative pl-12 sm:pl-14"
-        >
-          <div className="absolute left-0 top-0 size-8 sm:size-9 rounded-xl bg-[#0059D0] text-white flex items-center justify-center">
-            <Rocket className="size-4" />
-          </div>
-
-          <div className="bg-white rounded-2xl border border-black/5 p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-black tracking-tight mb-1.5">
-                  Kartu Bersih & Navigasi Rapi
-                </h3>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-black/40">
-                  <span className="flex items-center gap-1.5 font-medium text-black">
-                    <Tag className="size-3.5" />
-                    {APK_VERSION}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <CalendarDays className="size-3.5" />
-                    {APK_RELEASED}
-                  </span>
-                </div>
-              </div>
-              <a
-                href={APK_PATH}
-                download={APK_NAME}
-                className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors"
-              >
-                <Download className="size-4" />
-                Download ({APK_SIZE})
-              </a>
-            </div>
-
-            <p className="text-sm text-black/60 leading-relaxed mb-5">
-              Versi terbaru aplikasi Android ({APK_MIN_ANDROID}). Update
-              langsung timpa versi lama, tidak perlu uninstall.
-            </p>
-
-            <h4 className="text-xs font-medium tracking-wide text-black/40 mb-2.5">
-              Yang Baru
-            </h4>
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {V021_HIGHLIGHTS.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2 text-sm text-black/70 bg-[#60A8F8]/10 px-3 py-2.5 rounded-xl"
-                >
-                  <Check className="size-4 text-[#0059D0] shrink-0 mt-0.5" />
-                  <span className="leading-snug">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </motion.section>
-
-        {/* Entri v0.2.0 */}
-        <motion.section
-          id="v0-2-0"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="scroll-mt-24 relative pl-12 sm:pl-14"
-        >
-          <div className="absolute left-0 top-0 size-8 sm:size-9 rounded-xl bg-[#0059D0] text-white flex items-center justify-center">
-            <Rocket className="size-4" />
-          </div>
-
-          <div className="bg-white rounded-2xl border border-black/5 p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-black tracking-tight mb-1.5">
-                  Rebrand Biru & Pengingat Lokal
-                </h3>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-black/40">
-                  <span className="flex items-center gap-1.5 font-medium text-black">
-                    <Tag className="size-3.5" />
-                    {APK_VERSION}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <CalendarDays className="size-3.5" />
-                    {APK_RELEASED}
-                  </span>
-                </div>
-              </div>
-              <a
-                href={APK_PATH}
-                download={APK_NAME}
-                className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors"
-              >
-                <Download className="size-4" />
-                Download ({APK_SIZE})
-              </a>
-            </div>
-
-            <p className="text-sm text-black/60 leading-relaxed mb-5">
-              Versi aplikasi Android ({APK_MIN_ANDROID}). Update
-              langsung timpa versi lama, tidak perlu uninstall.
-            </p>
-
-            <h4 className="text-xs font-medium tracking-wide text-black/40 mb-2.5">
-              Yang Baru
-            </h4>
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {V020_HIGHLIGHTS.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2 text-sm text-black/70 bg-[#60A8F8]/10 px-3 py-2.5 rounded-xl"
-                >
-                  <Check className="size-4 text-[#0059D0] shrink-0 mt-0.5" />
-                  <span className="leading-snug">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </motion.section>
-
-        {/* Entri v0.1.0 */}
-        <motion.section
-          id="v0-1-0"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="scroll-mt-24 relative pl-12 sm:pl-14"
-        >
-          <div className="absolute left-0 top-0 size-8 sm:size-9 rounded-xl bg-[#0059D0] text-white flex items-center justify-center">
-            <Rocket className="size-4" />
-          </div>
-
-          <div className="bg-white rounded-2xl border border-black/5 p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-black tracking-tight mb-1.5">
-                  Rilis Perdana Aplikasi Android
-                </h3>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-black/40">
-                  <span className="flex items-center gap-1.5 font-medium text-black">
-                    <Tag className="size-3.5" />
-                    {V020_VERSION}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <CalendarDays className="size-3.5" />
-                    {V020_RELEASED}
-                  </span>
-                </div>
-              </div>
-              <a
-                href={V020_PATH}
-                download={V020_NAME}
-                className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors"
-              >
-                <Download className="size-4" />
-                Download ({V020_SIZE})
-              </a>
-            </div>
-
-            <p className="text-sm text-black/60 leading-relaxed mb-5">
-              Versi pertama aplikasi Android ({APK_MIN_ANDROID}). Semua yang
-              kamu butuhkan untuk tidak ketinggalan deadline — dalam genggaman.
-            </p>
-
-            <h4 className="text-xs font-medium tracking-wide text-black/40 mb-2.5">
-              Yang Baru
-            </h4>
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {V010_HIGHLIGHTS.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2 text-sm text-black/70 bg-[#60A8F8]/10 px-3 py-2.5 rounded-xl"
-                >
-                  <Check className="size-4 text-[#0059D0] shrink-0 mt-0.5" />
-                  <span className="leading-snug">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </motion.section>
+        {RELEASES.map((entry) => (
+          <ReleaseSection key={entry.id} entry={entry} />
+        ))}
 
         {/* Penutup */}
         <section className="bg-[#60A8F8]/10 rounded-2xl px-5 py-4">
