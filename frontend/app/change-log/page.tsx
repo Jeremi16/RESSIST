@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.2.1";
-const APK_NAME = "ressist-0.2.1-release.apk";
+const APK_VERSION = "v0.2.2";
+const APK_NAME = "ressist-0.2.2-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.41 MB";
 const APK_RELEASED = "18 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V021_VERSION = "v0.2.1";
+const V021_NAME = "ressist-0.2.1-release.apk";
+const V021_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${V021_VERSION}/${V021_NAME}`;
+const V021_SIZE = "3.41 MB";
+const V021_RELEASED = "18 September 2026";
 
 const V020_VERSION = "v0.2.0";
 const V020_NAME = "ressist-0.2.0-release.apk";
@@ -49,18 +55,34 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-2-1",
+    id: "v0-2-2",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
-    title: "Kartu Bersih & Navigasi Rapi",
+    title: "Kelas Terpisah & Lainnya Rapi",
     description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Mata Kuliah dan Filter Kelas kini layar terpisah berheader sendiri, tanpa tab.",
+      "Kartu beta dihapus; statistik tampil per layar sesuai konteks.",
+      "Header Lainnya disederhanakan — logo saja, versi tetap ada di Tentang.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-2-1",
+    version: V021_VERSION,
+    fileName: V021_NAME,
+    filePath: V021_PATH,
+    size: V021_SIZE,
+    released: V021_RELEASED,
+    title: "Kartu Bersih & Navigasi Rapi",
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
     highlights: [
       "Badge Classroom di kartu Tugas dihapus agar tampilan kartu bersih.",
       "Tombol Back HP kini kembali ke menu sebelumnya, tidak langsung keluar aplikasi.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      `Ringan — hanya sekitar ${V021_SIZE}.`,
     ],
   },
   {

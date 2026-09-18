@@ -21,14 +21,14 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.2.1";
-const APK_NAME = "ressist-0.2.1-release.apk";
+const APK_VERSION = "v0.2.2";
+const APK_NAME = "ressist-0.2.2-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.41 MB";
 const APK_RELEASED = "18 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 const APK_SHA256 =
-  "0657c22c487c5ac4200c369a49dec520fca3d4164ecc134ee5629360a2e8b204";
+  "7afde7b55af878ceb691254c28c830f89dce503740c32394b8e5d20b4e28e2c4";
 
 const SIDEBAR = docsSidebar([
   { label: "Rilis Stabil", to: "#stabil" },
@@ -38,8 +38,8 @@ const SIDEBAR = docsSidebar([
 ]);
 
 const CHANGELOG = [
-  "Badge Classroom di kartu Tugas dihapus agar tampilan kartu bersih.",
-  "Tombol Back HP kini kembali ke menu sebelumnya, tidak langsung keluar aplikasi.",
+  "Mata Kuliah dan Filter Kelas kini layar terpisah berheader sendiri, tanpa tab.",
+  "Header Lainnya disederhanakan — logo saja, versi tetap ada di Tentang.",
 ];
 
 const INSTALL_STEPS = [

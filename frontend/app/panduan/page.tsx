@@ -37,7 +37,7 @@ const SIDEBAR = docsSidebar([
 export default function Panduan() {
   return (
     <DocsLayout
-      versionLabel="v0.2.1"
+      versionLabel="v0.2.2"
       downloadHref="/app#stabil"
       sidebar={SIDEBAR}
     >
