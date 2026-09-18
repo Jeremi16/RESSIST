@@ -21,14 +21,14 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.1.0";
-const APK_NAME = "ressist-0.1.0-release.apk";
+const APK_VERSION = "v0.2.0";
+const APK_NAME = "ressist-0.2.0-release.apk";
 const APK_PATH = `/downloads/${APK_NAME}`;
-const APK_SIZE = "2.86 MB";
+const APK_SIZE = "3.41 MB";
 const APK_RELEASED = "18 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 const APK_SHA256 =
-  "b4d6d047fc4f928e7eb3b0383f8cfeda306d81b5da67e37ac66a3802a66a5212";
+  "9a3b78060daa3a2aea2593348a2680e0e7b02afc8510a2629ac7a5a14c84162a";
 
 const SIDEBAR = docsSidebar([
   { label: "Rilis Stabil", to: "#stabil" },
@@ -38,9 +38,10 @@ const SIDEBAR = docsSidebar([
 ]);
 
 const CHANGELOG = [
-  "Rilis awal aplikasi Android Ressist.",
-  "Login dan sinkronisasi tugas Moodle & Google Classroom.",
-  "Pengingat deadline otomatis di HP.",
+  "Rebrand putih-biru dengan logo R Ressist di seluruh aplikasi.",
+  "Tab Tugas ala Mihon: tab + badge angka + tombol sinkron.",
+  "Morning Briefing jam 07:00 WIB via notifikasi lokal Android.",
+  "Tab Lainnya baru + halaman Tentang; Kelas dipecah jadi Mata Kuliah & Filter Kelas.",
 ];
 
 const INSTALL_STEPS = [

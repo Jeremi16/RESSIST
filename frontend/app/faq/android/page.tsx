@@ -16,7 +16,7 @@ const ITEMS: FaqItem[] = [
         <Link to="/app" className="text-[#0059D0] font-medium hover:underline">
           halaman download
         </Link>
-        . Versi terbaru saat ini v0.1.0 (sekitar 2.86 MB, Android 8.0 ke
+        . Versi terbaru saat ini v0.2.0 (sekitar 3.41 MB, Android 8.0 ke
         atas).
       </>
     ),
@@ -43,7 +43,7 @@ const ITEMS: FaqItem[] = [
     id: "gagal",
     nav: "Gagal install",
     q: "Gagal install / muncul peringatan?",
-    a: 'Pastikan "Install unknown apps" diizinkan untuk browsermu, ruang penyimpanan cukup, dan file terdownload penuh (cek ukurannya 2.86 MB). Kalau masih gagal, baca halaman Bantuan.',
+        a: 'Pastikan "Install unknown apps" diizinkan untuk browsermu, ruang penyimpanan cukup, dan file terdownload penuh (cek ukurannya 3.41 MB). Kalau masih gagal, baca halaman Bantuan.',
   },
 ];
 
@@ -54,7 +54,7 @@ const SIDEBAR = docsSidebar(
 export default function FaqAndroid() {
   return (
     <DocsLayout
-      versionLabel="v0.1.0"
+      versionLabel="v0.2.0"
       downloadHref="/app#stabil"
       sidebar={SIDEBAR}
     >
