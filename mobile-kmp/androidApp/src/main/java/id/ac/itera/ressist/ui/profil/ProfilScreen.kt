@@ -14,8 +14,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -29,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,7 +36,6 @@ import id.ac.itera.ressist.ui.common.LoadingBox
 import id.ac.itera.ressist.ui.common.PrimaryPillButton
 import id.ac.itera.ressist.ui.common.RessistCard
 import id.ac.itera.ressist.ui.common.RessistHeader
-import id.ac.itera.ressist.ui.common.RessistIcons
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -60,14 +56,7 @@ fun ProfilScreen(
     Column(modifier.fillMaxSize()) {
         RessistHeader(
             title = "Profil",
-            subtitle = "Kelola akun",
-            actions = {
-                if (onBack != null) {
-                    IconButton(onClick = onBack) {
-                        Icon(painterResource(RessistIcons.ArrowBack), contentDescription = "Kembali")
-                    }
-                }
-            },
+            navigateUp = onBack,
         )
         when {
             state.isLoading -> LoadingBox(Modifier.fillMaxSize())
