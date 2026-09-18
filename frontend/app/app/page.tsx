@@ -21,14 +21,14 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.2.0";
-const APK_NAME = "ressist-0.2.0-release.apk";
+const APK_VERSION = "v0.2.1";
+const APK_NAME = "ressist-0.2.1-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.41 MB";
 const APK_RELEASED = "18 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 const APK_SHA256 =
-  "9a3b78060daa3a2aea2593348a2680e0e7b02afc8510a2629ac7a5a14c84162a";
+  "0657c22c487c5ac4200c369a49dec520fca3d4164ecc134ee5629360a2e8b204";
 
 const SIDEBAR = docsSidebar([
   { label: "Rilis Stabil", to: "#stabil" },
@@ -38,10 +38,8 @@ const SIDEBAR = docsSidebar([
 ]);
 
 const CHANGELOG = [
-  "Rebrand putih-biru dengan logo R Ressist di seluruh aplikasi.",
-  "Tab Tugas ala Mihon: tab + badge angka + tombol sinkron.",
-  "Morning Briefing jam 07:00 WIB via notifikasi lokal Android.",
-  "Tab Lainnya baru + halaman Tentang; Kelas dipecah jadi Mata Kuliah & Filter Kelas.",
+  "Badge Classroom di kartu Tugas dihapus agar tampilan kartu bersih.",
+  "Tombol Back HP kini kembali ke menu sebelumnya, tidak langsung keluar aplikasi.",
 ];
 
 const INSTALL_STEPS = [

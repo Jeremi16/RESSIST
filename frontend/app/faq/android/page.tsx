@@ -16,7 +16,7 @@ const ITEMS: FaqItem[] = [
         <Link to="/app" className="text-[#0059D0] font-medium hover:underline">
           halaman download
         </Link>
-        . Versi terbaru saat ini v0.2.0 (sekitar 3.41 MB, Android 8.0 ke
+        . Versi terbaru saat ini v0.2.1 (sekitar 3.41 MB, Android 8.0 ke
         atas).
       </>
     ),
@@ -54,7 +54,7 @@ const SIDEBAR = docsSidebar(
 export default function FaqAndroid() {
   return (
     <DocsLayout
-      versionLabel="v0.2.0"
+      versionLabel="v0.2.1"
       downloadHref="/app#stabil"
       sidebar={SIDEBAR}
     >

@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.2.0";
-const APK_NAME = "ressist-0.2.0-release.apk";
+const APK_VERSION = "v0.2.1";
+const APK_NAME = "ressist-0.2.1-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.41 MB";
 const APK_RELEASED = "18 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V020_VERSION = "v0.2.0";
+const V020_NAME = "ressist-0.2.0-release.apk";
+const V020_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${V020_VERSION}/${V020_NAME}`;
+const V020_SIZE = "3.41 MB";
+const V020_RELEASED = "18 September 2026";
 
 const V010_VERSION = "v0.1.0";
 const V010_NAME = "ressist-0.1.0-release.apk";
@@ -28,9 +34,16 @@ const V010_SIZE = "2.86 MB";
 const V010_RELEASED = "18 September 2026";
 
 const SIDEBAR = docsSidebar([
+  { label: "v0.2.1", to: "#v0-2-1" },
   { label: "v0.2.0", to: "#v0-2-0" },
   { label: "v0.1.0", to: "#v0-1-0" },
 ]);
+
+const V021_HIGHLIGHTS = [
+  "Badge Classroom di kartu Tugas dihapus agar tampilan kartu bersih.",
+  "Tombol Back HP kini kembali ke menu sebelumnya, tidak langsung keluar aplikasi.",
+  `Ringan — hanya sekitar ${APK_SIZE}.`,
+];
 
 const V020_HIGHLIGHTS = [
   "Rebrand putih-biru dengan logo R Ressist di seluruh aplikasi.",
@@ -77,14 +90,73 @@ export default function ChangeLog() {
             <span className="text-white/60 text-sm">{APK_VERSION}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mb-2">
-            Rebrand Biru & Pengingat Lokal
+            Kartu Bersih & Navigasi Rapi
           </h2>
           <p className="text-white/60 text-sm leading-relaxed max-w-2xl">
-            Tampilan baru putih-biru dengan logo Ressist, tab Tugas ala Mihon,
-            Morning Briefing 07:00 WIB langsung di HP, dan tab Lainnya yang
-            dirapikan.
+            Kartu Tugas tanpa badge Classroom yang mengganggu, dan tombol
+            Back HP kini kembali ke menu sebelumnya.
           </p>
         </motion.div>
+
+        {/* Entri v0.2.1 */}
+        <motion.section
+          id="v0-2-1"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="scroll-mt-24 relative pl-12 sm:pl-14"
+        >
+          <div className="absolute left-0 top-0 size-8 sm:size-9 rounded-xl bg-[#0059D0] text-white flex items-center justify-center">
+            <Rocket className="size-4" />
+          </div>
+
+          <div className="bg-white rounded-2xl border border-black/5 p-5 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-black tracking-tight mb-1.5">
+                  Kartu Bersih & Navigasi Rapi
+                </h3>
+                <div className="flex flex-wrap items-center gap-3 text-sm text-black/40">
+                  <span className="flex items-center gap-1.5 font-medium text-black">
+                    <Tag className="size-3.5" />
+                    {APK_VERSION}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CalendarDays className="size-3.5" />
+                    {APK_RELEASED}
+                  </span>
+                </div>
+              </div>
+              <a
+                href={APK_PATH}
+                download={APK_NAME}
+                className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors"
+              >
+                <Download className="size-4" />
+                Download ({APK_SIZE})
+              </a>
+            </div>
+
+            <p className="text-sm text-black/60 leading-relaxed mb-5">
+              Versi terbaru aplikasi Android ({APK_MIN_ANDROID}). Update
+              langsung timpa versi lama, tidak perlu uninstall.
+            </p>
+
+            <h4 className="text-xs font-medium tracking-wide text-black/40 mb-2.5">
+              Yang Baru
+            </h4>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {V021_HIGHLIGHTS.map((item) => (
+                <li
+                  key={item}
+                  className="flex items-start gap-2 text-sm text-black/70 bg-[#60A8F8]/10 px-3 py-2.5 rounded-xl"
+                >
+                  <Check className="size-4 text-[#0059D0] shrink-0 mt-0.5" />
+                  <span className="leading-snug">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </motion.section>
 
         {/* Entri v0.2.0 */}
         <motion.section
@@ -125,7 +197,7 @@ export default function ChangeLog() {
             </div>
 
             <p className="text-sm text-black/60 leading-relaxed mb-5">
-              Versi terbaru aplikasi Android ({APK_MIN_ANDROID}). Update
+              Versi aplikasi Android ({APK_MIN_ANDROID}). Update
               langsung timpa versi lama, tidak perlu uninstall.
             </p>
 
@@ -166,21 +238,21 @@ export default function ChangeLog() {
                 <div className="flex flex-wrap items-center gap-3 text-sm text-black/40">
                   <span className="flex items-center gap-1.5 font-medium text-black">
                     <Tag className="size-3.5" />
-                    {V010_VERSION}
+                    {V020_VERSION}
                   </span>
                   <span className="flex items-center gap-1.5">
                     <CalendarDays className="size-3.5" />
-                    {V010_RELEASED}
+                    {V020_RELEASED}
                   </span>
                 </div>
               </div>
               <a
-                href={V010_PATH}
-                download={V010_NAME}
+                href={V020_PATH}
+                download={V020_NAME}
                 className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors"
               >
                 <Download className="size-4" />
-                Download ({V010_SIZE})
+                Download ({V020_SIZE})
               </a>
             </div>
 
