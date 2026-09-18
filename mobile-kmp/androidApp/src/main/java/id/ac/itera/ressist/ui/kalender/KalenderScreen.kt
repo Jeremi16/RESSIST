@@ -6,14 +6,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.ac.itera.ressist.ui.common.ErrorBox
@@ -21,7 +18,6 @@ import id.ac.itera.ressist.ui.common.LoadingBox
 import id.ac.itera.ressist.ui.common.MonthCalendarGrid
 import id.ac.itera.ressist.ui.common.RessistCard
 import id.ac.itera.ressist.ui.common.RessistHeader
-import id.ac.itera.ressist.ui.common.RessistIcons
 import id.ac.itera.ressist.ui.common.toCalItem
 import org.koin.androidx.compose.koinViewModel
 
@@ -36,14 +32,7 @@ fun KalenderScreen(
     Column(modifier.fillMaxSize()) {
         RessistHeader(
             title = "Kalender",
-            subtitle = "Deadline tugas per bulan",
-            actions = {
-                if (onBack != null) {
-                    IconButton(onClick = onBack) {
-                        Icon(painterResource(RessistIcons.ArrowBack), contentDescription = "Kembali")
-                    }
-                }
-            },
+            navigateUp = onBack,
         )
         when {
             state.isLoading -> LoadingBox(Modifier.fillMaxSize())
