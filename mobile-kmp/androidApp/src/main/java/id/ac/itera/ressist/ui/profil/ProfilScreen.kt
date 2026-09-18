@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.ac.itera.ressist.BuildConfig
 import id.ac.itera.ressist.ui.common.ErrorBox
 import id.ac.itera.ressist.ui.common.LoadingBox
 import id.ac.itera.ressist.ui.common.PrimaryPillButton
@@ -142,7 +143,7 @@ fun ProfilScreen(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
                 Text(
-                    "Ressist KMP 0.3.0",
+                    "Ressist KMP ${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.CenterHorizontally),

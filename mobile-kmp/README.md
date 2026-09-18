@@ -45,33 +45,34 @@ Kontrak API: `backend/API_DOCUMENTATION.md` — selalu prefix `/v1`,
 `Authorization: Bearer`, refresh via header `X-Refresh-Token`.
 Mobile dilarang import kode `frontend/src/*`; hanya meniru behavior-nya.
 
-## Rilis (F5)
+## Rilis v0.1.0 (sideload APK)
 
 ```bash
 cd mobile-kmp
-./gradlew :androidApp:bundleRelease   # AAB signed → androidApp/build/outputs/bundle/release/
-./gradlew :androidApp:assembleRelease # APK signed → .../apk/release/ (uji di HP)
+./gradlew :androidApp:assembleRelease # APK signed → androidApp/build/outputs/apk/release/
+# rename → releases/ressist-0.1.0-release.apk, lalu upload ke GitHub Release v0.1.0
 ```
 
 Syarat & checklist:
 
 1. `mobile-kmp/keystore.properties` ada (gitignored) menunjuk ke
-   `../frontend/android/ressist-release.jks` — keystore yang SAMA dengan
-   Capacitor agar Play menganggap ini update.
-2. `versionCode` di `androidApp/build.gradle.kts` HARUS di atas rilis
-   Capacitor terakhir (Capacitor berhenti di 1 → KMP mulai dari 2).
+   `../frontend/android/ressist-release.jks` (reuse keystore Capacitor).
+2. `versionCode = 1`, `versionName = "0.1.0"` di `androidApp/build.gradle.kts`.
+   Versi UI (Lainnya/Profil) otomatis ikut via `BuildConfig.VERSION_NAME`.
+   WAJIB uninstall app lama dulu (Capacitor / KMP 0.2.0) karena Android
+   menolak downgrade `code 2 → 1`.
 3. **SHA-1 check (sekali saja):** sidik jari sertifikat rilis
    (`apksigner verify --print-certs ...apk`) harus cocok dengan Android OAuth
    client di Google Cloud Console. Kalau tidak cocok, Google Sign-In gagal
    dengan `exchange_failed`. Ambil SHA-1:
    `keytool -list -v -keystore ../frontend/android/ressist-release.jks -alias ressist | grep SHA1`
-4. Upload AAB ke Play Console → Internal Testing. Capacitor tetap rilis
-   paralel sampai KMP dinyatakan stabil (crash-free 99% 14 hari, F6).
-5. Device uji butuh backend terjangkau: emulator → `10.0.2.2:8080`,
-   HP fisik → IP LAN laptop (`ressist.apiBaseUrl` di `local.properties`).
-   Atau arahkan ke prod `https://ressist-api.jsx.qzz.io`.
-6. HP fisik WAJIB base URL yang terjangkau dari HP (`10.0.2.2` hanya
-   jalan di emulator). Build release sudah hardcode prod.
+4. Distribusi via GitHub Release (`gh release create v0.1.0 ...apk`),
+   bukan commit binary ke `releases/` (di-gitignore).
+5. Build release hardcode prod `https://ressist-api.jsx.qzz.io`,
+   jadi HP fisik langsung bisa pakai. Debug tetap pakai
+   `ressist.apiBaseUrl` di `local.properties` (emulator `10.0.2.2:8080`).
+6. Skema versi ke depan: `versionName` semver manual + `versionCode` +1
+   tiap rilis, 1 commit bump + 1 tag `vX.Y.Z` + 1 GitHub Release.
 
 ## Loop di consent Google (diagnosis)
 
