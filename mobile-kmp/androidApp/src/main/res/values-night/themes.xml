@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash gelap agar cold-start mode malam tidak kedip putih. -->
+<resources>
+    <color name="ressist_night">#121212</color>
+    <style name="Theme.Ressist" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/ressist_night</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
+</resources>
