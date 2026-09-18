@@ -7,9 +7,12 @@ import android.content.Intent
 import android.os.Build
 import id.ac.itera.ressist.data.repository.AssignmentRepository
 import id.ac.itera.ressist.data.repository.UserRepository
+import id.ac.itera.ressist.domain.model.TaskBuckets
 import id.ac.itera.ressist.domain.time.reminderInstants
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 /**
  * Local deadline reminders (no FCM). Alarms are exact when the OS grants
@@ -30,6 +33,8 @@ class ReminderScheduler(
         private const val PREFS = "ressist_alarms"
         private const val KEY_CODES = "codes"
         private const val MAX_TASKS = 100
+        private const val BRIEFING_ID = "morning-briefing"
+        private val JAKARTA: ZoneId = ZoneId.of("Asia/Jakarta")
     }
 
     private val alarmManager: AlarmManager
@@ -101,6 +106,40 @@ class ReminderScheduler(
                 }
             }
         }
+        if (user.morningBriefing) {
+            scheduleMorningBriefing(now, buckets)
+        }
+    }
+
+    /**
+     * Alarm harian 07:00 WIB berisi ringkasan tugas hari ini (notifikasi lokal,
+     * pengganti briefing via bot). Dijadwalkan ulang tiap sync/save/reboot
+     * sehingga isi ringkasan selalu segar.
+     */
+    private fun scheduleMorningBriefing(now: Instant, buckets: TaskBuckets) {
+        val nowJava = java.time.Instant.ofEpochMilli(now.toEpochMilliseconds())
+        var target = nowJava.atZone(JAKARTA).toLocalDate().atTime(7, 0).atZone(JAKARTA)
+        if (!target.toInstant().isAfter(nowJava)) target = target.plusDays(1)
+        val today: LocalDate = target.toLocalDate()
+        fun isToday(deadline: Instant): Boolean {
+            if (deadline == Instant.DISTANT_FUTURE || deadline == Instant.DISTANT_PAST) return false
+            return java.time.Instant.ofEpochMilli(deadline.toEpochMilliseconds())
+                .atZone(JAKARTA).toLocalDate() == today
+        }
+        val overdueCount = buckets.overdue.size
+        val todayCount = buckets.upcoming.count { isToday(it.deadline) }
+        val text = when {
+            todayCount > 0 && overdueCount > 0 -> "$todayCount tugas hari ini • $overdueCount terlewat"
+            todayCount > 0 -> "$todayCount tugas deadline hari ini"
+            overdueCount > 0 -> "$overdueCount tugas terlewat — kejar hari ini"
+            else -> "Tidak ada deadline hari ini. Tetap semangat!"
+        }
+        schedule(
+            at = Instant.fromEpochMilliseconds(target.toInstant().toEpochMilli()),
+            assignmentId = BRIEFING_ID,
+            title = "Morning Briefing",
+            text = text,
+        )
     }
 
     private fun formatCountdown(deadline: Instant, now: Instant): String {

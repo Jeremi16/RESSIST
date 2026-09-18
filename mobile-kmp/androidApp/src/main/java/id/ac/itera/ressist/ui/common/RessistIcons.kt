@@ -25,6 +25,8 @@ object RessistIcons {
     @DrawableRes val Home = R.drawable.ic_home
     @DrawableRes val Info = R.drawable.ic_info
     @DrawableRes val Key = R.drawable.ic_key
+    /** Monogram R Ressist (biru tua #0059D0 + aksen #60A8F8) — dipakai via Image, bukan Icon. */
+    @DrawableRes val LogoMark = R.drawable.logo_mark
     @DrawableRes val Mail = R.drawable.ic_mail
     @DrawableRes val MoreHoriz = R.drawable.ic_more_horiz
     @DrawableRes val Notifications = R.drawable.ic_notifications

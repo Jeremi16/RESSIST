@@ -1,26 +1,33 @@
 package id.ac.itera.ressist.ui.tugas
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Badge
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +39,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,7 +61,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import id.ac.itera.ressist.ui.common.CountBadge
 import id.ac.itera.ressist.ui.common.EmptyState
 import id.ac.itera.ressist.ui.common.ErrorBox
 import id.ac.itera.ressist.ui.common.LoadingBox
@@ -62,11 +70,9 @@ import id.ac.itera.ressist.ui.common.RessistIcons
 import id.ac.itera.ressist.ui.common.TaskCardFrontend
 import org.koin.androidx.compose.koinViewModel
 
-private data class Segment(val title: String, val icon: Int)
-
 /**
  * Tab Tugas: header judul + ikon search/filter (pola contoh),
- * segmen Terlewat/Mendatang/Selesai + kartu ala frontend.
+ * tab Terlewat/Mendatang/Selesai ala Mihon + kartu ala frontend.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +82,10 @@ fun TugasScreen(modifier: Modifier = Modifier, viewModel: TugasViewModel = koinV
     val message = state.notice ?: state.error
     var searchOpen by remember { mutableStateOf(false) }
     var filterOpen by remember { mutableStateOf(false) }
+    // true saat refresh dipicu tombol header (bukan tarik-untuk-refresh):
+    // indikator pull disembunyikan agar hanya spinner header yang tampil.
+    var headerSync by remember { mutableStateOf(false) }
+    val pullState = rememberPullToRefreshState()
     val focusRequester = remember { FocusRequester() }
     val closeSearch = {
         searchOpen = false
@@ -85,6 +95,9 @@ fun TugasScreen(modifier: Modifier = Modifier, viewModel: TugasViewModel = koinV
     BackHandler(enabled = searchOpen) { closeSearch() }
     LaunchedEffect(searchOpen) {
         if (searchOpen) focusRequester.requestFocus()
+    }
+    LaunchedEffect(state.isRefreshing) {
+        if (!state.isRefreshing) headerSync = false
     }
     LaunchedEffect(message) {
         message?.let {
@@ -108,6 +121,17 @@ fun TugasScreen(modifier: Modifier = Modifier, viewModel: TugasViewModel = koinV
             RessistHeader(
                 title = "Tugas",
                 actions = {
+                    IconButton(onClick = { headerSync = true; viewModel.refresh() }, enabled = !state.isRefreshing) {
+                        if (state.isRefreshing && headerSync) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
+                            Icon(painterResource(RessistIcons.Refresh), contentDescription = "Sinkronkan tugas")
+                        }
+                    }
                     IconButton(onClick = { searchOpen = true }) {
                         Icon(painterResource(RessistIcons.Search), contentDescription = "Cari tugas")
                     }
@@ -157,44 +181,56 @@ fun TugasScreen(modifier: Modifier = Modifier, viewModel: TugasViewModel = koinV
                         )
                     }
                 }
-                val segments = listOf(
-                    Segment("Terlewat", RessistIcons.Warning),
-                    Segment("Mendatang", RessistIcons.Schedule),
-                    Segment("Selesai", RessistIcons.CheckCircle),
-                )
+                // Tab ala Mihon: baris tab + garis indikator animasi + badge angka (sembunyi saat 0).
+                // Posisi garis dihitung manual (lebar tab sama rata) agar tepat di bawah tab aktif.
+                val tabTitles = listOf("Terlewat", "Mendatang", "Selesai")
                 val counts = listOf(
                     state.buckets!!.overdue.size,
                     state.buckets!!.upcoming.size,
                     state.buckets!!.done.size,
                 )
-                // Segmen pill ala header kolom frontend
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    segments.forEachIndexed { i, seg ->
-                        val selected = state.selectedTab == i
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                            border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)),
-                            modifier = Modifier.weight(1f).clickable { viewModel.selectTab(i) },
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(vertical = 10.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                if (selected) {
-                                    Icon(painterResource(seg.icon), contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onPrimary)
-                                    Text(seg.title, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimary)
-                                    CountBadge(counts[i])
-                                } else {
-                                    Icon(painterResource(seg.icon), contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text(seg.title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("${counts[i]}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    val tabWidth = maxWidth / 3
+                    val indicatorX by animateDpAsState(
+                        targetValue = tabWidth * state.selectedTab,
+                        label = "tabIndicator",
+                    )
+                    Column {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            tabTitles.forEachIndexed { i, title ->
+                                val selected = state.selectedTab == i
+                                Row(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable { viewModel.selectTab(i) }
+                                        .padding(vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        title,
+                                        fontSize = 14.sp,
+                                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    if (counts[i] > 0) {
+                                        Spacer(Modifier.width(6.dp))
+                                        Badge(
+                                            containerColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+                                            contentColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary,
+                                        ) { Text("${counts[i]}") }
+                                    }
                                 }
                             }
+                        }
+                        Box(modifier = Modifier.fillMaxWidth().height(3.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = indicatorX)
+                                    .width(tabWidth)
+                                    .fillMaxHeight()
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape),
+                            )
                         }
                     }
                 }
@@ -202,6 +238,17 @@ fun TugasScreen(modifier: Modifier = Modifier, viewModel: TugasViewModel = koinV
                     isRefreshing = state.isRefreshing,
                     onRefresh = viewModel::refresh,
                     modifier = Modifier.fillMaxSize(),
+                    state = pullState,
+                    indicator = {
+                        // Sync via tombol header: cukup spinner header, tanpa indikator tengah.
+                        if (!headerSync) {
+                            PullToRefreshDefaults.Indicator(
+                                modifier = Modifier.align(Alignment.TopCenter),
+                                isRefreshing = state.isRefreshing,
+                                state = pullState,
+                            )
+                        }
+                    },
                 ) {
                     val list = viewModel.visibleTasks()
                     if (list.isEmpty()) {

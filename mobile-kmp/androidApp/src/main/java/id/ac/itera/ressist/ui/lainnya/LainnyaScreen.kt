@@ -1,5 +1,6 @@
 package id.ac.itera.ressist.ui.lainnya
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.ac.itera.ressist.BuildConfig
 import id.ac.itera.ressist.ui.common.IconBox
-import id.ac.itera.ressist.ui.common.RessistHeader
 import id.ac.itera.ressist.ui.common.RessistIcons
 
 private data class MenuItem(
@@ -36,22 +38,50 @@ private data class MenuItem(
 )
 
 /**
- * Tab "Lainnya" ala halaman mobile frontend (Kelas / Bot & Notifikasi /
- * API Keys) + grup Pengaturan (Tampilan).
+ * Tab "Lainnya" ala Mihon: tanpa header, logo di atas,
+ * lalu menu pilihan (Kelas / Profil / Tampilan / Tentang).
  */
 @Composable
 fun LainnyaScreen(
-    onOpenKelas: () -> Unit,
+    onOpenMatkul: () -> Unit,
+    onOpenFilter: () -> Unit,
     onOpenProfil: () -> Unit,
     onOpenTampilan: () -> Unit,
+    onOpenTentang: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxSize()) {
-        RessistHeader(title = "Lainnya")
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            modifier = Modifier.fillMaxSize().statusBarsPadding()
+                .verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            ) {
+                Image(
+                    painterResource(RessistIcons.LogoMark),
+                    contentDescription = "Logo Ressist",
+                    modifier = Modifier.size(80.dp),
+                )
+                Text(
+                    "Ressist",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                Text(
+                    "Ressist by NODRYX",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "Versi ${BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             MenuGroup(
                 title = "Kelola",
                 items = listOf(
@@ -60,16 +90,12 @@ fun LainnyaScreen(
                         "Akun saya", onOpenProfil,
                     ),
                     MenuItem(
-                        RessistIcons.School, "Kelas",
-                        "Kelola kelas & mata kuliah", onOpenKelas,
+                        RessistIcons.Book, "Mata Kuliah",
+                        "Alias & mute notifikasi", onOpenMatkul,
                     ),
                     MenuItem(
-                        RessistIcons.Notifications, "Bot & Notifikasi",
-                        "Telegram & pengaturan pengingat", onOpenProfil,
-                    ),
-                    MenuItem(
-                        RessistIcons.Key, "API Keys",
-                        "Akses tugas via script / curl", onOpenProfil,
+                        RessistIcons.FilterList, "Filter Kelas",
+                        "Filter tugas per kelas", onOpenFilter,
                     ),
                 ),
             )
@@ -82,11 +108,14 @@ fun LainnyaScreen(
                     ),
                 ),
             )
-            Text(
-                "Ressist KMP ${BuildConfig.VERSION_NAME}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+            MenuGroup(
+                title = "Info",
+                items = listOf(
+                    MenuItem(
+                        RessistIcons.Info, "Tentang",
+                        "Versi aplikasi & info", onOpenTentang,
+                    ),
+                ),
             )
         }
     }

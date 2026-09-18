@@ -45,28 +45,28 @@ Kontrak API: `backend/API_DOCUMENTATION.md` — selalu prefix `/v1`,
 `Authorization: Bearer`, refresh via header `X-Refresh-Token`.
 Mobile dilarang import kode `frontend/src/*`; hanya meniru behavior-nya.
 
-## Rilis v0.1.0 (sideload APK)
+## Rilis v0.2.0 (sideload APK)
 
 ```bash
 cd mobile-kmp
 ./gradlew :androidApp:assembleRelease # APK signed → androidApp/build/outputs/apk/release/
-# rename → releases/ressist-0.1.0-release.apk, lalu upload ke GitHub Release v0.1.0
+# rename → releases/ressist-0.2.0-release.apk, lalu upload ke GitHub Release v0.2.0
 ```
 
 Syarat & checklist:
 
 1. `mobile-kmp/keystore.properties` ada (gitignored) menunjuk ke
    `../frontend/android/ressist-release.jks` (reuse keystore Capacitor).
-2. `versionCode = 1`, `versionName = "0.1.0"` di `androidApp/build.gradle.kts`.
-   Versi UI (Lainnya/Profil) otomatis ikut via `BuildConfig.VERSION_NAME`.
-   WAJIB uninstall app lama dulu (Capacitor / KMP 0.2.0) karena Android
-   menolak downgrade `code 2 → 1`.
+2. `versionCode = 2`, `versionName = "0.2.0"` di `androidApp/build.gradle.kts`.
+   Versi UI (Lainnya/Tentang) otomatis ikut via `BuildConfig.VERSION_NAME`.
+   Pemilik KMP 0.2.0/code 2 lama (bila masih ada) wajib uninstall manual
+   karena Android menolak code yang sama/turun.
 3. **SHA-1 check (sekali saja):** sidik jari sertifikat rilis
    (`apksigner verify --print-certs ...apk`) harus cocok dengan Android OAuth
    client di Google Cloud Console. Kalau tidak cocok, Google Sign-In gagal
    dengan `exchange_failed`. Ambil SHA-1:
    `keytool -list -v -keystore ../frontend/android/ressist-release.jks -alias ressist | grep SHA1`
-4. Distribusi via GitHub Release (`gh release create v0.1.0 ...apk`),
+4. Distribusi via GitHub Release (`gh release create v0.2.0 ...apk`),
    bukan commit binary ke `releases/` (di-gitignore).
 5. Build release hardcode prod `https://ressist-api.jsx.qzz.io`,
    jadi HP fisik langsung bisa pakai. Debug tetap pakai

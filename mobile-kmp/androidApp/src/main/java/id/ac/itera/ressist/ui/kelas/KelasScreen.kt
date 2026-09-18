@@ -27,13 +27,17 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,17 +60,19 @@ import org.koin.androidx.compose.koinViewModel
 
 /**
  * Pengaturan Kelas ala ClassSettings web: banner beta, statistik,
- * alias+mute per matkul, filter kelas per matkul, kelola kode, simpan semua.
+ * lalu Tab "Mata Kuliah" (alias+mute) dan "Filter Kelas" (filter+kelola kode).
  */
 @Composable
 fun KelasScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    initialTab: Int = 0,
     viewModel: KelasViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val message = state.notice ?: state.error
+    var tab by rememberSaveable(initialTab) { mutableIntStateOf(initialTab) }
     LaunchedEffect(message) {
         message?.let {
             snackbar.showSnackbar(it)
@@ -91,9 +97,24 @@ fun KelasScreen(
                     StatCardFrontend("Matkul Difilter", state.filteredCount, "", RessistIcons.Person, Modifier.weight(1f))
                     StatCardFrontend("Mata Kuliah Aktif", state.activeCount, "", RessistIcons.Book, Modifier.weight(1f))
                 }
-                CourseSection(state, viewModel)
-                FilterSection(state, viewModel)
-                CodeSection(state, viewModel)
+                TabRow(selectedTabIndex = tab) {
+                    Tab(
+                        selected = tab == 0,
+                        onClick = { tab = 0 },
+                        text = { Text("Mata Kuliah") },
+                    )
+                    Tab(
+                        selected = tab == 1,
+                        onClick = { tab = 1 },
+                        text = { Text("Filter Kelas") },
+                    )
+                }
+                if (tab == 0) {
+                    CourseSection(state, viewModel)
+                } else {
+                    FilterSection(state, viewModel)
+                    CodeSection(state, viewModel)
+                }
                 PrimaryPillButton(
                     if (state.isSaving) "Menyimpan..." else "Simpan Semua Pengaturan",
                     viewModel::saveAll,

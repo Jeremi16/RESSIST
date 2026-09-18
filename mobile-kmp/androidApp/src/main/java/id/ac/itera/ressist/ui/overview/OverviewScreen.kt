@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.ac.itera.ressist.domain.model.TaskBuckets
-import id.ac.itera.ressist.ui.common.ConnectionStatusCard
 import id.ac.itera.ressist.ui.common.ErrorBox
 import id.ac.itera.ressist.ui.common.MonthCalendarGrid
 import id.ac.itera.ressist.ui.common.RessistCard
@@ -44,7 +43,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun OverviewScreen(
     modifier: Modifier = Modifier,
-    onOpenLms: () -> Unit = {},
     onOpenCalendar: () -> Unit = {},
     viewModel: OverviewViewModel = koinViewModel(),
 ) {
@@ -108,12 +106,6 @@ fun OverviewScreen(
                             }
                         }
                     }
-                    ConnectionStatusCard(
-                        moodle = state.user?.moodleEnabled == true,
-                        classroom = state.user?.googleClassroomEnabled == true,
-                        bot = state.user?.telegramEnabled == true,
-                        onManage = onOpenLms,
-                    )
                     if (state.stale) {
                         StaleCard(onSync = viewModel::sync, syncing = state.isSyncing)
                     }
@@ -138,7 +130,7 @@ private fun StatsGrid(buckets: TaskBuckets) {
                 RessistIcons.Warning, Modifier.weight(1f),
             )
             StatCardFrontend(
-                "Akan Datang", buckets.upcoming.size,
+                "Belum Dikerjakan", buckets.upcoming.size,
                 if (buckets.upcoming.isNotEmpty()) "Siap dikerjakan" else "Tidak ada tugas",
                 RessistIcons.CalendarMonth, Modifier.weight(1f),
             )

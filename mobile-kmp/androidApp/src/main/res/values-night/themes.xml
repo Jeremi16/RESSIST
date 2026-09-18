@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Splash gelap agar cold-start mode malam tidak kedip putih. -->
+<!-- Splash gelap (#121212 = darkScheme.background) agar cold-start mode malam tidak kedip putih. -->
 <resources>
     <color name="ressist_night">#121212</color>
     <style name="Theme.Ressist" parent="android:Theme.Material.NoActionBar">

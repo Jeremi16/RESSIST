@@ -7,9 +7,9 @@ plugins {
 import java.util.Properties
 
 android {
-    // v0.1.0 reset, sideload-only: versionCode sengaja 1.
-    // Konsekuensi: wajib uninstall app lama (Capacitor code 1 / KMP 0.2.0 code 2)
-    // karena Android menolak downgrade. Jalur update Play Store lama tertutup.
+    // v0.2.0 rilis sideload: versionCode 2 (skema +1 dari v0.1.0 code 1).
+    // Konsekuensi: pemilik KMP 0.2.0/code 2 lama (bila masih ada) wajib
+    // uninstall manual karena Android menolak code yang sama/turun.
     namespace = "id.ac.itera.ressist"
     compileSdk = 35
 
@@ -17,8 +17,8 @@ android {
         applicationId = "id.ac.itera.ressist"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
 
         // NOTE: project.findProperty does NOT read local.properties, so load it
         // manually. Order: -P flag > local.properties > fallback.

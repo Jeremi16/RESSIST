@@ -31,6 +31,7 @@ import id.ac.itera.ressist.ui.common.RessistTab
 import id.ac.itera.ressist.ui.kalender.KalenderScreen
 import id.ac.itera.ressist.ui.kelas.KelasScreen
 import id.ac.itera.ressist.ui.lainnya.LainnyaScreen
+import id.ac.itera.ressist.ui.lainnya.TentangScreen
 import id.ac.itera.ressist.ui.lms.LmsScreen
 import id.ac.itera.ressist.ui.login.LoginScreen
 import id.ac.itera.ressist.ui.overview.OverviewScreen
@@ -110,7 +111,7 @@ private fun MainScaffold() {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     // Sub-navigasi internal:
     // - Tampilan penuh kalender dibuka dari kartu Overview.
-    // - Detail Tampilan/Kelas/Profil dibuka dari tab Lainnya.
+    // - Detail Tampilan/Kelas/Profil/Tentang dibuka dari tab Lainnya.
     var showCalendar by rememberSaveable { mutableStateOf(false) }
     var lainnyaDetail by rememberSaveable { mutableStateOf<String?>(null) }
     RequestNotificationPermission()
@@ -139,7 +140,6 @@ private fun MainScaffold() {
             } else {
                 OverviewScreen(
                     modifier,
-                    onOpenLms = { tab = 2 },
                     onOpenCalendar = { showCalendar = true },
                 )
             }
@@ -148,12 +148,16 @@ private fun MainScaffold() {
             3 -> PengingatScreen(modifier = modifier)
             else -> when (lainnyaDetail) {
                 "tampilan" -> TampilanScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
-                "kelas" -> KelasScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
+                "matkul" -> KelasScreen(onBack = { lainnyaDetail = null }, initialTab = 0, modifier = modifier)
+                "filter" -> KelasScreen(onBack = { lainnyaDetail = null }, initialTab = 1, modifier = modifier)
                 "profil" -> ProfilScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
+                "tentang" -> TentangScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 else -> LainnyaScreen(
-                    onOpenKelas = { lainnyaDetail = "kelas" },
+                    onOpenMatkul = { lainnyaDetail = "matkul" },
+                    onOpenFilter = { lainnyaDetail = "filter" },
                     onOpenProfil = { lainnyaDetail = "profil" },
                     onOpenTampilan = { lainnyaDetail = "tampilan" },
+                    onOpenTentang = { lainnyaDetail = "tentang" },
                     modifier = modifier,
                 )
             }

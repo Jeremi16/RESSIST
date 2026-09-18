@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -117,14 +118,18 @@ private fun MoodleCard(
                 singleLine = true,
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PrimaryPillButton("Simpan", onSaveUrl, enabled = !saving)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                PrimaryPillButton("Simpan", onSaveUrl, modifier = Modifier.weight(1f), enabled = !saving)
                 OutlinedButton(
                     onClick = onTest,
                     enabled = !testing && !saving,
+                    modifier = Modifier.weight(1f).height(36.dp),
                     shape = CircleShape,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.15f)),
-                ) { Text("Tes koneksi") }
+                ) { Text("Tes koneksi", fontSize = 14.sp) }
             }
             if (testing || saving) CircularProgressIndicator()
         }

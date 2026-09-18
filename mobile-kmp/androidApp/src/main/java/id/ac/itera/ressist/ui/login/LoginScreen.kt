@@ -2,6 +2,7 @@ package id.ac.itera.ressist.ui.login
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -89,25 +90,19 @@ fun LoginScreen(
                 modifier = Modifier.widthIn(max = 400.dp).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // Logo hitam rounded-2xl
-                Box(
-                    modifier = Modifier.size(48.dp).clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painterResource(RessistIcons.School),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
+                // Logo Ressist (monogram R)
+                Image(
+                    painter = painterResource(RessistIcons.LogoMark),
+                    contentDescription = "Logo Ressist",
+                    modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)),
+                )
                 Spacer(Modifier.height(20.dp))
                 Text(
                     "Selamat Datang",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = (-0.5).sp,
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
                     "Masuk ke Ressist dengan akun Google ITERA Anda",

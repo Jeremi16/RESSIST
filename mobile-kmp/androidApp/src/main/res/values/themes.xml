@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Brand background matches the Capacitor splash (#F5F0EB).
+<!-- Brand background = putih #FFFFFF (60%), selaras web + splash Capacitor.
      Status/navigation bar transparan (edge-to-edge ala Mihon);
      warna ikon bar diatur dinamis dari MainActivity mengikuti tema. -->
 <resources>
-    <color name="ressist_cream">#F5F0EB</color>
+    <color name="brand_background">#FFFFFF</color>
+    <color name="brand_primary">#0059D0</color>
+    <color name="brand_accent">#60A8F8</color>
     <color name="ressist_night">#121212</color>
     <style name="Theme.Ressist" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/ressist_cream</item>
+        <item name="android:windowBackground">@color/brand_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:enforceNavigationBarContrast">false</item>

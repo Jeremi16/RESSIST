@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -44,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -338,11 +338,13 @@ fun TaskCardFrontend(
     RessistCard(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         task.title,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.25).sp,
+                        lineHeight = 20.sp,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         color = if (task.completed) {
@@ -401,17 +403,33 @@ fun TaskCardFrontend(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    "${task.deadline.formatId()} (${formatTimeRemainingId(task.deadline, now)})",
-                    fontSize = 12.sp,
-                    fontWeight = if (overdue) FontWeight.Medium else FontWeight.Normal,
-                    color = if (overdue) RessistRed else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        painterResource(RessistIcons.Schedule),
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = if (overdue) RessistRed else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        "${task.deadline.formatId()} (${formatTimeRemainingId(task.deadline, now)})",
+                        fontSize = 12.sp,
+                        fontWeight = if (overdue) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (overdue) RessistRed else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                }
                 task.url?.let { url ->
                     Text(
                         "Link →",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.clickable { runCatching { uriHandler.openUri(url) } },
                     )
                 }
@@ -420,8 +438,13 @@ fun TaskCardFrontend(
     }
 }
 
-/* ---------- Statistik ala TaskStats.tsx ---------- */
+/* ---------- Kartu statistik gaya Mihon ---------- */
 
+/**
+ * Kartu statistik 2-kolom ala Mihon: fill tonal tanpa border,
+ * ikon solid di atas, label abu, angka besar tebal, deskripsi,
+ * dan progress bar tipis opsional (kartu "Selesai").
+ */
 @Composable
 fun StatCardFrontend(
     label: String,
@@ -431,113 +454,62 @@ fun StatCardFrontend(
     modifier: Modifier = Modifier,
     progress: Float? = null,
 ) {
-    RessistCard(modifier) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            IconBox(icon, label)
-            Spacer(Modifier.height(8.dp))
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).heightIn(min = 124.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Box(
+                modifier = Modifier.size(36.dp).clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painterResource(icon),
+                    contentDescription = label,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Spacer(Modifier.height(10.dp))
             Text(
                 label,
                 fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 "$value",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (-0.5).sp,
+                color = MaterialTheme.colorScheme.onSurface,
             )
-            Text(
-                desc,
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (desc.isNotEmpty()) {
+                Text(
+                    desc,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             if (progress != null) {
                 Spacer(Modifier.height(8.dp))
                 LinearProgressIndicator(
                     progress = { progress },
-                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
                     color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.08f),
+                    trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                 )
+            } else {
+                // Slot kosong setinggi progress bar agar semua kartu sama tinggi.
+                Spacer(Modifier.height(12.dp))
             }
         }
-    }
-}
-
-/* ---------- Kartu hitam Status Koneksi ---------- */
-
-@Composable
-fun ConnectionStatusCard(
-    moodle: Boolean,
-    classroom: Boolean,
-    bot: Boolean,
-    onManage: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    // Kartu hitam khas frontend; di dark-mode pakai abu gelap agar tetap terlihat.
-    val light = MaterialTheme.colorScheme.background.luminance() > 0.5f
-    val container = if (light) Color.Black else Color(0xFF2A2A2A)
-    val content = Color.White
-    val dim = Color.White.copy(alpha = 0.6f)
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = container),
-    ) {
-        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Status Koneksi", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = content)
-            ConnectionRow("M", "Moodle", moodle, content, dim)
-            ConnectionRow("G", "Classroom", classroom, content, dim)
-            ConnectionRow(null, "Bot", bot, content, dim)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            ) {
-                Text("WhatsApp", fontSize = 14.sp, color = dim)
-                Text("Soon", fontSize = 12.sp, color = dim)
-            }
-            Button(
-                onClick = onManage,
-                modifier = Modifier.fillMaxWidth().height(36.dp),
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black,
-                ),
-            ) {
-                Text("Kelola Koneksi", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ConnectionRow(letter: String?, name: String, active: Boolean, content: Color, dim: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(
-                modifier = Modifier.size(32.dp).clip(RoundedCornerShape(10.dp))
-                    .background(if (active) Color.White else Color.White.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    letter ?: "✈",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = if (active) Color.Black else dim,
-                )
-            }
-            Text(name, fontSize = 14.sp, color = content.copy(alpha = 0.8f))
-        }
-        Box(
-            Modifier.size(8.dp).clip(CircleShape)
-                .background(if (active) RessistGreen else Color.White.copy(alpha = 0.2f)),
-        )
     }
 }
 

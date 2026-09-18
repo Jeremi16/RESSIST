@@ -18,22 +18,32 @@ import id.ac.itera.ressist.data.ThemeMode
 import id.ac.itera.ressist.data.ThemePrefs
 import org.koin.compose.koinInject
 
-/** Cream khas frontend/web (#F5F0EB). */
-val RessistCream = Color(0xFFF5F0EB)
-val RessistCreamDark = Color(0xFFEAE3D8)
+/**
+ * Palet brand Ressist — satu identitas dengan logo:
+ * Putih #FFFFFF (60% background) · Biru Tua #0059D0 (30% primer) ·
+ * Biru Muda #60A8F8 (10% aksen). Hijau/merah fungsional dipertahankan.
+ */
+val BrandBlue = Color(0xFF0059D0)
+val BrandBlueDark = Color(0xFF0043A5)
+val BrandSky = Color(0xFF60A8F8)
+val BrandTintLight = Color(0xFFEAF2FE) // sky ±12% di atas putih — pill/kalender
+val BrandContainerLight = Color(0xFFDCE9FD) // sky ±20% — container aksen
+val BrandOnDark = Color(0xFF062B5B) // teks gelap di atas tombol sky (dark mode)
 
 private fun lightScheme() = lightColorScheme(
-    primary = Color.Black,
+    primary = BrandBlue,
     onPrimary = Color.White,
-    secondary = Color(0xFF1A1A1A),
+    primaryContainer = BrandContainerLight,
+    onPrimaryContainer = BrandBlueDark,
+    secondary = BrandBlueDark,
     onSecondary = Color.White,
-    background = RessistCream,
+    background = Color.White,
     onBackground = Color.Black,
     surface = Color.White,
     onSurface = Color.Black,
-    surfaceVariant = RessistCream,
-    onSurfaceVariant = Color(0x99000000), // black 60% — teks sekunder ala frontend
-    outline = Color(0x0D000000), // black 5% — border kartu ala frontend
+    surfaceVariant = BrandTintLight,
+    onSurfaceVariant = Color(0x99000000), // black 60% — teks sekunder
+    outline = Color(0x1F0059D0), // brand 12% — border kartu
     outlineVariant = Color(0x14000000),
     error = Color(0xFFDC2626),
     errorContainer = Color(0xFFFEF2F2),
@@ -43,17 +53,19 @@ private fun lightScheme() = lightColorScheme(
 )
 
 private fun darkScheme(pureBlack: Boolean) = darkColorScheme(
-    primary = Color.White,
-    onPrimary = Color.Black,
-    secondary = Color(0xFFE5E5E5),
-    onSecondary = Color.Black,
+    primary = BrandSky,
+    onPrimary = BrandOnDark,
+    primaryContainer = BrandBlueDark,
+    onPrimaryContainer = BrandContainerLight,
+    secondary = BrandSky,
+    onSecondary = BrandOnDark,
     background = if (pureBlack) Color.Black else Color(0xFF121212),
     onBackground = Color(0xFFF5F5F5),
     surface = if (pureBlack) Color(0xFF0A0A0A) else Color(0xFF1E1E1E),
     onSurface = Color(0xFFF5F5F5),
-    surfaceVariant = if (pureBlack) Color(0xFF1A1A1A) else Color(0xFF2A2A2A),
+    surfaceVariant = if (pureBlack) Color(0xFF1A2A44) else Color(0xFF1E2A3F),
     onSurfaceVariant = Color(0x99FFFFFF),
-    outline = Color(0x1AFFFFFF),
+    outline = Color(0x3360A8F8), // sky 20% — border kartu
     outlineVariant = Color(0x29FFFFFF),
     error = Color(0xFFF87171),
     errorContainer = Color(0xFF3B1212),
@@ -70,9 +82,9 @@ val RessistShapes = Shapes(
 )
 
 /**
- * Tema aplikasi — menyamakan bahasa visual frontend:
- * background cream, kartu putih rounded-2xl, aksen hitam pill.
- * Mode dibaca dari [ThemePrefs] (Sistem/Terang/Gelap).
+ * Tema aplikasi — bahasa visual brand Ressist:
+ * background putih, kartu putih rounded-2xl, primer biru tua #0059D0,
+ * aksen biru muda #60A8F8. Mode dibaca dari [ThemePrefs] (Sistem/Terang/Gelap).
  */
 @Composable
 fun RessistTheme(content: @Composable () -> Unit) {

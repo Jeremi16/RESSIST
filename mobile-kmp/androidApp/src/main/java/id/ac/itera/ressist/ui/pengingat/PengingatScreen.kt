@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +56,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.ac.itera.ressist.domain.time.formatTimeRemainingId
 import id.ac.itera.ressist.reminders.NotificationHelper
@@ -136,10 +141,17 @@ fun PengingatScreen(
         ActivityResultContracts.RequestPermission(),
     ) { granted -> hasPermission = granted }
 
-    /** Refresh status sistem tiap tampil (pengguna bisa ubah di Setelan lalu kembali). */
-    LaunchedEffect(Unit) {
-        hasPermission = hasPostPermission(context)
-        exactAlarm = canExactAlarm(context)
+    /** Refresh status sistem tiap resume (pengguna bisa ubah di Setelan lalu kembali). */
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasPermission = hasPostPermission(context)
+                exactAlarm = canExactAlarm(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Column(modifier.fillMaxSize()) {
@@ -380,7 +392,7 @@ private fun BriefingCard(enabled: Boolean, onToggle: (Boolean) -> Unit) {
             Column(Modifier.weight(1f)) {
                 Text("Morning Briefing", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 Text(
-                    "Ringkasan harian tiap pagi jam 07:00 WIB via Telegram.",
+                    "Ringkasan harian tiap pagi jam 07:00 WIB via notifikasi Android.",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -442,7 +454,7 @@ private fun SystemCard(
     onOpenChannel: () -> Unit,
 ) {
     RessistCard {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("Status Sistem", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             StatusRow(
                 label = "Izin notifikasi",
@@ -493,9 +505,13 @@ private fun StatusRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.weight(1f),
+        ) {
             Box(
-                Modifier.size(8.dp).clip(CircleShape)
+                Modifier.padding(top = 6.dp).size(8.dp).clip(CircleShape)
                     .background(if (ok) RessistGreen else RessistRed),
             )
             Column {
@@ -508,7 +524,12 @@ private fun StatusRow(
             }
         }
         if (actionText != null) {
-            OutlinedButton(onClick = onAction, shape = CircleShape) {
+            OutlinedButton(
+                onClick = onAction,
+                shape = CircleShape,
+                modifier = Modifier.height(36.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+            ) {
                 Text(actionText, fontSize = 12.sp)
             }
         }
