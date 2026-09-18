@@ -3,6 +3,7 @@ package id.ac.itera.ressist.nav
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.WindowInsets
@@ -114,6 +115,29 @@ private fun MainScaffold() {
     // - Detail Tampilan/Kelas/Profil/Tentang dibuka dari tab Lainnya.
     var showCalendar by rememberSaveable { mutableStateOf(false) }
     var lainnyaDetail by rememberSaveable { mutableStateOf<String?>(null) }
+    // Riwayat tab untuk Back sistem: kembali ke menu sebelumnya, bukan keluar aplikasi.
+    var tabHistory by rememberSaveable { mutableStateOf(listOf(0)) }
+    fun selectTab(i: Int) {
+        if (i == tab) return
+        tab = i
+        showCalendar = false
+        lainnyaDetail = null
+        tabHistory = (tabHistory + i).takeLast(20)
+    }
+    // Urutan: sub-halaman dulu (kalender/detail Lainnya), lalu riwayat tab.
+    // BackHandler anak (mis. mode cari Tugas) diproses lebih dulu oleh Compose.
+    BackHandler(enabled = showCalendar || lainnyaDetail != null || tabHistory.size > 1) {
+        when {
+            showCalendar -> showCalendar = false
+            lainnyaDetail != null -> lainnyaDetail = null
+            tabHistory.size > 1 -> {
+                tabHistory = tabHistory.dropLast(1)
+                tab = tabHistory.last()
+                showCalendar = false
+                lainnyaDetail = null
+            }
+        }
+    }
     RequestNotificationPermission()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -125,11 +149,7 @@ private fun MainScaffold() {
             RessistBottomBar(
                 tabs = TABS,
                 selected = tab,
-                onSelect = {
-                    tab = it
-                    showCalendar = false
-                    lainnyaDetail = null
-                },
+                onSelect = { selectTab(it) },
             )
         },
     ) { padding ->

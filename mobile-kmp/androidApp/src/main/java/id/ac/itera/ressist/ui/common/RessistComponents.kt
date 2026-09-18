@@ -292,7 +292,7 @@ fun CoursePill(text: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** Pill status uppercase 10px (Terlewat merah / Classroom hijau). */
+/** Pill status uppercase 10px (Terlewat merah). */
 @Composable
 fun StatusPill(text: String, container: Color, content: Color, modifier: Modifier = Modifier) {
     Surface(modifier = modifier, shape = CircleShape, color = container) {
@@ -357,13 +357,6 @@ fun TaskCardFrontend(
                         task.course?.let { CoursePill(it) }
                         if (!task.completed && overdue) {
                             StatusPill("Terlewat", RessistRed.copy(alpha = 0.12f), RessistRed)
-                        }
-                        if (task.isReadOnly) {
-                            StatusPill(
-                                "Classroom",
-                                RessistGreen.copy(alpha = 0.14f),
-                                Color(0xFF047857),
-                            )
                         }
                     }
                 }
