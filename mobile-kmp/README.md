@@ -70,6 +70,24 @@ Syarat & checklist:
 5. Device uji butuh backend terjangkau: emulator → `10.0.2.2:8080`,
    HP fisik → IP LAN laptop (`ressist.apiBaseUrl` di `local.properties`).
    Atau arahkan ke prod `https://ressist-api.jsx.qzz.io`.
+6. HP fisik WAJIB base URL yang terjangkau dari HP (`10.0.2.2` hanya
+   jalan di emulator). Build release sudah hardcode prod.
+
+## Loop di consent Google (diagnosis)
+
+Gejala: consent muncul → terima → consent lagi, tanpa error jelas.
+Aplikasi tidak auto-retry; loop selalu berarti tiap percobaan gagal
+dan sesi dibersihkan. Cek berurutan:
+
+1. `adb logcat -s RessistAuth` — lihat `status=` (10 = SHA-1 belum
+   terdaftar, 12501 = dibatalkan user) atau `native login failed`.
+2. SHA-1 APK yang terpasang (`apksigner verify --print-certs`) vs
+   Android OAuth client di GCP Console. Debug KMP memakai keystore
+   rilis — daftarkan SHA-1 varian yang dipakai, bukan debug key lama.
+3. OAuth consent screen masih Testing → akun penguji harus terdaftar
+   di Test Users (scope Classroom sensitif).
+4. `GOOGLE_CLIENT_ID` backend == Web Client ID aplikasi.
+5. HP fisik mencapai backend (bukan `10.0.2.2`).
 
 ## Roadmap
 
