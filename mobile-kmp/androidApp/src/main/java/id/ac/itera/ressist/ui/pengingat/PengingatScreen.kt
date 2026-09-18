@@ -143,7 +143,7 @@ fun PengingatScreen(
     }
 
     Column(modifier.fillMaxSize()) {
-        RessistHeader(title = "Pengingat", subtitle = "Notifikasi dari aplikasi")
+        RessistHeader(title = "Pengingat")
         when {
             state.isLoading -> LoadingBox(Modifier.fillMaxSize())
             state.error != null && state.items.isEmpty() && state.reminderHours.isEmpty() ->
