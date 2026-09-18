@@ -48,7 +48,7 @@ fun LmsScreen(modifier: Modifier = Modifier, viewModel: LmsViewModel = koinViewM
         }
     }
     Column(modifier.fillMaxSize()) {
-        RessistHeader(title = "LMS", subtitle = "Sumber tugas")
+        RessistHeader(title = "LMS")
         when {
             state.isLoading -> LoadingBox(Modifier.fillMaxSize())
             state.user == null -> ErrorBox(state.error ?: "Gagal memuat", viewModel::load, Modifier.fillMaxSize())
