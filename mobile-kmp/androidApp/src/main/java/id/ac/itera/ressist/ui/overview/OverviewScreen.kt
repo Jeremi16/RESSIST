@@ -18,7 +18,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -40,12 +39,6 @@ import id.ac.itera.ressist.ui.common.RessistIcons
 import id.ac.itera.ressist.ui.common.StatCardFrontend
 import id.ac.itera.ressist.ui.common.toCalItem
 import org.koin.androidx.compose.koinViewModel
-import java.time.LocalDate
-
-private val BULAN_SINGKAT = arrayOf(
-    "", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-    "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,22 +50,7 @@ fun OverviewScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     Column(modifier.fillMaxSize()) {
-        val today = LocalDate.now()
-        RessistHeader(
-            title = "Ringkasan",
-            subtitle = "Gambaran cepat workspace hari ini",
-            actions = {
-                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
-                    Text(
-                        "Today · ${today.dayOfMonth} ${BULAN_SINGKAT[today.monthValue]} ${today.year}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    )
-                }
-            },
-        )
+        RessistHeader(title = "Ringkasan")
         when {
             state.isLoading -> id.ac.itera.ressist.ui.common.LoadingBox(Modifier.fillMaxSize())
             state.error != null && state.buckets == null ->
