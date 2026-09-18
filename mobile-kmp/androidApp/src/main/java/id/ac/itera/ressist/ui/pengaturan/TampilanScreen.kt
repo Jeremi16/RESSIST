@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -20,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,7 +27,6 @@ import id.ac.itera.ressist.data.ThemeMode
 import id.ac.itera.ressist.data.ThemePrefs
 import id.ac.itera.ressist.ui.common.RessistCard
 import id.ac.itera.ressist.ui.common.RessistHeader
-import id.ac.itera.ressist.ui.common.RessistIcons
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -45,12 +41,7 @@ fun TampilanScreen(onBack: () -> Unit, modifier: Modifier = Modifier, prefs: The
     Column(modifier.fillMaxSize()) {
         RessistHeader(
             title = "Tampilan",
-            subtitle = "Atur mode dan ukuran tampilan",
-            actions = {
-                IconButton(onClick = onBack) {
-                    Icon(painterResource(RessistIcons.ArrowBack), contentDescription = "Kembali")
-                }
-            },
+            navigateUp = onBack,
         )
         Column(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
