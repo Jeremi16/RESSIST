@@ -30,7 +30,8 @@ import id.ac.itera.ressist.ui.common.RessistBottomBar
 import id.ac.itera.ressist.ui.common.RessistIcons
 import id.ac.itera.ressist.ui.common.RessistTab
 import id.ac.itera.ressist.ui.kalender.KalenderScreen
-import id.ac.itera.ressist.ui.kelas.KelasScreen
+import id.ac.itera.ressist.ui.kelas.FilterKelasScreen
+import id.ac.itera.ressist.ui.kelas.MataKuliahScreen
 import id.ac.itera.ressist.ui.lainnya.LainnyaScreen
 import id.ac.itera.ressist.ui.lainnya.TentangScreen
 import id.ac.itera.ressist.ui.lms.LmsScreen
@@ -168,8 +169,8 @@ private fun MainScaffold() {
             3 -> PengingatScreen(modifier = modifier)
             else -> when (lainnyaDetail) {
                 "tampilan" -> TampilanScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
-                "matkul" -> KelasScreen(onBack = { lainnyaDetail = null }, initialTab = 0, modifier = modifier)
-                "filter" -> KelasScreen(onBack = { lainnyaDetail = null }, initialTab = 1, modifier = modifier)
+                "matkul" -> MataKuliahScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
+                "filter" -> FilterKelasScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 "profil" -> ProfilScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 "tentang" -> TentangScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 else -> LainnyaScreen(

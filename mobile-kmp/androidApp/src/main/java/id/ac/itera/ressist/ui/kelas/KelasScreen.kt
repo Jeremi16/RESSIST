@@ -27,17 +27,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,20 +55,18 @@ import id.ac.itera.ressist.ui.common.StatCardFrontend
 import org.koin.androidx.compose.koinViewModel
 
 /**
- * Pengaturan Kelas ala ClassSettings web: banner beta, statistik,
- * lalu Tab "Mata Kuliah" (alias+mute) dan "Filter Kelas" (filter+kelola kode).
+ * Layar "Mata Kuliah": alias tampilan + mute notifikasi per mata kuliah.
+ * Berbagi [KelasViewModel] dengan [FilterKelasScreen].
  */
 @Composable
-fun KelasScreen(
+fun MataKuliahScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    initialTab: Int = 0,
     viewModel: KelasViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val message = state.notice ?: state.error
-    var tab by rememberSaveable(initialTab) { mutableIntStateOf(initialTab) }
     LaunchedEffect(message) {
         message?.let {
             snackbar.showSnackbar(it)
@@ -81,7 +75,7 @@ fun KelasScreen(
     }
     Column(modifier.fillMaxSize()) {
         RessistHeader(
-            title = "Kelas",
+            title = "Mata Kuliah",
             navigateUp = onBack,
         )
         when {
@@ -91,32 +85,13 @@ fun KelasScreen(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                BetaCard()
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    StatCardFrontend("Kelas Tersedia", state.allClassCodes.size, "", RessistIcons.School, Modifier.weight(1f))
-                    StatCardFrontend("Matkul Difilter", state.filteredCount, "", RessistIcons.Person, Modifier.weight(1f))
                     StatCardFrontend("Mata Kuliah Aktif", state.activeCount, "", RessistIcons.Book, Modifier.weight(1f))
+                    StatCardFrontend("Kelas Tersedia", state.allClassCodes.size, "", RessistIcons.School, Modifier.weight(1f))
                 }
-                TabRow(selectedTabIndex = tab) {
-                    Tab(
-                        selected = tab == 0,
-                        onClick = { tab = 0 },
-                        text = { Text("Mata Kuliah") },
-                    )
-                    Tab(
-                        selected = tab == 1,
-                        onClick = { tab = 1 },
-                        text = { Text("Filter Kelas") },
-                    )
-                }
-                if (tab == 0) {
-                    CourseSection(state, viewModel)
-                } else {
-                    FilterSection(state, viewModel)
-                    CodeSection(state, viewModel)
-                }
+                CourseSection(state, viewModel)
                 PrimaryPillButton(
-                    if (state.isSaving) "Menyimpan..." else "Simpan Semua Pengaturan",
+                    if (state.isSaving) "Menyimpan..." else "Simpan Pengaturan Mata Kuliah",
                     viewModel::saveAll,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !state.isSaving,
@@ -155,33 +130,50 @@ fun KelasScreen(
     }
 }
 
+/**
+ * Layar "Filter Kelas": pilih kelas per matkul + kelola kode kelas.
+ * Berbagi [KelasViewModel] dengan [MataKuliahScreen].
+ */
 @Composable
-private fun BetaCard() {
-    RessistCard {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(
-                Modifier.size(32.dp).clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center,
+fun FilterKelasScreen(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: KelasViewModel = koinViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    val message = state.notice ?: state.error
+    LaunchedEffect(message) {
+        message?.let {
+            snackbar.showSnackbar(it)
+            viewModel.consumeMessage()
+        }
+    }
+    Column(modifier.fillMaxSize()) {
+        RessistHeader(
+            title = "Filter Kelas",
+            navigateUp = onBack,
+        )
+        when {
+            state.isLoading -> LoadingBox(Modifier.fillMaxSize())
+            state.user == null -> ErrorBox(state.error ?: "Gagal memuat", viewModel::load, Modifier.fillMaxSize())
+            else -> Column(
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text("!", fontWeight = FontWeight.Medium, fontSize = 12.sp, color = MaterialTheme.colorScheme.onPrimary)
-            }
-            Column(Modifier.weight(1f)) {
-                Text("Fitur Dalam Pengembangan", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Text(
-                    "Filter Kelas dan Alias Mata Kuliah masih beta. Beberapa fungsi mungkin berubah di versi mendatang.",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceVariant) {
-                        Text("Beta", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
-                    }
-                    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceVariant) {
-                        Text("v0.5.1", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
-                    }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    StatCardFrontend("Kelas Tersedia", state.allClassCodes.size, "", RessistIcons.School, Modifier.weight(1f))
+                    StatCardFrontend("Matkul Difilter", state.filteredCount, "", RessistIcons.Person, Modifier.weight(1f))
                 }
+                FilterSection(state, viewModel)
+                CodeSection(state, viewModel)
+                PrimaryPillButton(
+                    if (state.isSaving) "Menyimpan..." else "Simpan Filter Kelas",
+                    viewModel::saveAll,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !state.isSaving,
+                )
+                SnackbarHost(snackbar)
             }
         }
     }

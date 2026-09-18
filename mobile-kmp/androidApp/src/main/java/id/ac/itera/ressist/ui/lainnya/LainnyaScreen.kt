@@ -26,7 +26,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import id.ac.itera.ressist.BuildConfig
 import id.ac.itera.ressist.ui.common.IconBox
 import id.ac.itera.ressist.ui.common.RessistIcons
 
@@ -58,28 +57,12 @@ fun LainnyaScreen(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
             ) {
                 Image(
                     painterResource(RessistIcons.LogoMark),
                     contentDescription = "Logo Ressist",
                     modifier = Modifier.size(80.dp),
-                )
-                Text(
-                    "Ressist",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                Text(
-                    "Ressist by NODRYX",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    "Versi ${BuildConfig.VERSION_NAME}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             MenuGroup(
