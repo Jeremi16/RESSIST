@@ -46,7 +46,7 @@ fun LainnyaScreen(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxSize()) {
-        RessistHeader(title = "Lainnya", subtitle = "Kelola dan pengaturan lainnya")
+        RessistHeader(title = "Lainnya")
         Column(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
