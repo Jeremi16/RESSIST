@@ -1,0 +1,376 @@
+"use client";
+
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Bell,
+  CalendarDays,
+  Check,
+  Copy,
+  Download,
+  Globe,
+  Smartphone,
+  Tag,
+  TriangleAlert,
+  Zap,
+} from "lucide-react";
+import {
+  DocsLayout,
+} from "@/components/DocsLayout";
+import { docsSidebar } from "@/components/docs-sidebar";
+
+const APK_VERSION = "v0.1.0";
+const APK_NAME = "ressist-0.1.0-release.apk";
+const APK_PATH = `/downloads/${APK_NAME}`;
+const APK_SIZE = "2.86 MB";
+const APK_RELEASED = "18 September 2026";
+const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+const APK_SHA256 =
+  "b4d6d047fc4f928e7eb3b0383f8cfeda306d81b5da67e37ac66a3802a66a5212";
+
+const SIDEBAR = docsSidebar([
+  { label: "Rilis Stabil", to: "#stabil" },
+  { label: "Detail File", to: "#detail" },
+  { label: "Cara Install", to: "#install" },
+  { label: "FAQ", to: "#faq" },
+]);
+
+const CHANGELOG = [
+  "Rilis awal aplikasi Android Ressist.",
+  "Login dan sinkronisasi tugas Moodle & Google Classroom.",
+  "Pengingat deadline otomatis di HP.",
+];
+
+const INSTALL_STEPS = [
+  {
+    step: "1",
+    title: "Download file APK",
+    description:
+      "Ketuk tombol download di halaman ini dan tunggu hingga file selesai terunduh.",
+  },
+  {
+    step: "2",
+    title: "Izinkan instalasi",
+    description:
+      'Saat diminta, izinkan "Install unknown apps" untuk browser yang kamu pakai. Ini wajar karena aplikasi belum ada di Play Store.',
+  },
+  {
+    step: "3",
+    title: "Buka file & install",
+    description:
+      "Buka file APK dari notifikasi download atau folder Download, lalu ketuk Install.",
+  },
+  {
+    step: "4",
+    title: "Login & sinkronkan",
+    description:
+      "Buka aplikasi Ressist, login dengan akunmu, lalu sinkronkan Moodle dan Google Classroom.",
+  },
+];
+
+const HIGHLIGHTS = [
+  {
+    icon: <Zap className="size-5" />,
+    title: "Sinkron kilat",
+    description:
+      "Tugas dari Moodle (kuliah2.itera.ac.id) & Google Classroom masuk dalam hitungan detik.",
+  },
+  {
+    icon: <Bell className="size-5" />,
+    title: "Pengingat otomatis",
+    description:
+      "Dapat notifikasi sebelum deadline plus Morning Briefing tiap jam 07:00 WIB.",
+  },
+  {
+    icon: <Smartphone className="size-5" />,
+    title: "Ringan di HP",
+    description: `Hanya sekitar ${APK_SIZE}. Dibuat untuk dipakai harian tanpa memberatkan memori.`,
+  },
+];
+
+export default function AppDownload() {
+  const [copied, setCopied] = useState(false);
+
+  const copySha = async () => {
+    try {
+      await navigator.clipboard.writeText(APK_SHA256);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard tidak tersedia — biarkan pengguna menyalin manual
+    }
+  };
+
+  return (
+    <DocsLayout
+      versionLabel={APK_VERSION}
+      downloadHref="#stabil"
+      sidebar={SIDEBAR}
+    >
+      <div className="space-y-8">
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-black">
+          Download
+        </h1>
+
+        {/* Banner peringatan */}
+        <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 flex gap-3">
+          <TriangleAlert className="size-5 text-red-600 shrink-0 mt-0.5" />
+          <div className="space-y-1.5 text-sm leading-relaxed">
+            <p className="font-semibold text-red-900">
+              Hanya tersedia di Android
+            </p>
+            <p className="text-red-800/80">
+              <strong className="text-red-900">Ressist</strong> hanya tersedia
+              untuk Android. Aplikasi non-Android bernama{" "}
+              <strong className="text-red-900">Ressist</strong> tidak
+              berafiliasi dengan proyek ini.
+            </p>
+          </div>
+        </div>
+
+        {/* Kartu rilis stabil */}
+        <motion.section
+          id="stabil"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="scroll-mt-24 bg-[#0059D0]/5 border border-[#0059D0]/15 rounded-2xl p-5 sm:p-7"
+        >
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <img
+                src="/logo-mark.png"
+                alt="Logo Ressist"
+                width={56}
+                height={56}
+                className="size-14 rounded-2xl object-contain shrink-0 bg-white border border-black/5"
+              />
+              <div className="min-w-0">
+                <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-black">
+                  Stabil
+                </h2>
+                <p className="text-sm text-black/50">
+                  Direkomendasikan untuk kebanyakan pengguna
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2 text-sm md:text-right shrink-0">
+              <p className="flex md:justify-end items-center gap-2 text-black/60">
+                <Tag className="size-4 text-black/30" />
+                Latest release:{" "}
+                <strong className="text-black">{APK_VERSION}</strong>
+              </p>
+              <p className="flex md:justify-end items-center gap-2 text-black/60">
+                <CalendarDays className="size-4 text-black/30" />
+                Released: <strong className="text-black">{APK_RELEASED}</strong>
+              </p>
+            </div>
+            <a
+              href={APK_PATH}
+              download={APK_NAME}
+              className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-xl bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors shrink-0"
+            >
+              <Download className="size-4" />
+              Ressist Stabil {APK_VERSION}
+            </a>
+          </div>
+          <p className="mt-4 text-xs text-black/50">
+            Requires {APK_MIN_ANDROID}. Ukuran file {APK_SIZE}.
+          </p>
+        </motion.section>
+
+        {/* Changelog */}
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold tracking-tight text-black">
+            Changelog{" "}
+            <span className="text-base font-medium text-black/40">
+              {APK_VERSION}
+            </span>
+          </h2>
+          <ul className="space-y-2">
+            {CHANGELOG.map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-2.5 text-sm text-black/70 bg-black/[0.03] px-4 py-3 rounded-xl leading-relaxed"
+              >
+                <Check className="size-4 text-[#0059D0] shrink-0 mt-0.5" />
+                {item}
+              </li>
+            ))}
+          </ul>
+          <p className="text-sm text-black/50">
+            Riwayat lengkap perubahan aplikasi di{" "}
+            <Link
+              to="/change-log"
+              className="text-[#0059D0] font-medium hover:underline"
+            >
+              halaman changelog
+            </Link>
+            .
+          </p>
+        </section>
+
+        {/* Detail file */}
+        <section id="detail" className="scroll-mt-24 space-y-4">
+          <h2 className="text-xl font-semibold tracking-tight text-black">
+            Detail file
+          </h2>
+          <div className="grid gap-3 text-sm sm:grid-cols-2">
+            <div className="bg-black/[0.03] rounded-xl px-4 py-3">
+              <p className="text-black/40 text-xs font-medium mb-1">
+                Nama file
+              </p>
+              <p className="text-black font-medium break-all">{APK_NAME}</p>
+            </div>
+            <div className="bg-black/[0.03] rounded-xl px-4 py-3">
+              <p className="text-black/40 text-xs font-medium mb-1">Versi</p>
+              <p className="text-black font-medium">
+                {APK_VERSION} • {APK_SIZE}
+              </p>
+            </div>
+          </div>
+          <div className="bg-black/[0.03] rounded-xl px-4 py-3">
+            <p className="text-black/40 text-xs font-medium mb-1">
+              SHA-256 (verifikasi keaslian file)
+            </p>
+            <div className="flex items-start gap-2">
+              <code className="text-black/70 text-xs leading-relaxed break-all flex-1">
+                {APK_SHA256}
+              </code>
+              <button
+                type="button"
+                onClick={copySha}
+                className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-[#0059D0] hover:underline"
+              >
+                {copied ? (
+                  <>
+                    <Check className="size-3.5" /> Tersalin
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-3.5" /> Salin
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Cara install */}
+        <section id="install" className="scroll-mt-24 space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight text-black mb-1.5">
+              Cara install
+            </h2>
+            <p className="text-sm text-black/60 leading-relaxed">
+              Karena aplikasi belum tersedia di Play Store, Android akan
+              meminta izin tambahan sekali saja.
+            </p>
+          </div>
+          <ol className="grid gap-3 sm:grid-cols-2">
+            {INSTALL_STEPS.map((item, index) => (
+              <motion.li
+                key={item.step}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-white rounded-2xl border border-black/5 p-5"
+              >
+                <span className="size-8 rounded-xl bg-[#0059D0] text-white text-sm font-semibold flex items-center justify-center mb-3">
+                  {item.step}
+                </span>
+                <h3 className="text-sm font-semibold text-black mb-1.5">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-black/60 leading-relaxed">
+                  {item.description}
+                </p>
+              </motion.li>
+            ))}
+          </ol>
+        </section>
+
+        {/* Kenapa install */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-semibold tracking-tight text-black">
+            Kenapa install aplikasinya?
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {HIGHLIGHTS.map((item) => (
+              <div
+                key={item.title}
+                className="bg-white rounded-2xl border border-black/5 p-5"
+              >
+                <div className="size-10 rounded-xl bg-[#0059D0]/10 text-[#0059D0] flex items-center justify-center mb-3">
+                  {item.icon}
+                </div>
+                <h3 className="text-sm font-semibold text-black mb-1.5">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-black/60 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="scroll-mt-24 space-y-4">
+          <h2 className="text-xl font-semibold tracking-tight text-black">
+            Frequently Asked Questions
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link
+              to="/faq/android"
+              className="group bg-white rounded-2xl border border-black/5 p-5 block hover:border-[#0059D0]/30 hover:shadow-sm transition-all"
+            >
+              <h3 className="text-sm font-semibold text-black flex items-center gap-1.5 mb-1.5">
+                Aplikasi Android
+                <ArrowRight className="size-3.5 text-black/20 transition-transform group-hover:translate-x-0.5 group-hover:text-[#0059D0]" />
+              </h3>
+              <p className="text-sm text-black/60 leading-relaxed">
+                Aman APK, HP didukung, update, dan gagal install.
+              </p>
+            </Link>
+            <Link
+              to="/faq/general"
+              className="group bg-white rounded-2xl border border-black/5 p-5 block hover:border-[#0059D0]/30 hover:shadow-sm transition-all"
+            >
+              <h3 className="text-sm font-semibold text-black flex items-center gap-1.5 mb-1.5">
+                Umum
+                <ArrowRight className="size-3.5 text-black/20 transition-transform group-hover:translate-x-0.5 group-hover:text-[#0059D0]" />
+              </h3>
+              <p className="text-sm text-black/60 leading-relaxed">
+                Biaya, akun, keamanan data, dan versi Web.
+              </p>
+            </Link>
+          </div>
+        </section>
+
+        {/* Penutup */}
+        <section className="flex items-start gap-3 bg-[#60A8F8]/10 rounded-2xl px-5 py-4">
+          <Globe className="size-5 text-[#0059D0] shrink-0 mt-0.5" />
+          <p className="text-sm text-black/60 leading-relaxed">
+            Lebih suka tanpa install?{" "}
+            <Link
+              to="/dashboard"
+              className="text-[#0059D0] font-medium hover:underline inline-flex items-center gap-1"
+            >
+              Buka dashboard Web <ArrowRight className="size-3.5" />
+            </Link>{" "}
+            — butuh langkah awal? Baca{" "}
+            <Link
+              to="/guide"
+              className="text-[#0059D0] font-medium hover:underline"
+            >
+              panduan memulai
+            </Link>
+            .
+          </p>
+        </section>
+      </div>
+    </DocsLayout>
+  );
+}
