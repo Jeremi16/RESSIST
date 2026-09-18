@@ -4,6 +4,7 @@
      warna ikon bar diatur dinamis dari MainActivity mengikuti tema. -->
 <resources>
     <color name="ressist_cream">#F5F0EB</color>
+    <color name="ressist_night">#121212</color>
     <style name="Theme.Ressist" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/ressist_cream</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
