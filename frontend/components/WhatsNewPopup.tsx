@@ -52,7 +52,7 @@ export function WhatsNewPopup({ isOpen: controlledIsOpen, onClose, showTrigger =
   return (
     <>
       {showTrigger && isHomePage && (
-        <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} whileTap={{ scale: 0.97 }} onClick={handleOpen} className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 bg-black text-white rounded-full text-sm font-medium shadow-lg">
+        <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} whileTap={{ scale: 0.97 }} onClick={handleOpen} className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 bg-[#0059D0] text-white rounded-full text-sm font-medium shadow-lg hover:bg-[#60A8F8] transition-colors">
           What's New?
         </motion.button>
       )}
@@ -63,7 +63,7 @@ export function WhatsNewPopup({ isOpen: controlledIsOpen, onClose, showTrigger =
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleClose} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} transition={{ type: "spring", damping: 25, stiffness: 300 }} onClick={handleClose} className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-lg max-h-[85dvh] overflow-y-auto bg-white rounded-2xl border border-black/5 shadow-xl">
-                <div className="sticky top-0 bg-black p-6 text-white flex items-start justify-between">
+                <div className="sticky top-0 bg-[#0059D0] p-6 text-white flex items-start justify-between">
                   <div>
                     <p className="inline-flex px-2.5 py-1 rounded-full bg-white text-black text-xs font-medium mb-3">Update Baru</p>
                     <h2 className="text-xl font-semibold tracking-tight">What's New?</h2>
@@ -79,8 +79,8 @@ export function WhatsNewPopup({ isOpen: controlledIsOpen, onClose, showTrigger =
                     <h3 className="text-xs font-medium tracking-wide text-black/40">Fitur Utama</h3>
                     <div className="space-y-2">
                       {NEW_FEATURES.slice(0, 6).map((feature, index) => (
-                        <motion.div key={feature.title} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * index }} className="flex items-start gap-3 p-3 rounded-2xl bg-[#F5F0EB] border border-black/5">
-                          <div className="size-8 rounded-xl bg-black text-white flex items-center justify-center shrink-0"><feature.icon className="size-4" /></div>
+                        <motion.div key={feature.title} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * index }} className="flex items-start gap-3 p-3 rounded-2xl bg-[#60A8F8]/10 border border-black/5">
+                          <div className="size-8 rounded-xl bg-[#0059D0] text-white flex items-center justify-center shrink-0"><feature.icon className="size-4" /></div>
                           <div><h4 className="text-sm font-medium text-black">{feature.title}</h4><p className="text-xs text-black/50 leading-relaxed">{feature.description}</p></div>
                         </motion.div>
                       ))}
@@ -97,8 +97,8 @@ export function WhatsNewPopup({ isOpen: controlledIsOpen, onClose, showTrigger =
                   </div>
 
                   <div className="flex gap-3 pt-2">
-                    <Link to="/version" onClick={handleClose} className="flex-1 h-10 bg-black text-white rounded-full text-sm font-medium inline-flex items-center justify-center gap-1.5">Lihat Detail <ExternalLink className="size-3.5" /></Link>
-                    <button onClick={handleClose} className="flex-1 h-10 bg-[#F5F0EB] border border-black/5 rounded-full text-sm font-medium text-black">Tutup</button>
+                    <Link to="/change-log" onClick={handleClose} className="flex-1 h-10 bg-[#0059D0] text-white rounded-full text-sm font-medium inline-flex items-center justify-center gap-1.5 hover:bg-[#60A8F8] transition-colors">Lihat Detail <ExternalLink className="size-3.5" /></Link>
+                    <button onClick={handleClose} className="flex-1 h-10 bg-[#60A8F8]/10 border border-black/5 rounded-full text-sm font-medium text-black">Tutup</button>
                   </div>
                   <p className="text-center text-xs text-black/30">Terima kasih telah menggunakan Ressist!</p>
                 </div>

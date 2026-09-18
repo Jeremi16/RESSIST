@@ -1,16 +1,13 @@
+import { Logo } from "@/components/Logo";
+
 export function Footer() {
   return (
     <footer className="bg-[#111111] text-white">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           <div className="lg:col-span-4">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="size-8 rounded-lg bg-white flex items-center justify-center text-black text-sm font-bold">
-                R
-              </div>
-              <span className="text-[15px] font-semibold tracking-tight">
-                Ressist
-              </span>
+            <div className="mb-3">
+              <Logo size={32} variant="dark" />
             </div>
             <p className="text-sm text-white/60 leading-relaxed max-w-xs">
               Membangun masa depan produktivitas akademik. Tetap teratur, tetap
@@ -25,7 +22,7 @@ export function Footer() {
                   title: "Produk",
                   links: [
                     { name: "Fitur", href: "/features" },
-                    { name: "Versi", href: "/version" },
+                    { name: "Changelog", href: "/change-log" },
                   ],
                 },
                 {

@@ -42,6 +42,8 @@ mobile-kmp/keystore.properties
 # Release artifacts didistribusikan via GitHub Release, bukan commit binary
 mobile-kmp/releases/*.apk
 mobile-kmp/releases/*.aab
+# Salinan APK untuk halaman /app disiapkan saat deploy, bukan commit binary
+frontend/public/downloads/*.apk
 
 # Backup files
 *.backup

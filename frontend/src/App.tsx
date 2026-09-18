@@ -15,15 +15,20 @@ import Help from "@/app/help/page";
 import Privacy from "@/app/privacy/page";
 import Terms from "@/app/terms/page";
 import Blog from "@/app/blog/page";
-import Version from "@/app/version/page";
+import ChangeLog from "@/app/change-log/page";
 import Harga from "@/app/harga/page";
 import Karir from "@/app/karir/page";
 import Keamanan from "@/app/keamanan/page";
 import KebijakanCookie from "@/app/kebijakan-cookie/page";
-import Panduan from "@/app/panduan/page";
+import Panduan from "@/app/guide/page";
 import Roadmap from "@/app/roadmap/page";
 import Status from "@/app/status/page";
-import Docs from "@/app/docs/page";
+import Docs from "@/app/api-docs/page";
+import FaqGeneral from "@/app/faq/general/page";
+import FaqAndroid from "@/app/faq/android/page";
+import FaqSync from "@/app/faq/sync/page";
+import FaqNotifications from "@/app/faq/notifications/page";
+import AppDownload from "@/app/app/page";
 
 import Login from "@/src/pages/Login";
 import Dashboard from "@/src/pages/Dashboard";
@@ -44,7 +49,7 @@ function withProviders(element: React.ReactNode) {
   return <Providers>{element}</Providers>;
 }
 
-// 7 alias ID -> EN (301 di vercel.json untuk SEO; di SPA pakai <Navigate replace>)
+// 8 alias ID -> EN (301 di vercel.json untuk SEO; di SPA pakai <Navigate replace>)
 const idAliases = [
   { from: "/tentang", to: "/about" },
   { from: "/kontak", to: "/contact" },
@@ -53,6 +58,7 @@ const idAliases = [
   { from: "/bantuan", to: "/help" },
   { from: "/privasi", to: "/privacy" },
   { from: "/ketentuan", to: "/terms" },
+  { from: "/panduan", to: "/guide" },
 ];
 
 export const router = createBrowserRouter([
@@ -65,15 +71,25 @@ export const router = createBrowserRouter([
   { path: "/privacy", element: withProviders(<Privacy />) },
   { path: "/terms", element: withProviders(<Terms />) },
   { path: "/blog", element: withProviders(<Blog />) },
-  { path: "/version", element: withProviders(<Version />) },
+  { path: "/change-log", element: withProviders(<ChangeLog />) },
+  // /version lama -> /change-log (kompatibilitas link lama)
+  { path: "/version", element: <Navigate to="/change-log" replace /> },
   { path: "/harga", element: withProviders(<Harga />) },
   { path: "/karir", element: withProviders(<Karir />) },
   { path: "/keamanan", element: withProviders(<Keamanan />) },
   { path: "/kebijakan-cookie", element: withProviders(<KebijakanCookie />) },
-  { path: "/panduan", element: withProviders(<Panduan />) },
+  { path: "/guide", element: withProviders(<Panduan />) },
   { path: "/roadmap", element: withProviders(<Roadmap />) },
   { path: "/status", element: withProviders(<Status />) },
-  { path: "/docs", element: withProviders(<Docs />) },
+  { path: "/api-docs", element: withProviders(<Docs />) },
+  // /docs lama -> /api-docs (kompatibilitas link lama)
+  { path: "/docs", element: <Navigate to="/api-docs" replace /> },
+  { path: "/faq", element: <Navigate to="/faq/general" replace /> },
+  { path: "/faq/general", element: withProviders(<FaqGeneral />) },
+  { path: "/faq/android", element: withProviders(<FaqAndroid />) },
+  { path: "/faq/sync", element: withProviders(<FaqSync />) },
+  { path: "/faq/notifications", element: withProviders(<FaqNotifications />) },
+  { path: "/app", element: withProviders(<AppDownload />) },
   { path: "/login", element: withProviders(<Login />) },
   // app/register/page.tsx dulu redirect('/login') di server
   { path: "/register", element: <Navigate to="/login" replace /> },

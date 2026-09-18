@@ -12,6 +12,7 @@ export const PUBLIC_PATHS = [
   "/register",
   "/",
   "/features",
+  "/change-log",
   "/version",
   "/documentation",
   "/help",
@@ -25,8 +26,16 @@ export const PUBLIC_PATHS = [
   "/keamanan",
   "/kebijakan-cookie",
   "/panduan",
+  "/guide",
   "/roadmap",
   "/status",
+  "/api-docs",
+  "/docs",
+  "/faq",
+  "/faq/general",
+  "/faq/android",
+  "/faq/sync",
+  "/faq/notifications",
 ];
 
 const AUTH_PATHS = ["/login", "/register"];

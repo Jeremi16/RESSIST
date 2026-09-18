@@ -14,6 +14,7 @@
     { "source": "/fitur", "destination": "/features", "permanent": true },
     { "source": "/bantuan", "destination": "/help", "permanent": true },
     { "source": "/privasi", "destination": "/privacy", "permanent": true },
-    { "source": "/ketentuan", "destination": "/terms", "permanent": true }
+    { "source": "/ketentuan", "destination": "/terms", "permanent": true },
+    { "source": "/panduan", "destination": "/guide", "permanent": true }
   ]
 }
