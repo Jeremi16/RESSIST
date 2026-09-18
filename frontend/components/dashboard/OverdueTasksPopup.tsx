@@ -168,7 +168,7 @@ export function OverdueTasksPopup({ tasks, onMarkComplete, onClose }: OverdueTas
                   href={currentTask.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors py-1"
+                  className="flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-[#0059D0] transition-colors py-1"
                 >
                   <ExternalLink className="size-3.5" />
                   Buka di LMS

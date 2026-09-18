@@ -16,7 +16,7 @@ export default function Status() {
       subtitle="Pantau performa layanan Ressist secara real-time."
     >
       <div className="space-y-8">
-        <div className="p-6 rounded-2xl bg-black text-white flex items-center justify-between">
+        <div className="p-6 rounded-2xl bg-[#0059D0] text-white flex items-center justify-between">
           <div>
             <p className="text-xs font-medium tracking-wide text-white/40 mb-1">Status Global</p>
             <h3 className="text-xl font-semibold tracking-tight">Semua Sistem Normal</h3>

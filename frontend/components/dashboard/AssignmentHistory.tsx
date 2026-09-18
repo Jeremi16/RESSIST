@@ -78,13 +78,13 @@ export function AssignmentHistory({ events }: AssignmentHistoryProps) {
           <div className="flex items-center bg-white border border-slate-200 rounded-lg p-0.5">
             <button
               onClick={prevMonth}
-              className="p-1 hover:bg-slate-50 text-slate-400 hover:text-blue-600 transition-colors"
+              className="p-1 hover:bg-slate-50 text-slate-400 hover:text-[#0059D0] transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={nextMonth}
-              className="p-1 hover:bg-slate-50 text-slate-400 hover:text-blue-600 transition-colors"
+              className="p-1 hover:bg-slate-50 text-slate-400 hover:text-[#0059D0] transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -128,7 +128,7 @@ export function AssignmentHistory({ events }: AssignmentHistoryProps) {
                   className={cn(
                     "text-[10px] font-black tracking-tighter size-6 flex items-center justify-center rounded-lg transition-all",
                     isTodayDate
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                      ? "bg-[#0059D0] text-white shadow-lg shadow-[#0059D0]/30"
                       : isSelectedMonth
                         ? "text-slate-900"
                         : "text-slate-300",
@@ -142,10 +142,10 @@ export function AssignmentHistory({ events }: AssignmentHistoryProps) {
                 {dayEvents.slice(0, 3).map((event, idx) => (
                   <div
                     key={idx}
-                    className="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight truncate bg-blue-50 text-blue-600 border border-blue-100 group relative"
+                    className="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight truncate bg-[#60A8F8]/10 text-[#0059D0] border border-[#60A8F8]/30 group relative"
                     title={`${event.full_title || event.title} (${event.course}${event.class_code ? ` - Kelas ${event.class_code}` : ""})`}
                   >
-                    <div className="w-1 h-3 bg-blue-600 absolute left-0 top-1/2 -translate-y-1/2 rounded-r-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="w-1 h-3 bg-[#0059D0] absolute left-0 top-1/2 -translate-y-1/2 rounded-r-sm opacity-0 group-hover:opacity-100 transition-opacity" />
                     {event.title}
                   </div>
                 ))}

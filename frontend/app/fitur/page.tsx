@@ -10,7 +10,7 @@ export default function Fitur() {
       <div className="space-y-8">
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-6 rounded-2xl bg-white border border-black/5 space-y-3">
-            <div className="size-10 bg-black rounded-xl flex items-center justify-center text-xs font-medium text-white">
+            <div className="size-10 bg-[#0059D0] rounded-xl flex items-center justify-center text-xs font-medium text-white">
               LMS
             </div>
             <h3 className="text-base font-semibold text-black tracking-tight">
@@ -22,7 +22,7 @@ export default function Fitur() {
             </p>
           </div>
           <div className="p-6 rounded-2xl bg-white border border-black/5 space-y-3">
-            <div className="size-10 bg-black rounded-xl flex items-center justify-center text-xs font-medium text-white">
+            <div className="size-10 bg-[#0059D0] rounded-xl flex items-center justify-center text-xs font-medium text-white">
               CHAT
             </div>
             <h3 className="text-base font-semibold text-black tracking-tight">

@@ -29,7 +29,7 @@ const steps = [
 
 export function StepsSection() {
   return (
-    <section id="how-it-works" className="bg-[#F5F0EB] py-16 lg:py-20">
+    <section id="how-it-works" className="bg-white py-16 lg:py-20">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <motion.div
@@ -38,7 +38,7 @@ export function StepsSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
           >
-            <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight text-black leading-tight text-balance">
+            <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight text-[#0059D0] leading-tight text-balance">
               Dari Deadliners jadi non-chalant.
             </h2>
           </motion.div>
@@ -61,7 +61,7 @@ export function StepsSection() {
                   <div className="size-12 rounded-xl bg-white border border-black/5 flex items-center justify-center">
                     <step.icon className="size-5 text-black/70" />
                   </div>
-                  <div className="absolute -top-2 -right-2 size-6 bg-black rounded-full flex items-center justify-center text-[10px] font-semibold text-white">
+                  <div className="absolute -top-2 -right-2 size-6 bg-[#0059D0] rounded-full flex items-center justify-center text-[10px] font-semibold text-white">
                     {index + 1}
                   </div>
                 </div>

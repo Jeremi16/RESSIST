@@ -10,7 +10,7 @@ export default function Kontak() {
       <div className="space-y-6">
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-6 rounded-2xl bg-white border border-black/5 space-y-4">
-            <div className="size-10 bg-black rounded-xl flex items-center justify-center text-sm font-medium text-white">
+            <div className="size-10 bg-[#0059D0] rounded-xl flex items-center justify-center text-sm font-medium text-white">
               @
             </div>
             <div>
@@ -20,7 +20,7 @@ export default function Kontak() {
             <p className="text-sm font-medium text-black break-all">support@ressist.com</p>
           </div>
           <div className="p-6 rounded-2xl bg-white border border-black/5 space-y-4">
-            <div className="size-10 bg-black rounded-xl flex items-center justify-center text-xs font-medium text-white">WA</div>
+            <div className="size-10 bg-[#0059D0] rounded-xl flex items-center justify-center text-xs font-medium text-white">WA</div>
             <div>
               <h3 className="text-base font-semibold text-black">Chat WhatsApp</h3>
               <p className="text-sm text-black/40 mt-1">Fast response 08:00 - 17:00</p>
@@ -34,17 +34,17 @@ export default function Kontak() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-black/40">Nama Lengkap</label>
-              <input type="text" className="w-full h-10 bg-[#F5F0EB] border border-black/5 rounded-xl px-4 text-sm focus:outline-none focus:border-black/10" />
+              <input type="text" className="w-full h-10 bg-[#60A8F8]/10 border border-black/5 rounded-xl px-4 text-sm focus:outline-none focus:border-black/10" />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-black/40">Email Kampus</label>
-              <input type="email" className="w-full h-10 bg-[#F5F0EB] border border-black/5 rounded-xl px-4 text-sm focus:outline-none focus:border-black/10" />
+              <input type="email" className="w-full h-10 bg-[#60A8F8]/10 border border-black/5 rounded-xl px-4 text-sm focus:outline-none focus:border-black/10" />
             </div>
             <div className="md:col-span-2 space-y-1.5">
               <label className="text-xs font-medium text-black/40">Pesan</label>
-              <textarea rows={4} className="w-full bg-[#F5F0EB] border border-black/5 rounded-xl p-4 text-sm focus:outline-none focus:border-black/10"></textarea>
+              <textarea rows={4} className="w-full bg-[#60A8F8]/10 border border-black/5 rounded-xl p-4 text-sm focus:outline-none focus:border-black/10"></textarea>
             </div>
-            <button className="md:col-span-2 h-10 bg-black text-white rounded-full text-sm font-medium hover:bg-black/90 transition-colors">
+            <button className="md:col-span-2 h-10 bg-[#0059D0] text-white rounded-full text-sm font-medium hover:bg-[#60A8F8] transition-colors">
               Kirim Pesan
             </button>
           </div>

@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { GraduationCap, AlertCircle, ArrowLeft, Shield, Mail, Info } from "lucide-react";
+import { AlertCircle, ArrowLeft, Shield, Mail, Info } from "lucide-react";
 import { useToast } from "@/components/ui/toast-provider";
 import { apiFetch, getNativeApiBase, setMobileSession } from "@/src/lib/api-client";
 import { NATIVE_AUTH_NOT_CONFIGURED, signInWithGoogleNative } from "@/src/lib/native-auth";
 import { isNative } from "@/src/lib/platform";
 import { useAuthStatus } from "@/src/hooks/use-auth-status";
+import { Logo } from "@/components/Logo";
 
 function mapErrorToMessage(error: string): string {
   const errorMap: Record<string, string> = {
@@ -161,8 +162,8 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] flex flex-col">
-      <header className="sticky top-0 z-50 bg-[#F5F0EB]/80 backdrop-blur-sm border-b border-black/5">
+    <div className="min-h-screen bg-white flex flex-col">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-black/5">
         <div className="mx-auto max-w-[1280px] px-6 lg:px-8 h-16 flex items-center">
           <Link to="/" className="flex items-center gap-1.5 text-sm font-medium text-black/60 hover:text-black transition-colors">
             <ArrowLeft className="size-4" />
@@ -174,10 +175,10 @@ function LoginContent() {
       <main className="flex-1 flex items-center justify-center p-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-black mb-5">
-              <GraduationCap className="size-6 text-white" />
+            <div className="inline-flex items-center justify-center mb-5">
+              <Logo size={48} to={null} showWordmark={false} />
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-black mb-2">Selamat Datang</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-[#0059D0] mb-2">Selamat Datang</h1>
             <p className="text-sm text-black/60">Masuk ke Ressist dengan akun Google ITERA Anda</p>
           </div>
 
@@ -207,7 +208,7 @@ function LoginContent() {
               <div className="relative flex justify-center"><span className="bg-white px-3 text-xs font-medium tracking-wide text-black/30">Khusus</span></div>
             </div>
 
-            <div className="bg-[#F5F0EB] border border-black/5 rounded-2xl p-4 flex items-start gap-3">
+            <div className="bg-[#60A8F8]/10 border border-black/5 rounded-2xl p-4 flex items-start gap-3">
               <Shield className="size-5 text-black/40 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-sm font-semibold text-black mb-1">Akses Terbatas</h3>
@@ -231,7 +232,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#F5F0EB] flex items-center justify-center"><div className="size-8 border-2 border-black border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><div className="size-8 border-2 border-black border-t-transparent rounded-full animate-spin" /></div>}>
       <LoginContent />
     </Suspense>
   );

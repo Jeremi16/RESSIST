@@ -30,7 +30,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   }, [location.pathname]);
 
   if (state === "checking") {
-    return <div className="min-h-screen bg-[#F5F0EB]" />;
+    return <div className="min-h-screen bg-white" />;
   }
 
   if (state === "unauth") {

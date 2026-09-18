@@ -92,7 +92,7 @@ export function EventPreview({ events, error }: EventPreviewProps) {
               <AccordionTrigger className="p-4 sm:p-6 hover:no-underline">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full text-left gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-2">
-                    <h4 className="text-base sm:text-lg font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 sm:line-clamp-1 leading-tight">
+                    <h4 className="text-base sm:text-lg font-black tracking-tight text-slate-900 group-hover:text-[#0059D0] transition-colors line-clamp-2 sm:line-clamp-1 leading-tight">
                       {event.title}
                     </h4>
                     <div className="flex items-center gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
@@ -110,7 +110,7 @@ export function EventPreview({ events, error }: EventPreviewProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white bg-[#0059D0] hover:bg-[#60A8F8] rounded-md transition-colors"
                       >
                         <ExternalLink className="size-3.5" />
                         Buka Tugas
@@ -145,7 +145,7 @@ export function EventPreview({ events, error }: EventPreviewProps) {
                     </span>
 
                     {event.class_code && (
-                      <span className="text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-1 bg-blue-50 border border-blue-100 text-blue-600 rounded-md">
+                      <span className="text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-1 bg-[#60A8F8]/10 border border-[#60A8F8]/30 text-[#0059D0] rounded-md">
                         Kelas {event.class_code}
                       </span>
                     )}

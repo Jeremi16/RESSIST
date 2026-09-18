@@ -41,7 +41,7 @@ function getVariantStyles(variant: ToastVariant): string {
     case "error":
       return "border-red-200 bg-red-50 text-red-900 shadow-red-100/80";
     default:
-      return "border-blue-200 bg-blue-50 text-blue-900 shadow-blue-100/80";
+      return "border-[#60A8F8]/40 bg-[#60A8F8]/10 text-[#0043A5] shadow-[#60A8F8]/20";
   }
 }
 
@@ -54,7 +54,7 @@ function getVariantIcon(variant: ToastVariant) {
     case "error":
       return <XCircle className="mt-0.5 size-5 shrink-0 text-red-600" />;
     default:
-      return <Info className="mt-0.5 size-5 shrink-0 text-blue-600" />;
+      return <Info className="mt-0.5 size-5 shrink-0 text-[#0059D0]" />;
   }
 }
 

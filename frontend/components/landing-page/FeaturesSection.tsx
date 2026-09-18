@@ -29,7 +29,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="bg-[#F5F0EB] px-4 lg:px-8 pb-8">
+    <section id="features" className="bg-white px-4 lg:px-8 pb-8">
       <div className="mx-auto max-w-[1280px] bg-white rounded-[24px] border border-black/5 px-6 lg:px-10 py-12 lg:py-16">
         <div className="max-w-2xl mb-12">
           <motion.div
@@ -38,7 +38,7 @@ export function FeaturesSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
           >
-            <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight text-black leading-tight mb-4 text-balance">
+            <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight text-[#0059D0] leading-tight mb-4 text-balance">
               Asisten studi terbaik untuk anak ITERA.
             </h2>
             <p className="text-sm lg:text-base text-black/60 leading-relaxed">
@@ -58,7 +58,7 @@ export function FeaturesSection() {
               transition={{ duration: 0.4, delay: index * 0.06 }}
               className="p-6 rounded-2xl bg-white border border-black/5 hover:border-black/10 transition-colors"
             >
-              <div className="size-10 rounded-xl bg-black text-white flex items-center justify-center mb-5">
+              <div className="size-10 rounded-xl bg-[#0059D0] text-white flex items-center justify-center mb-5">
                 <feature.icon className="size-5" />
               </div>
               <h3 className="text-[15px] font-semibold text-black tracking-tight mb-2">

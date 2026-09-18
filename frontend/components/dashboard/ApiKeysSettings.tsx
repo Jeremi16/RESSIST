@@ -110,7 +110,7 @@ export function ApiKeysSettings() {
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-3">
-        <div className="size-10 bg-black text-white rounded-xl flex items-center justify-center shrink-0">
+        <div className="size-10 bg-[#0059D0] text-white rounded-xl flex items-center justify-center shrink-0">
           <KeyRound className="size-5" />
         </div>
         <div className="flex-1 min-w-0">
@@ -171,12 +171,12 @@ export function ApiKeysSettings() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Nama key, ex: curl laptop"
             maxLength={64}
-            className="flex-1 h-10 px-4 bg-[#F5F0EB] border border-black/5 rounded-full text-sm text-black placeholder:text-black/30 focus:outline-none focus:border-black/10"
+            className="flex-1 h-10 px-4 bg-[#60A8F8]/10 border border-black/5 rounded-full text-sm text-black placeholder:text-black/30 focus:outline-none focus:border-black/10"
           />
           <select
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
-            className="h-10 px-3 bg-[#F5F0EB] border border-black/5 rounded-full text-sm text-black focus:outline-none"
+            className="h-10 px-3 bg-[#60A8F8]/10 border border-black/5 rounded-full text-sm text-black focus:outline-none"
           >
             <option value="never">Never expire</option>
             <option value="7">7 hari</option>
@@ -187,7 +187,7 @@ export function ApiKeysSettings() {
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="h-10 px-5 bg-black text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 shrink-0"
+            className="h-10 px-5 bg-[#0059D0] text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#60A8F8] disabled:opacity-50 shrink-0"
           >
             {creating ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
             {creating ? "Membuat..." : "Buat"}
@@ -201,7 +201,7 @@ export function ApiKeysSettings() {
       <div className="bg-white border border-black/5 rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-black/5 flex items-center justify-between">
           <p className="text-sm font-medium text-black">Key kamu</p>
-          <span className="text-xs px-2 py-1 bg-black text-white rounded-full">{keys.length}/5</span>
+          <span className="text-xs px-2 py-1 bg-[#0059D0] text-white rounded-full">{keys.length}/5</span>
         </div>
         {loading ? (
           <div className="p-8 flex justify-center">
@@ -243,7 +243,7 @@ export function ApiKeysSettings() {
       </div>
 
       {/* Docs mini */}
-      <div className="bg-black text-white rounded-2xl p-5 space-y-3">
+      <div className="bg-[#0059D0] text-white rounded-2xl p-5 space-y-3">
         <p className="text-sm font-semibold">Endpoint yang bisa pakai API key</p>
         <div className="space-y-2 text-xs font-mono">
           <div className="bg-white/10 rounded-lg px-3 py-2">GET /v1/assignments — daftar tugas</div>

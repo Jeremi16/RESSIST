@@ -8,6 +8,7 @@ import { GeneralSettings } from "@/components/dashboard/GeneralSettings";
 import { EventPreview } from "@/components/EventPreview";
 import { TelegramVerify } from "@/components/TelegramVerify";
 import { CalendarView } from "@/components/CalendarView";
+import { Logo } from "@/components/Logo";
 import { WhatsAppConfig } from "@/components/dashboard/WhatsAppConfig";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -523,19 +524,14 @@ export default function Dashboard() {
   ].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB] flex">
+    <div className="min-h-screen bg-white flex">
       {/* Mobile Top Bar */}
       <div className="fixed top-0 left-0 right-0 z-30 lg:hidden bg-white/80 backdrop-blur-md border-b border-black/5">
         <div className="h-14 px-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white text-sm font-bold">
-              R
-            </div>
-            <span className="text-[15px] font-semibold tracking-tight text-black">Ressist</span>
-          </Link>
+          <Logo size={32} />
           <button
             onClick={handleLogout}
-            className="size-8 rounded-full bg-black text-white flex items-center justify-center"
+            className="size-8 rounded-full bg-[#0059D0] text-white flex items-center justify-center hover:bg-[#60A8F8] transition-colors"
             aria-label="Keluar"
           >
             <LogOut className="size-4" />
@@ -566,7 +562,7 @@ export default function Dashboard() {
                     <div
                       className={cn(
                         "size-7 rounded-xl flex items-center justify-center transition-colors",
-                        isActive ? "bg-black text-white" : "bg-transparent",
+                        isActive ? "bg-[#0059D0] text-white" : "bg-transparent",
                       )}
                     >
                       <item.icon className="size-4" />
@@ -582,7 +578,7 @@ export default function Dashboard() {
                   isLainnyaActive ? "text-black" : "text-black/40",
                 )}
               >
-                <div className={cn("size-7 rounded-xl flex items-center justify-center transition-colors", isLainnyaActive ? "bg-black text-white" : "bg-black/5 text-black/40")}>
+                <div className={cn("size-7 rounded-xl flex items-center justify-center transition-colors", isLainnyaActive ? "bg-[#0059D0] text-white" : "bg-black/5 text-black/40")}>
                   <MoreHorizontal className="size-4" />
                 </div>
                 <span className="text-[10px] font-medium leading-none truncate max-w-full">Lainnya</span>
@@ -610,9 +606,8 @@ export default function Dashboard() {
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-black/5 hidden lg:flex flex-col p-6 z-30">
-        <Link to="/" className="flex items-center gap-2 mb-8">
-          <div className="size-8 bg-black rounded-lg flex items-center justify-center text-white text-sm font-bold">R</div>
-          <span className="text-[15px] font-semibold tracking-tight text-black">Ressist</span>
+        <Link to="/" className="mb-8">
+          <Logo size={32} />
         </Link>
 
         <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
@@ -620,7 +615,7 @@ export default function Dashboard() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as TabType)}
-              className={cn("w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", activeTab === item.id ? "bg-black text-white" : "text-black/60 hover:bg-black/[0.04] hover:text-black")}
+              className={cn("w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", activeTab === item.id ? "bg-[#0059D0] text-white" : "text-black/60 hover:bg-black/[0.04] hover:text-black")}
             >
               <div className="flex items-center gap-3">
                 <item.icon className="size-4.5" />
@@ -644,7 +639,7 @@ export default function Dashboard() {
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto min-w-0 max-w-full overflow-x-clip">
           <header className="mb-6 flex items-center justify-between gap-4 border-b border-black/5 pb-6">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-black">
+              <h2 className="text-2xl font-semibold tracking-tight text-[#0059D0]">
                 {activeTab === "overview"
                   ? `Welcome back, ${userData?.name?.split(" ")[0] || "there"}`
                   : activeTab === "lainnya"
@@ -709,7 +704,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="xl:col-span-4 space-y-4">
-                      <div className="bg-black text-white rounded-2xl p-6">
+                      <div className="bg-[#0059D0] text-white rounded-2xl p-6">
                         <h3 className="text-sm font-semibold mb-6">Status Koneksi</h3>
                         <ul className="space-y-4">
                           <li className="flex items-center justify-between">
@@ -741,7 +736,7 @@ export default function Dashboard() {
                             <span className="text-xs text-white/30">Soon</span>
                           </li>
                         </ul>
-                        <button onClick={() => setActiveTab("lms")} className="w-full h-9 bg-white text-black rounded-full text-sm font-medium mt-6 hover:bg-white/90 transition-colors">Kelola Koneksi</button>
+                        <button onClick={() => setActiveTab("lms")} className="w-full h-9 bg-white text-[#0059D0] rounded-full text-sm font-medium mt-6 hover:bg-white/90 transition-colors">Kelola Koneksi</button>
                       </div>
 
                       <div className="bg-white rounded-2xl border border-black/5 p-5">
@@ -782,7 +777,7 @@ export default function Dashboard() {
                         );
                       })()}
                     </div>
-                    <button onClick={handleSyncTasks} disabled={isLoadingUser || isLoadingAssignments || isLoadingCalendar} className="h-9 px-5 bg-black text-white rounded-full text-sm font-medium inline-flex items-center gap-2 hover:bg-black/90 disabled:opacity-50 transition-colors">
+                    <button onClick={handleSyncTasks} disabled={isLoadingUser || isLoadingAssignments || isLoadingCalendar} className="h-9 px-5 bg-[#0059D0] text-white rounded-full text-sm font-medium inline-flex items-center gap-2 hover:bg-[#60A8F8] disabled:opacity-50 transition-colors">
                       <RefreshCw className={cn("size-4", (isLoadingAssignments || isLoadingCalendar) && "animate-spin")} />
                       {isLoadingAssignments || isLoadingCalendar ? "Menyinkronkan..." : "Sinkronkan"}
                     </button>
@@ -792,10 +787,10 @@ export default function Dashboard() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between px-1">
                           <div className="flex items-center gap-2">
-                            <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><AlertTriangle className="size-3.5" /></div>
+                            <div className="size-7 bg-[#0059D0] text-white rounded-lg flex items-center justify-center"><AlertTriangle className="size-3.5" /></div>
                             <h4 className="text-sm font-semibold text-black">Terlewat</h4>
                           </div>
-                          {isInitialTasks ? <CountBadgeSkeleton /> : <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isTerlewatTask(t)).length}</span>}
+                          {isInitialTasks ? <CountBadgeSkeleton /> : <span className="text-xs font-medium px-2 py-1 bg-[#0059D0] text-white rounded-full">{allAssignments.filter((t) => isTerlewatTask(t)).length}</span>}
                         </div>
                         <div className="space-y-3">
                           {isInitialTasks ? (<><TaskCardSkeleton /><TaskCardSkeleton /></>) : (allAssignments.filter((t) => isTerlewatTask(t)).length === 0 ? <EmptyTasksState message="Tidak ada tugas terlewat" /> : allAssignments.filter((t) => isTerlewatTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />))}
@@ -805,10 +800,10 @@ export default function Dashboard() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between px-1">
                           <div className="flex items-center gap-2">
-                            <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><Clock className="size-3.5" /></div>
+                            <div className="size-7 bg-[#0059D0] text-white rounded-lg flex items-center justify-center"><Clock className="size-3.5" /></div>
                             <h4 className="text-sm font-semibold text-black">Mendatang</h4>
                           </div>
-                          {isInitialTasks ? <CountBadgeSkeleton /> : <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isMendatangTask(t)).length}</span>}
+                          {isInitialTasks ? <CountBadgeSkeleton /> : <span className="text-xs font-medium px-2 py-1 bg-[#0059D0] text-white rounded-full">{allAssignments.filter((t) => isMendatangTask(t)).length}</span>}
                         </div>
                         <div className="space-y-3">
                           {isInitialTasks ? (<><TaskCardSkeleton /><TaskCardSkeleton /></>) : (allAssignments.filter((t) => isMendatangTask(t)).length === 0 ? <EmptyTasksState message="Tidak ada tugas mendatang" /> : allAssignments.filter((t) => isMendatangTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />))}
@@ -818,10 +813,10 @@ export default function Dashboard() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between px-1">
                           <div className="flex items-center gap-2">
-                            <div className="size-7 bg-black text-white rounded-lg flex items-center justify-center"><CheckCircle2 className="size-3.5" /></div>
+                            <div className="size-7 bg-[#0059D0] text-white rounded-lg flex items-center justify-center"><CheckCircle2 className="size-3.5" /></div>
                             <h4 className="text-sm font-semibold text-black">Selesai</h4>
                           </div>
-                          {isInitialTasks ? <CountBadgeSkeleton /> : <span className="text-xs font-medium px-2 py-1 bg-black text-white rounded-full">{allAssignments.filter((t) => isCompletedTask(t)).length}</span>}
+                          {isInitialTasks ? <CountBadgeSkeleton /> : <span className="text-xs font-medium px-2 py-1 bg-[#0059D0] text-white rounded-full">{allAssignments.filter((t) => isCompletedTask(t)).length}</span>}
                         </div>
                         <div className="space-y-3">
                           {isInitialTasks ? (<><TaskCardSkeleton /><TaskCardSkeleton /></>) : (allAssignments.filter((t) => isCompletedTask(t)).length === 0 ? <EmptyTasksState message="Belum ada tugas selesai" /> : allAssignments.filter((t) => isCompletedTask(t)).map((task) => <TaskCard key={task.id} task={task} onComplete={markAssignmentComplete} />))}
@@ -1069,19 +1064,19 @@ function TaskCard({
           <div className="space-y-1.5 flex-1 min-w-0">
             <h5 className={cn("text-sm font-medium text-black leading-tight line-clamp-2", isSelesai && "line-through text-black/40")}>{task.title}</h5>
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="inline-flex text-xs text-black/40 bg-[#F5F0EB] px-2 py-1 rounded-full truncate max-w-full">{task.course}</span>
+              <span className="inline-flex text-xs text-black/40 bg-[#60A8F8]/10 px-2 py-1 rounded-full truncate max-w-full">{task.course}</span>
               {isMissed && <span className="inline-flex text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-50 text-red-600 rounded-full">Terlewat</span>}
               {isGoogle && <span className="inline-flex text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-50 text-green-700 rounded-full">Classroom</span>}
             </div>
           </div>
           {!isSelesai ? (
             isGoogle ? null : (
-              <button onClick={() => onComplete(task.id)} className="size-8 bg-black text-white rounded-full flex items-center justify-center shrink-0 hover:bg-black/90 transition-colors" title="Tandai Selesai">
+              <button onClick={() => onComplete(task.id)} className="size-8 bg-[#0059D0] text-white rounded-full flex items-center justify-center shrink-0 hover:bg-[#60A8F8] transition-colors" title="Tandai Selesai">
                 <CheckCircle2 className="size-4" />
               </button>
             )
           ) : (
-            <div className="size-8 bg-black/10 text-black/40 rounded-full flex items-center justify-center shrink-0"><CheckCircle2 className="size-4" /></div>
+            <div className="size-8 bg-[#0059D0]/10 text-[#0059D0] rounded-full flex items-center justify-center shrink-0"><CheckCircle2 className="size-4" /></div>
           )}
         </div>
         <div className="flex items-center justify-between pt-2 border-t border-black/5">

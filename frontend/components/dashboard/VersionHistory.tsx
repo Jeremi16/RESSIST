@@ -52,7 +52,7 @@ const VERSIONS = [
     title: "Task Organization",
     changes: ["Pengelompokkan tugas (Aktif, Terlewat, Selesai)"],
     icon: History,
-    color: "text-blue-600 bg-blue-50"
+    color: "text-[#0059D0] bg-[#60A8F8]/10"
   },
   {
     version: "v0.8.2",
@@ -136,7 +136,7 @@ const VERSIONS = [
       "Sistem otentikasi via Telegram Chat ID"
     ],
     icon: Bot,
-    color: "text-blue-600 bg-blue-50"
+    color: "text-[#0059D0] bg-[#60A8F8]/10"
   }
 ];
 

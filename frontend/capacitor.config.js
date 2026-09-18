@@ -34,12 +34,12 @@ const config = {
     },
     SplashScreen: {
       launchShowDuration: 1500,
-      backgroundColor: "#F5F0EB",
+      backgroundColor: "#FFFFFF",
     },
     StatusBar: {
-      // Light = dark content on light background (matches #F5F0EB).
+      // Light = dark content on light background (matches #FFFFFF).
       style: "light",
-      backgroundColor: "#F5F0EB",
+      backgroundColor: "#FFFFFF",
     },
   },
 };

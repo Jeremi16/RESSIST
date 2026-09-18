@@ -83,12 +83,12 @@ export function WhatsAppQR() {
 
   if (status.needsAuth && status.qrDataUrl) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <div className="bg-[#60A8F8]/10 border border-[#60A8F8]/30 rounded-lg p-6">
         <div className="text-center mb-4">
-          <h4 className="font-semibold text-blue-900 mb-2 text-lg">
+          <h4 className="font-semibold text-[#0043A5] mb-2 text-lg">
             📱 Scan QR Code untuk Connect WhatsApp
           </h4>
-          <p className="text-sm text-blue-700 mb-4">
+          <p className="text-sm text-[#0059D0] mb-4">
             1. Buka WhatsApp di HP<br/>
             2. Menu (3 titik) → Perangkat Tertaut → Tautkan Perangkat<br/>
             3. Scan QR code di bawah ini
@@ -105,10 +105,10 @@ export function WhatsAppQR() {
           </div>
         </div>
         
-        <p className="text-center text-sm text-blue-600">
+        <p className="text-center text-sm text-[#0059D0]">
           ⏳ Menunggu scan... Halaman akan otomatis update saat terhubung.
         </p>
-        <p className="text-center text-xs text-blue-500 mt-2">
+        <p className="text-center text-xs text-[#60A8F8] mt-2">
           Jika QR tidak berfungsi, refresh halaman untuk mendapatkan QR baru.
         </p>
       </div>

@@ -19,13 +19,13 @@ export default function Dokumentasi() {
         <div className="space-y-2">
           <h3 className="text-base font-semibold text-black">Arsitektur</h3>
           <p className="text-sm text-black/60 leading-relaxed">
-            Sistem mem-parsing file <code className="px-1.5 py-0.5 bg-[#F5F0EB] rounded text-xs">.ics</code> dari
+            Sistem mem-parsing file <code className="px-1.5 py-0.5 bg-[#60A8F8]/10 rounded text-xs">.ics</code> dari
             Moodle secara berkala dan mencocokkan waktu saat ini dengan waktu
             pengingat yang Anda atur di Dashboard.
           </p>
         </div>
 
-        <div className="bg-black text-white p-6 rounded-2xl space-y-2">
+        <div className="bg-[#0059D0] text-white p-6 rounded-2xl space-y-2">
           <h4 className="text-xs font-medium tracking-wide text-white/40">
             Penting
           </h4>

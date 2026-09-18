@@ -17,7 +17,7 @@ export default function Roadmap() {
       <div className="relative space-y-4 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-black/5">
         {MILESTONES.map((item, i) => (
           <div key={i} className="relative pl-12">
-            <div className={`absolute left-4 -translate-x-1/2 top-5 size-3 rounded-full ${item.status === 'Done' ? 'bg-black' : item.status === 'In Progress' ? 'bg-black' : 'bg-black/20'}`} />
+            <div className={`absolute left-4 -translate-x-1/2 top-5 size-3 rounded-full ${item.status === 'Done' ? 'bg-[#0059D0]' : item.status === 'In Progress' ? 'bg-[#60A8F8]' : 'bg-black/20'}`} />
             <div className="bg-white p-6 rounded-2xl border border-black/5">
               <span className="text-xs text-black/40">{item.quarter} • {item.status}</span>
               <h3 className="text-base font-semibold text-black mt-1 mb-1">{item.title}</h3>

@@ -40,22 +40,22 @@ export function TimelineFilter({ value, onChange, disabled }: TimelineFilterProp
         disabled={disabled}
         className={cn(
           "flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300",
-          "hover:border-blue-400 hover:shadow-md hover:shadow-blue-500/5",
-          "focus:outline-none focus:ring-4 focus:ring-blue-500/10",
-          isOpen && "border-blue-500 ring-4 ring-blue-500/10",
+          "hover:border-[#60A8F8] hover:shadow-md hover:shadow-[#60A8F8]/10",
+          "focus:outline-none focus:ring-4 focus:ring-[#60A8F8]/30",
+          isOpen && "border-[#0059D0] ring-4 ring-[#60A8F8]/30",
           disabled && "opacity-50 cursor-not-allowed"
         )}
       >
         <ArrowUpDown className={cn(
           "size-4 transition-colors",
-          isOpen ? "text-blue-500" : "text-slate-400"
+          isOpen ? "text-[#0059D0]" : "text-slate-400"
         )} />
         <span className="text-sm font-bold text-slate-700 min-w-[120px] text-left">
           {selectedOption.label}
         </span>
         <ChevronDown className={cn(
           "size-4 text-slate-400 transition-transform duration-300",
-          isOpen && "rotate-180 text-blue-500"
+          isOpen && "rotate-180 text-[#0059D0]"
         )} />
       </button>
 
@@ -87,7 +87,7 @@ export function TimelineFilter({ value, onChange, disabled }: TimelineFilterProp
                       className={cn(
                         "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group",
                         isActive 
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+                          ? "bg-[#0059D0] text-white shadow-lg shadow-[#0059D0]/20" 
                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       )}
                     >
@@ -95,7 +95,7 @@ export function TimelineFilter({ value, onChange, disabled }: TimelineFilterProp
                       {isActive ? (
                         <Check className="size-4 text-white" />
                       ) : (
-                        <div className="size-4 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors" />
+                        <div className="size-4 rounded-full border border-slate-200 group-hover:border-[#60A8F8] transition-colors" />
                       )}
                     </button>
                   );

@@ -28,12 +28,12 @@ export default function Tentang() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="text-center p-6 bg-[#F5F0EB] rounded-2xl border border-black/5"
+              className="text-center p-6 bg-[#60A8F8]/10 rounded-2xl border border-black/5"
             >
               <p className="text-xs font-medium tracking-wide text-black/40 mb-2">
                 {stat.label}
               </p>
-              <p className="text-3xl font-semibold text-black mb-1">
+              <p className="text-3xl font-semibold text-[#0059D0] mb-1">
                 {stat.value}
               </p>
               <p className="text-xs text-black/40">{stat.desc}</p>

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
 import { useAuthStatus } from "@/src/hooks/use-auth-status";
+import { Logo } from "@/components/Logo";
 
 interface LandingNavbarProps {
   showBackButton?: boolean;
@@ -21,20 +22,13 @@ export function LandingNavbar({
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 bg-[#F5F0EB]/80 backdrop-blur-sm border-b border-black/5",
+        "sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-black/5",
         className,
       )}
     >
       <div className="mx-auto max-w-[1280px] px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-black flex items-center justify-center text-white text-sm font-bold">
-            R
-          </div>
-          <span className="text-[15px] font-semibold tracking-tight text-black">
-            Ressist
-          </span>
-        </Link>
+        <Logo size={32} />
 
         {showBackButton ? (
           <Link
@@ -47,7 +41,7 @@ export function LandingNavbar({
         ) : authStatus === "authed" ? (
           <Link
             to="/dashboard"
-            className="bg-black text-white h-9 px-5 rounded-full text-sm font-medium hover:bg-black/90 transition-colors inline-flex items-center justify-center"
+            className="bg-[#0059D0] text-white h-9 px-5 rounded-full text-sm font-medium hover:bg-[#60A8F8] transition-colors inline-flex items-center justify-center"
           >
             Dashboard
           </Link>
@@ -59,7 +53,7 @@ export function LandingNavbar({
         ) : (
           <Link
             to="/login"
-            className="bg-black text-white h-9 px-5 rounded-full text-sm font-medium hover:bg-black/90 transition-colors inline-flex items-center justify-center"
+            className="bg-[#0059D0] text-white h-9 px-5 rounded-full text-sm font-medium hover:bg-[#60A8F8] transition-colors inline-flex items-center justify-center"
           >
             Masuk
           </Link>

@@ -19,7 +19,7 @@ export function InfoLayout({
   category,
 }: InfoLayoutProps) {
   return (
-    <div className="min-h-screen bg-[#F5F0EB]">
+    <div className="min-h-screen bg-white">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] size-[500px] bg-black/[0.03] blur-[100px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] size-[500px] bg-black/[0.03] blur-[100px] rounded-full" />
@@ -37,7 +37,7 @@ export function InfoLayout({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-3xl sm:text-4xl font-semibold text-black tracking-tight leading-tight mb-4 text-balance"
+              className="text-3xl sm:text-4xl font-semibold text-[#0059D0] tracking-tight leading-tight mb-4 text-balance"
             >
               {title}
             </motion.h1>

@@ -67,7 +67,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="size-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="size-12 border-4 border-[#0059D0] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -98,8 +98,8 @@ export default function ProfilePage() {
       name: "Telegram",
       enabled: !!userData?.telegram_chat_id && userData?.telegram_enabled,
       icon: Shield,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      color: "text-[#0059D0]",
+      bg: "bg-[#60A8F8]/10",
     },
   ];
 
@@ -116,10 +116,10 @@ export default function ProfilePage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white border border-slate-100 rounded-[2.5rem] p-8 md:p-12 shadow-sm relative overflow-hidden group"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[5rem] -mr-8 -mt-8 grayscale group-hover:grayscale-0 transition-all duration-700 opacity-50" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#60A8F8]/20 rounded-bl-[5rem] -mr-8 -mt-8 grayscale group-hover:grayscale-0 transition-all duration-700 opacity-50" />
 
           <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-            <div className="size-24 bg-blue-600 rounded-3xl flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-blue-500/20 rotate-3 group-hover:rotate-0 transition-transform">
+            <div className="size-24 bg-[#0059D0] rounded-3xl flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-[#0059D0]/20 rotate-3 group-hover:rotate-0 transition-transform">
               {userData?.name?.charAt(0) ||
                 userData?.email.charAt(0).toUpperCase() ||
                 "U"}
@@ -133,7 +133,7 @@ export default function ProfilePage() {
                   <Mail className="size-4" />
                   {userData?.email}
                 </div>
-                <div className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold border border-blue-100 uppercase tracking-widest">
+                <div className="px-3 py-1 bg-[#60A8F8]/10 text-[#0059D0] rounded-full text-xs font-bold border border-[#60A8F8]/30 uppercase tracking-widest">
                   Itera Students
                 </div>
               </div>
@@ -141,7 +141,7 @@ export default function ProfilePage() {
             <div className="md:ml-auto">
               <button
                 onClick={() => navigate("/dashboard?tab=general")}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all active:scale-95"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#0059D0] text-white rounded-2xl font-bold hover:bg-[#60A8F8] transition-all active:scale-95"
               >
                 <Settings className="size-4" />
                 Edit Profil
@@ -218,7 +218,7 @@ export default function ProfilePage() {
               {connections.map((conn, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-colors"
+                  className="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-slate-100 group hover:border-[#60A8F8]/40 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div
@@ -254,7 +254,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-blue-600 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden group shadow-2xl shadow-blue-500/20"
+          className="bg-[#0059D0] rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden group shadow-2xl shadow-[#0059D0]/20"
         >
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:scale-110 transition-transform duration-1000" />
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
@@ -262,14 +262,14 @@ export default function ProfilePage() {
               <h3 className="text-3xl font-black tracking-tight">
                 Ingin mengubah pengaturan?
               </h3>
-              <p className="text-blue-100 font-medium max-w-sm">
+              <p className="text-[#DCE9FD] font-medium max-w-sm">
                 Kunjungi dashboard untuk mengatur notifikasi WhatsApp, Telegram,
                 atau sinkronisasi Moodle.
               </p>
             </div>
             <button
               onClick={() => navigate("/dashboard")}
-              className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all flex items-center gap-2"
+              className="bg-white text-[#0059D0] px-8 py-4 rounded-2xl font-black text-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all flex items-center gap-2"
             >
               Ke Dashboard
               <ArrowRight className="size-5" />

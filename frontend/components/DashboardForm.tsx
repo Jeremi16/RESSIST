@@ -140,7 +140,7 @@ export function DashboardForm({
       {/* Integrasi Moodle Section */}
       <section className="space-y-4">
         <div className="flex items-center gap-3 mb-2">
-          <div className="size-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+          <div className="size-8 bg-[#60A8F8]/15 rounded-lg flex items-center justify-center text-[#0059D0]">
             <Link2 className="size-5" />
           </div>
           <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">
@@ -156,14 +156,14 @@ export function DashboardForm({
             URL Ekspor Kalender Moodle
           </label>
           <div className="relative group">
-            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-400 group-focus-within:text-[#0059D0] transition-colors" />
             <input
               type="url"
               id="moodle"
               value={moodleUrl}
               onChange={(e) => setMoodleUrl(e.target.value)}
               placeholder="https://moodle.itera.ac.id/calendar/export_execute.php..."
-              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-sm"
+              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#60A8F8]/30 focus:border-[#0059D0] transition-all shadow-sm"
             />
           </div>
           <p className="text-[11px] text-slate-400 pl-1 flex items-center gap-1">
@@ -179,9 +179,9 @@ export function DashboardForm({
           className="w-full h-12 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
         >
           {isTesting ? (
-            <Loader2 className="size-4 animate-spin text-blue-600" />
+            <Loader2 className="size-4 animate-spin text-[#0059D0]" />
           ) : (
-            <Link2 className="size-4 text-blue-600 group-hover:scale-110 transition-transform" />
+            <Link2 className="size-4 text-[#0059D0] group-hover:scale-110 transition-transform" />
           )}
           {isTesting ? "Sedang mengetes..." : "Tes Koneksi Kalender"}
         </button>
@@ -202,7 +202,7 @@ export function DashboardForm({
         <div className="bg-slate-50/50 border border-slate-100 rounded-3xl p-6 space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="size-10 bg-sky-100 rounded-xl flex items-center justify-center text-sky-600">
+              <div className="size-10 bg-[#60A8F8]/15 rounded-xl flex items-center justify-center text-[#0059D0]">
                 <svg className="size-6 fill-current" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.45-.42-1.39-.89.03-.24.36-.49.99-.75 3.88-1.69 6.47-2.8 7.76-3.32 3.69-1.5 4.46-1.76 4.96-1.77.11 0 .35.03.51.16.13.1.17.24.18.33.01.06.02.21.01.29z" />
                 </svg>
@@ -223,19 +223,19 @@ export function DashboardForm({
                 onChange={(e) => setTelegramEnabled(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0059D0]"></div>
             </label>
           </div>
 
           <div className="relative group">
-            <Layout className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            <Layout className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-400 group-focus-within:text-[#0059D0] transition-colors" />
             <input
               type="text"
               id="telegram"
               value={telegramChatId}
               onChange={(e) => setTelegramChatId(e.target.value)}
               placeholder="Masukkan ID Chat Telegram kamu"
-              className="w-full h-12 bg-white border border-slate-100 rounded-xl pl-12 pr-4 text-sm text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all shadow-sm"
+              className="w-full h-12 bg-white border border-slate-100 rounded-xl pl-12 pr-4 text-sm text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#60A8F8]/30 focus:border-[#0059D0] transition-all shadow-sm"
             />
           </div>
         </div>
@@ -265,7 +265,7 @@ export function DashboardForm({
                 className={cn(
                   "h-12 px-4 rounded-xl text-xs font-black tracking-tight transition-all border flex items-center justify-center gap-2",
                   reminderHours.includes(opt.value)
-                    ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20 scale-[1.02]"
+                    ? "bg-[#0059D0] border-[#0059D0] text-white shadow-lg shadow-[#0059D0]/20 scale-[1.02]"
                     : "bg-white border-slate-100 text-slate-400 hover:border-slate-200",
                 )}
               >
@@ -371,7 +371,7 @@ export function DashboardForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full h-14 bg-slate-900 text-white rounded-2xl font-black text-lg hover:bg-slate-800 shadow-xl shadow-slate-900/10 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+          className="w-full h-14 bg-[#0059D0] text-white rounded-2xl font-black text-lg hover:bg-[#60A8F8] shadow-xl shadow-[#0059D0]/10 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
         >
           {isLoading ? (
             <Loader2 className="size-5 animate-spin" />

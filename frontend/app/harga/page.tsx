@@ -11,23 +11,23 @@ export default function Harga() {
         <div className="p-8 rounded-2xl bg-white border border-black/5 space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-black">Pejuang IPK</h3>
-            <span className="px-2.5 py-1 bg-[#F5F0EB] text-black/40 rounded-full text-xs font-medium">Gratis</span>
+            <span className="px-2.5 py-1 bg-[#60A8F8]/10 text-black/40 rounded-full text-xs font-medium">Gratis</span>
           </div>
           <p className="text-3xl font-semibold tracking-tight text-black">Rp 0 <span className="text-sm font-normal text-black/40">/ selamanya</span></p>
           <ul className="space-y-2.5">
             {['Sinkronisasi Moodle', 'Notifikasi Telegram', 'Morning Briefing', 'Dashboard Personal'].map(item => (
               <li key={item} className="flex items-center gap-2.5 text-sm text-black/70">
-                <span className="size-5 bg-black text-white rounded-full flex items-center justify-center text-[10px]">✓</span>
+                <span className="size-5 bg-[#0059D0] text-white rounded-full flex items-center justify-center text-[10px]">✓</span>
                 {item}
               </li>
             ))}
           </ul>
-          <button className="w-full h-10 bg-[#F5F0EB] text-black rounded-full text-sm font-medium">
+          <button className="w-full h-10 bg-[#60A8F8]/10 text-black rounded-full text-sm font-medium">
             Sudah Aktif
           </button>
         </div>
 
-        <div className="p-8 rounded-2xl bg-black text-white space-y-6">
+        <div className="p-8 rounded-2xl bg-[#0059D0] text-white space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Cum Laude</h3>
             <span className="px-2.5 py-1 bg-white text-black rounded-full text-xs font-medium">Coming Soon</span>
@@ -41,7 +41,7 @@ export default function Harga() {
               </li>
             ))}
           </ul>
-          <button className="w-full h-10 bg-white text-black rounded-full text-sm font-medium opacity-60 cursor-not-allowed">
+          <button className="w-full h-10 bg-white text-[#0059D0] rounded-full text-sm font-medium opacity-90 cursor-not-allowed">
             Tunggu Kami
           </button>
         </div>
