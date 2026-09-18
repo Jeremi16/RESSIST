@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +33,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,44 +71,48 @@ private val HARI_MINGGU_PERTAMA = arrayOf("Min", "Sen", "Sel", "Rab", "Kam", "Ju
 val RessistGreen = Color(0xFF10B981)
 val RessistRed = Color(0xFFEF4444)
 
-/* ---------- Header per-tab ---------- */
+/* ---------- Header ala Mihon ---------- */
 
 /**
- * Judul halaman di paling atas (pola contoh: judul kiri, ikon aksi kanan),
- * digayakan terang ala frontend (bukan dark seperti contoh).
+ * Judul besar + aksi kanan di atas M3 TopAppBar transparan
+ * (pola AppBar Mihon): tanpa subtitle, tanpa divider.
+ * Inset status bar ditangani M3 secara otomatis.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RessistHeader(
     title: String,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
+    navigateUp: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
-    Column(modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = (-0.5).sp,
-                )
-                if (subtitle != null) {
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp),
+    TopAppBar(
+        modifier = modifier,
+        navigationIcon = {
+            if (navigateUp != null) {
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        painterResource(RessistIcons.ArrowBack),
+                        contentDescription = "Kembali",
                     )
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) { actions() }
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f))
-    }
+        },
+        title = {
+            Text(
+                title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Normal,
+            )
+        },
+        actions = actions,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = MaterialTheme.colorScheme.surface,
+        ),
+    )
 }
 
 /* ---------- Bottom bar ala frontend ---------- */
@@ -119,13 +127,15 @@ fun RessistBottomBar(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().navigationBarsPadding(),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f)),
     ) {
+        // Tinggi total 80dp mengikuti M3 NavigationBar ala Mihon.
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp, start = 4.dp, end = 4.dp),
+            modifier = Modifier.fillMaxWidth().height(80.dp).padding(horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             tabs.forEachIndexed { i, tab ->
                 val active = i == selected
@@ -136,7 +146,7 @@ fun RessistBottomBar(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Box(
-                        modifier = Modifier.size(28.dp).clip(RoundedCornerShape(10.dp))
+                        modifier = Modifier.size(32.dp).clip(RoundedCornerShape(10.dp))
                             .background(
                                 if (active) MaterialTheme.colorScheme.primary
                                 else Color.Transparent,
@@ -146,7 +156,7 @@ fun RessistBottomBar(
                         Icon(
                             painterResource(tab.icon),
                             contentDescription = tab.label,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(24.dp),
                             tint = if (active) MaterialTheme.colorScheme.onPrimary
                             else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
