@@ -76,12 +76,7 @@ fun KelasScreen(
     Column(modifier.fillMaxSize()) {
         RessistHeader(
             title = "Kelas",
-            subtitle = "Kelola kelas & mata kuliah",
-            actions = {
-                IconButton(onClick = onBack) {
-                    Icon(painterResource(RessistIcons.ArrowBack), contentDescription = "Kembali")
-                }
-            },
+            navigateUp = onBack,
         )
         when {
             state.isLoading -> LoadingBox(Modifier.fillMaxSize())
