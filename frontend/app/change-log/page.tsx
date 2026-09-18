@@ -18,7 +18,7 @@ const APK_VERSION = "v0.2.2";
 const APK_NAME = "ressist-0.2.2-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.41 MB";
-const APK_RELEASED = "18 September 2026";
+const APK_RELEASED = "19 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 
 const V021_VERSION = "v0.2.1";
