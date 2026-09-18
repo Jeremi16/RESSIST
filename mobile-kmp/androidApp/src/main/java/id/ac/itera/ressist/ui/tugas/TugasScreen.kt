@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -21,7 +22,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -106,7 +107,6 @@ fun TugasScreen(modifier: Modifier = Modifier, viewModel: TugasViewModel = koinV
         } else {
             RessistHeader(
                 title = "Tugas",
-                subtitle = "Daftar tugas dalam tiga kelompok",
                 actions = {
                     IconButton(onClick = { searchOpen = true }) {
                         Icon(painterResource(RessistIcons.Search), contentDescription = "Cari tugas")
@@ -264,9 +264,10 @@ private fun SearchHeader(
     focusRequester: FocusRequester,
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
-    Column(Modifier.fillMaxWidth()) {
+    // Status bar ikut TopAppBar M3 (windowInsets otomatis), tanpa divider ala Mihon.
+    Surface(color = Color.Transparent, modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp).height(64.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onClose) {
@@ -277,7 +278,8 @@ private fun SearchHeader(
                 onValueChange = onQuery,
                 singleLine = true,
                 textStyle = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onBackground,
                 ),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -290,6 +292,7 @@ private fun SearchHeader(
                         Text(
                             "Cari...",
                             style = MaterialTheme.typography.titleLarge,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Normal,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -310,7 +313,6 @@ private fun SearchHeader(
                 }
             }
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f))
     }
 }
 
