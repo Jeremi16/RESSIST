@@ -46,15 +46,15 @@ Mobile dilarang import kode `frontend/src/*`; hanya meniru behavior-nya.
 
 ```bash
 # 1. bump versionCode+1 & versionName di androidApp/build.gradle.kts, commit
-git commit -m "release v0.2.3 (code 5)"
+git commit -m "release v0.3.0 (code 6)"
 # 2. tag + push → CI (.github/workflows/release-mirror.yml) bangun
 #    assembleRelease lalu mirror ke repo public Jeremi16/RESSIST-MOBILE
-git tag v0.2.3; git push origin main --tags
+git tag v0.3.0; git push origin main --tags
 ```
 
 Nama file wajib `ressist-X.Y.Z-codeN-release.apk` (N = versionCode) —
 update-checker HP membaca versionCode dari nama file ini (GitHub API
-tidak punya field versionCode). Contoh: `ressist-0.2.3-code5-release.apk`.
+tidak punya field versionCode). Contoh: `ressist-0.3.0-code6-release.apk`.
 Cek manual lokal tetap bisa: `./gradlew :androidApp:assembleRelease`
 (APK signed → `androidApp/build/outputs/apk/release/`).
 
@@ -62,7 +62,7 @@ Syarat & checklist:
 
 1. `mobile-kmp/keystore.properties` ada (gitignored) menunjuk ke
    `ressist-release.jks` (satu folder, relatif terhadap `mobile-kmp/`).
-2. `versionCode = 5`, `versionName = "0.2.3"` di `androidApp/build.gradle.kts`.
+2. `versionCode = 6`, `versionName = "0.3.0"` di `androidApp/build.gradle.kts`.
    Versi UI (Lainnya/Tentang) otomatis ikut via `BuildConfig.VERSION_NAME`.
    Pemilik KMP 0.2.3/code 5 lama (bila masih ada) wajib uninstall manual
    karena Android menolak code yang sama/turun.

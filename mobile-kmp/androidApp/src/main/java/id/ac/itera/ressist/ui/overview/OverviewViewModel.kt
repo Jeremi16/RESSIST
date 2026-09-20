@@ -5,12 +5,14 @@ import androidx.lifecycle.viewModelScope
 import id.ac.itera.ressist.api.CalendarApi
 import id.ac.itera.ressist.api.SessionExpiredException
 import id.ac.itera.ressist.auth.AuthManager
+import id.ac.itera.ressist.data.SyncPrefs
 import id.ac.itera.ressist.data.repository.AssignmentRepository
 import id.ac.itera.ressist.data.repository.UserRepository
 import id.ac.itera.ressist.domain.model.AuthAccount
 import id.ac.itera.ressist.domain.model.TaskBuckets
 import id.ac.itera.ressist.domain.model.User
 import id.ac.itera.ressist.domain.time.isStale
+import id.ac.itera.ressist.reminders.SyncManager
 import id.ac.itera.ressist.ui.common.userMessage
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +30,7 @@ data class OverviewUiState(
     val user: User? = null,
     val stale: Boolean = false,
     val error: String? = null,
+    val lastSuccess: Long = 0L,
 )
 
 class OverviewViewModel(
@@ -35,6 +38,8 @@ class OverviewViewModel(
     private val users: UserRepository,
     private val calendar: CalendarApi,
     private val authManager: AuthManager,
+    private val syncPrefs: SyncPrefs,
+    private val syncManager: SyncManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OverviewUiState())
@@ -53,6 +58,7 @@ class OverviewViewModel(
                 val userDeferred = async { users.get() }
                 val buckets = bucketsDeferred.await()
                 val user = userDeferred.await()
+                val lastSuccess = runCatching { syncPrefs.lastSuccessOnce() }.getOrDefault(0L)
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -60,7 +66,19 @@ class OverviewViewModel(
                         buckets = buckets,
                         user = user,
                         stale = isStale(user.lmsLastSyncedAt, Clock.System.now()),
+                        lastSuccess = lastSuccess,
                     )
+                }
+                // Foreground fast-path: bila auto-sync aktif dan data terakhir
+                // lebih tua dari interval, picu one-shot background (silent).
+                runCatching {
+                    val interval = syncPrefs.intervalOnce()
+                    if (interval != SyncPrefs.MANUAL) {
+                        val now = System.currentTimeMillis()
+                        if (lastSuccess == 0L || now - lastSuccess > interval * 60_000L) {
+                            syncManager.syncNow(notify = false)
+                        }
+                    }
                 }
             } catch (e: SessionExpiredException) {
                 authManager.onSessionExpired()
@@ -74,12 +92,15 @@ class OverviewViewModel(
     fun sync() {
         _state.update { it.copy(isSyncing = true) }
         viewModelScope.launch {
+            val now = System.currentTimeMillis()
             try {
-                runCatching { calendar.preview(force = true) }
+                runCatching { calendar.preview(force = true) }.getOrThrow()
+                runCatching { syncPrefs.setLastSuccess(now) }
                 load()
             } catch (e: SessionExpiredException) {
                 authManager.onSessionExpired()
             } catch (e: Exception) {
+                runCatching { syncPrefs.setLastFail(now) }
                 _state.update { it.copy(isSyncing = false, error = e.userMessage()) }
             } finally {
                 _state.update { it.copy(isSyncing = false) }

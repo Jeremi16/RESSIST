@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import id.ac.itera.ressist.api.CalendarApi
 import id.ac.itera.ressist.api.SessionExpiredException
 import id.ac.itera.ressist.auth.AuthManager
+import id.ac.itera.ressist.data.SyncPrefs
 import id.ac.itera.ressist.data.repository.AssignmentRepository
 import id.ac.itera.ressist.domain.model.Assignment
 import id.ac.itera.ressist.domain.model.TaskBuckets
@@ -68,6 +69,7 @@ class TugasViewModel(
     private val assignments: AssignmentRepository,
     private val calendar: CalendarApi,
     private val authManager: AuthManager,
+    private val syncPrefs: SyncPrefs,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TugasUiState())
@@ -127,13 +129,16 @@ class TugasViewModel(
     fun refresh() {
         _state.update { it.copy(isRefreshing = true, error = null) }
         viewModelScope.launch {
+            val now = System.currentTimeMillis()
             try {
-                runCatching { calendar.preview(force = true) }
+                runCatching { calendar.preview(force = true) }.getOrThrow()
+                runCatching { syncPrefs.setLastSuccess(now) }
                 val buckets = assignments.buckets()
                 _state.update { it.copy(isRefreshing = false, buckets = buckets) }
             } catch (e: SessionExpiredException) {
                 authManager.onSessionExpired()
             } catch (e: Exception) {
+                runCatching { syncPrefs.setLastFail(now) }
                 _state.update { it.copy(isRefreshing = false, error = e.userMessage()) }
             }
         }

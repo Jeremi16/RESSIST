@@ -2,14 +2,18 @@ package id.ac.itera.ressist.ui.pengingat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import id.ac.itera.ressist.api.CalendarApi
 import id.ac.itera.ressist.api.SessionExpiredException
 import id.ac.itera.ressist.api.UserUpdate
 import id.ac.itera.ressist.auth.AuthManager
+import id.ac.itera.ressist.data.SyncPrefs
 import id.ac.itera.ressist.data.repository.AssignmentRepository
+import id.ac.itera.ressist.data.repository.AuthRepository
 import id.ac.itera.ressist.data.repository.UserRepository
 import id.ac.itera.ressist.domain.model.Assignment
 import id.ac.itera.ressist.domain.time.reminderInstants
 import id.ac.itera.ressist.reminders.ReminderScheduler
+import id.ac.itera.ressist.reminders.SyncManager
 import id.ac.itera.ressist.ui.common.userMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +42,12 @@ data class PengingatUiState(
     val draftBriefing: Boolean = false,
     val notice: String? = null,
     val error: String? = null,
+    // Sinkronisasi otomatis (SyncPrefs, interval minimal 1 jam).
+    val syncInterval: Int = SyncPrefs.DEFAULT_INTERVAL_MINUTES,
+    val syncWifiOnly: Boolean = false,
+    val lastSuccess: Long = 0L,
+    val lastFail: Long = 0L,
+    val isSyncing: Boolean = false,
 ) {
     /** Ala web: tombol simpan aktif hanya bila ada perubahan. */
     val hasChanges: Boolean
@@ -49,6 +59,10 @@ class PengingatViewModel(
     private val users: UserRepository,
     private val scheduler: ReminderScheduler,
     private val authManager: AuthManager,
+    private val syncPrefs: SyncPrefs,
+    private val syncManager: SyncManager,
+    private val authRepository: AuthRepository,
+    private val calendar: CalendarApi,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PengingatUiState())
@@ -113,6 +127,73 @@ class PengingatViewModel(
         }
     }
 
+    /** Ganti interval auto-sync (minimal 1 jam, 0 = Manual) lalu reschedule. */
+    fun setSyncInterval(minutes: Int) {
+        viewModelScope.launch {
+            try {
+                syncPrefs.setInterval(minutes)
+                syncManager.reschedule()
+                _state.update {
+                    it.copy(
+                        syncInterval = SyncPrefs.sanitizeInterval(minutes),
+                        notice = "Jadwal sinkronisasi: ${SyncPrefs.labelFor(SyncPrefs.sanitizeInterval(minutes))}.",
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update { it.copy(error = e.userMessage()) }
+            }
+        }
+    }
+
+    fun setSyncWifiOnly(enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                syncPrefs.setWifiOnly(enabled)
+                syncManager.reschedule()
+                _state.update {
+                    it.copy(
+                        syncWifiOnly = enabled,
+                        notice = if (enabled) "Sync otomatis hanya via WiFi." else "Sync otomatis boleh pakai data seluler.",
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update { it.copy(error = e.userMessage()) }
+            }
+        }
+    }
+
+    /** Force-sync LMS sekarang (selalu force) + rebuild alarm + catat timestamp. */
+    fun syncNow() {
+        if (_state.value.isSyncing) return
+        _state.update { it.copy(isSyncing = true, notice = null, error = null) }
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            try {
+                // Selalu force LMS: sync utama, fallback preview force bila gagal.
+                val syncItems = runCatching { authRepository.sync() }.getOrNull()
+                if (syncItems == null) {
+                    runCatching { calendar.preview(force = true) }.getOrThrow()
+                }
+                runCatching { scheduler.rescheduleAll() }
+                runCatching { syncPrefs.setLastSuccess(now) }
+                load()
+                val n = syncItems?.newAssignments?.size ?: 0
+                _state.update {
+                    it.copy(
+                        isSyncing = false,
+                        notice = if (n > 0) "Sinkron selesai — $n tugas baru." else "Sinkron selesai, data terbaru.",
+                    )
+                }
+            } catch (e: SessionExpiredException) {
+                authManager.onSessionExpired()
+            } catch (e: Exception) {
+                runCatching { syncPrefs.setLastFail(now) }
+                load()
+                _state.update { it.copy(isSyncing = false, error = e.userMessage()) }
+            }
+        }
+    }
+
     fun consumeMessage() {
         _state.update { it.copy(notice = null, error = null) }
     }
@@ -141,6 +222,10 @@ class PengingatViewModel(
                     }
                     .sortedBy { it.fireAt }
                     .take(100)
+                val interval = runCatching { syncPrefs.intervalOnce() }.getOrDefault(SyncPrefs.DEFAULT_INTERVAL_MINUTES)
+                val wifiOnly = runCatching { syncPrefs.wifiOnlyOnce() }.getOrDefault(false)
+                val lastSuccess = runCatching { syncPrefs.lastSuccessOnce() }.getOrDefault(0L)
+                val lastFail = runCatching { syncPrefs.lastFailOnce() }.getOrDefault(0L)
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -149,6 +234,10 @@ class PengingatViewModel(
                         morningBriefing = user.morningBriefing,
                         draftHours = user.reminderHours,
                         draftBriefing = user.morningBriefing,
+                        syncInterval = interval,
+                        syncWifiOnly = wifiOnly,
+                        lastSuccess = lastSuccess,
+                        lastFail = lastFail,
                     )
                 }
             } catch (e: SessionExpiredException) {

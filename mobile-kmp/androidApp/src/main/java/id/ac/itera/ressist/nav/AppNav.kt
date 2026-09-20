@@ -41,6 +41,7 @@ import id.ac.itera.ressist.ui.overview.OverviewScreen
 import id.ac.itera.ressist.ui.pengaturan.TampilanScreen
 import id.ac.itera.ressist.ui.pengingat.PengingatScreen
 import id.ac.itera.ressist.ui.profil.ProfilScreen
+import id.ac.itera.ressist.ui.sinkronisasi.SinkronisasiScreen
 import id.ac.itera.ressist.ui.tugas.TugasScreen
 import id.ac.itera.ressist.ui.update.UpdateViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -116,7 +117,7 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     // Sub-navigasi internal:
     // - Tampilan penuh kalender dibuka dari kartu Overview.
-    // - Detail Tampilan/Kelas/Profil/Tentang dibuka dari tab Lainnya.
+    // - Detail Tampilan/Kelas/Profil/Sinkronisasi/Tentang dibuka dari tab Lainnya.
     var showCalendar by rememberSaveable { mutableStateOf(false) }
     var lainnyaDetail by rememberSaveable { mutableStateOf<String?>(null) }
     // Riwayat tab untuk Back sistem: kembali ke menu sebelumnya, bukan keluar aplikasi.
@@ -184,12 +185,14 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
                 "matkul" -> MataKuliahScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 "filter" -> FilterKelasScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 "profil" -> ProfilScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
+                "sinkronisasi" -> SinkronisasiScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 "tentang" -> TentangScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 else -> LainnyaScreen(
                     onOpenMatkul = { lainnyaDetail = "matkul" },
                     onOpenFilter = { lainnyaDetail = "filter" },
                     onOpenProfil = { lainnyaDetail = "profil" },
                     onOpenTampilan = { lainnyaDetail = "tampilan" },
+                    onOpenSinkronisasi = { lainnyaDetail = "sinkronisasi" },
                     onOpenTentang = { lainnyaDetail = "tentang" },
                     modifier = modifier,
                 )

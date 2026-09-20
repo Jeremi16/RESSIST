@@ -32,17 +32,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import id.ac.itera.ressist.auth.GoogleSignInHelper
-import id.ac.itera.ressist.reminders.SyncWorker
+import id.ac.itera.ressist.reminders.SyncManager
 import id.ac.itera.ressist.ui.common.RessistCard
 import id.ac.itera.ressist.ui.common.RessistIcons
 import kotlinx.coroutines.flow.collectLatest
@@ -55,18 +52,19 @@ fun LoginScreen(
     onLoggedIn: (newAssignments: Int) -> Unit,
     viewModel: LoginViewModel = koinViewModel(),
     google: GoogleSignInHelper = koinInject(),
+    syncManager: SyncManager = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
-    val context = LocalContext.current.applicationContext
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result -> viewModel.handleSignInResult(result.data) }
 
     LaunchedEffect(Unit) {
         viewModel.loggedIn.collectLatest { (_, newCount) ->
-            // Build local alarms immediately (periodic worker covers later).
-            WorkManager.getInstance(context).enqueue(OneTimeWorkRequestBuilder<SyncWorker>().build())
+            // Aktifkan kembali periodic sesuai prefs + bangun alarm lokal.
+            runCatching { syncManager.reschedule() }
+            syncManager.syncNow(notify = false)
             onLoggedIn(newCount)
         }
     }

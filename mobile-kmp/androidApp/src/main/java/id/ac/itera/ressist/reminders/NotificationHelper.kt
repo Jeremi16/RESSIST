@@ -18,6 +18,7 @@ object NotificationHelper {
     const val CHANNEL_ID = "ressist_reminders"
     const val UPDATE_CHANNEL_ID = "ressist_updates"
     const val UPDATE_NOTIFICATION_ID = 9001
+    const val SYNC_NEW_TASKS_ID = 907_002
 
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -48,6 +49,37 @@ object NotificationHelper {
                 .setContentText(text)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(text))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .build(),
+        )
+    }
+
+    /** Notifikasi tugas baru dari sinkronisasi otomatis (tap → buka aplikasi). */
+    fun notifySyncNewTasks(context: Context, count: Int, preview: String) {
+        ensureChannel(context)
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pending = PendingIntent.getActivity(
+            context, SYNC_NEW_TASKS_ID, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val title = if (count == 1) "1 tugas baru" else "$count tugas baru"
+        NotificationManagerCompat.from(context).notify(
+            SYNC_NEW_TASKS_ID,
+            NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_stat_reminder)
+                .setContentTitle(title)
+                .setContentText(preview)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(preview))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pending)
                 .setAutoCancel(true)
                 .build(),
         )

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.ac.itera.ressist.domain.model.TaskBuckets
+import id.ac.itera.ressist.domain.time.formatLastSyncId
 import id.ac.itera.ressist.ui.common.ErrorBox
 import id.ac.itera.ressist.ui.common.MonthCalendarGrid
 import id.ac.itera.ressist.ui.common.RessistCard
@@ -69,6 +70,11 @@ fun OverviewScreen(
                         letterSpacing = (-0.5).sp,
                     )
                     state.buckets?.let { StatsGrid(it) }
+                    Text(
+                        "Terakhir sync otomatis: ${formatLastSyncId(state.lastSuccess)}",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     // Kalender mini (pending saja, ala web) + tombol buka penuh
                     state.buckets?.let { buckets ->
                         RessistCard {

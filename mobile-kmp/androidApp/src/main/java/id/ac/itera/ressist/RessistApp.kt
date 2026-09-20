@@ -8,13 +8,21 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import id.ac.itera.ressist.di.androidModule
 import id.ac.itera.ressist.di.sharedModule
+import id.ac.itera.ressist.reminders.SyncManager
 import id.ac.itera.ressist.reminders.SyncWorker
 import io.ktor.client.engine.okhttp.OkHttp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import java.util.concurrent.TimeUnit
 
 class RessistApp : Application() {
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onCreate() {
         super.onCreate()
         startKoin {
@@ -28,13 +36,17 @@ class RessistApp : Application() {
                 androidModule,
             )
         }
-        // Rebuild local reminder alarms every 6h (worker no-ops when logged out).
+        // Default cepat 3 jam agar alarm langsung terjadwal; lalu selaraskan
+        // dengan interval pilihan user (1h/3h/6h/12h/Manual) via SyncManager.
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             SyncWorker.PERIODIC,
             ExistingPeriodicWorkPolicy.KEEP,
-            PeriodicWorkRequestBuilder<SyncWorker>(6, TimeUnit.HOURS)
+            PeriodicWorkRequestBuilder<SyncWorker>(3, TimeUnit.HOURS)
                 .setConstraints(Constraints(requiredNetworkType = NetworkType.CONNECTED))
                 .build(),
         )
+        appScope.launch {
+            runCatching { GlobalContext.get().get<SyncManager>().reschedule() }
+        }
     }
 }

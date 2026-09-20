@@ -21,14 +21,14 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.2.3";
-const APK_NAME = "ressist-0.2.3-code5-release.apk";
+const APK_VERSION = "v0.3.0";
+const APK_NAME = "ressist-0.3.0-code6-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
-const APK_SIZE = "3.42 MB";
+const APK_SIZE = "3.42 MB"; // TODO(rilis): sesuaikan dengan ukuran APK v0.3.0 dari CI.
 const APK_RELEASED = "20 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
-const APK_SHA256 =
-  "c1d72bd169a1f6afbebfbeab3050f5537c7e87cce817219ea8cdb73e8a58eed6";
+// TODO(rilis): isi dari SHA256SUMS.txt rilis v0.3.0 setelah CI selesai.
+const APK_SHA256 = "MENUNGGU-SHA256-RILIS-v0.3.0";
 
 const SIDEBAR = docsSidebar([
   { label: "Rilis Stabil", to: "#stabil" },
@@ -38,9 +38,9 @@ const SIDEBAR = docsSidebar([
 ]);
 
 const CHANGELOG = [
-  "Cek Pembaruan di Tentang: aplikasi tahu sendiri kalau ada versi baru.",
-  "Notifikasi otomatis + unduh dan install langsung dari aplikasi.",
-  "Tampilan Tentang baru: Versi, Cek Pembaruan, dan Yang Baru.",
+  "Sinkronisasi otomatis: tarik data Moodle & Classroom tiap 1/3/6/12 jam atau manual.",
+  "Notifikasi tugas baru + status Terakhir sync di Ringkasan.",
+  "Layar baru Lainnya → Sinkronisasi (pengaturan pindah dari tab Pengingat).",
 ];
 
 const INSTALL_STEPS = [

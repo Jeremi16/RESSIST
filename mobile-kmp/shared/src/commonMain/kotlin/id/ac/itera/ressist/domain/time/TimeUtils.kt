@@ -55,3 +55,19 @@ fun formatTimeRemainingId(deadline: Instant, now: Instant = Clock.System.now()):
  */
 fun reminderInstants(deadline: Instant, hoursBefore: List<Int>): List<Instant> =
     hoursBefore.map { deadline - it.hours }
+
+/**
+ * Label Indonesia untuk "terakhir sync" (epoch millis DataStore atau
+ * Instant server). 0/null = belum pernah.
+ */
+fun formatLastSyncId(lastSuccessMillis: Long, nowMillis: Long = Clock.System.now().toEpochMilliseconds()): String {
+    if (lastSuccessMillis <= 0) return "Belum pernah"
+    val diff = nowMillis - lastSuccessMillis
+    if (diff < 0) return "Baru saja"
+    return when {
+        diff < 60_000 -> "Baru saja"
+        diff < 3_600_000 -> "${diff / 60_000} mnt lalu"
+        diff < 86_400_000 -> "${diff / 3_600_000} jam lalu"
+        else -> "${diff / 86_400_000} hari lalu"
+    }
+}

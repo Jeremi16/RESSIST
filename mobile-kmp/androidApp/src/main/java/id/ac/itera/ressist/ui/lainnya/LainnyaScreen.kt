@@ -38,7 +38,7 @@ private data class MenuItem(
 
 /**
  * Tab "Lainnya" ala Mihon: tanpa header, logo di atas,
- * lalu menu pilihan (Kelas / Profil / Tampilan / Tentang).
+ * lalu menu pilihan (Kelas / Profil / Tampilan / Sinkronisasi / Tentang).
  */
 @Composable
 fun LainnyaScreen(
@@ -46,6 +46,7 @@ fun LainnyaScreen(
     onOpenFilter: () -> Unit,
     onOpenProfil: () -> Unit,
     onOpenTampilan: () -> Unit,
+    onOpenSinkronisasi: () -> Unit,
     onOpenTentang: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -88,6 +89,10 @@ fun LainnyaScreen(
                     MenuItem(
                         RessistIcons.Palette, "Tampilan",
                         "Mode gelap/terang & ukuran teks", onOpenTampilan,
+                    ),
+                    MenuItem(
+                        RessistIcons.Refresh, "Sinkronisasi",
+                        "Jadwal sync otomatis & status", onOpenSinkronisasi,
                     ),
                 ),
             )

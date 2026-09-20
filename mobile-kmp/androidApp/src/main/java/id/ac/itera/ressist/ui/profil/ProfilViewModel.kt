@@ -8,6 +8,7 @@ import id.ac.itera.ressist.auth.AuthManager
 import id.ac.itera.ressist.data.repository.UserRepository
 import id.ac.itera.ressist.domain.model.User
 import id.ac.itera.ressist.reminders.ReminderScheduler
+import id.ac.itera.ressist.reminders.SyncManager
 import id.ac.itera.ressist.ui.common.userMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,7 @@ class ProfilViewModel(
     private val authManager: AuthManager,
     private val googleSignOut: () -> Unit,
     private val scheduler: ReminderScheduler,
+    private val syncManager: SyncManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfilUiState())
@@ -90,6 +92,7 @@ class ProfilViewModel(
         _state.update { it.copy(isLoggingOut = true) }
         viewModelScope.launch {
             runCatching { scheduler.cancelAll() }
+            runCatching { syncManager.cancelAll() }
             authManager.logout()
             _state.update { it.copy(isLoggingOut = false) }
         }
@@ -103,6 +106,7 @@ class ProfilViewModel(
         _state.update { it.copy(isLoggingOut = true) }
         viewModelScope.launch {
             runCatching { scheduler.cancelAll() }
+            runCatching { syncManager.cancelAll() }
             authManager.logout()
             runCatching { googleSignOut() }
             _state.update { it.copy(isLoggingOut = false) }

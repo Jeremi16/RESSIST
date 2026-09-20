@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.2.3";
-const APK_NAME = "ressist-0.2.3-code5-release.apk";
+const APK_VERSION = "v0.3.0";
+const APK_NAME = "ressist-0.3.0-code6-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
-const APK_SIZE = "3.42 MB";
+const APK_SIZE = "3.42 MB"; // TODO(rilis): sesuaikan dengan ukuran APK v0.3.0 dari CI.
 const APK_RELEASED = "20 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V023_VERSION = "v0.2.3";
+const V023_NAME = "ressist-0.2.3-code5-release.apk";
+const V023_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V023_VERSION}/${V023_NAME}`;
+const V023_SIZE = "3.42 MB";
+const V023_RELEASED = "20 September 2026";
 
 const V021_VERSION = "v0.2.1";
 const V021_NAME = "ressist-0.2.1-code3-release.apk";
@@ -55,12 +61,29 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-2-3",
+    id: "v0-3-0",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Sinkronisasi Otomatis",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Sinkronisasi otomatis berkala: tiap 1/3/6/12 jam atau manual, selalu force Moodle & Classroom.",
+      "Layar baru Lainnya → Sinkronisasi: jadwal, mode WiFi-only, status, dan tombol sync manual.",
+      "Notifikasi saat ada tugas baru + status Terakhir sync di Ringkasan.",
+      "Pengaturan sync pindah dari tab Pengingat; tombol Manual kini full-width.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-2-3",
+    version: V023_VERSION,
+    fileName: V023_NAME,
+    filePath: V023_PATH,
+    size: V023_SIZE,
+    released: V023_RELEASED,
     title: "Cek Pembaruan Otomatis",
     description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
     highlights: [
@@ -242,8 +265,9 @@ export default function ChangeLog() {
             {LATEST.title}
           </h2>
           <p className="text-white/60 text-sm leading-relaxed max-w-2xl">
-            Aplikasi kini bisa cek pembaruan sendiri, memberi notifikasi,
-            dan mengunduh versi baru langsung dari HP.
+            Aplikasi kini tersinkron otomatis dari Moodle & Classroom,
+            memberi tahu saat ada tugas baru, dan semua pengaturannya
+            ada di Lainnya → Sinkronisasi.
           </p>
         </motion.div>
 
