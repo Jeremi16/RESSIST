@@ -1,6 +1,7 @@
 name: release-mirror
 
-# Rilis APK ke repo public RESSIST-MOBILE (kode utama tetap private di repo ini).
+# Rilis APK ganda: repo public RESSIST-MOBILE (kanonis, dibaca updater HP
+# + web) dan repo ini sendiri (arsip). Kode utama tetap private di repo ini.
 # Alur: bump versionCode+1 & versionName → commit → git tag vX.Y.Z → push --tags.
 on:
   push:
@@ -8,7 +9,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # write: step "Release (arsip repo ini)" membuat GitHub Release di repo
+  # sendiri via GITHUB_TOKEN. Repo baru tetap via RELEASE_MIRROR_TOKEN.
+  contents: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -16,7 +19,7 @@ concurrency:
 
 jobs:
   build-and-mirror:
-    name: build release + mirror to RESSIST-MOBILE
+    name: build release + rilis ganda (RESSIST-MOBILE + arsip)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -85,6 +88,28 @@ jobs:
           body: |
             Ressist ${{ github.ref_name }} (code ${{ env.APK_CODE }}).
 
+            Download APK di bawah. Update langsung timpa versi lama, tidak perlu uninstall.
+            SHA-256 lihat SHA256SUMS.txt.
+          files: |
+            mobile-kmp/${{ env.APK_NAME }}
+            mobile-kmp/SHA256SUMS.txt
+          draft: false
+          prerelease: false
+
+      - name: Release (arsip repo ini)
+        # Tanpa parameter `repository` = buat release di repo ini sendiri.
+        # Sekadar arsip (repo ini akan di-private); yang kanonis tetap
+        # RESSIST-MOBILE di atas. Dijalankan sesudahnya agar kegagalan di
+        # sini tidak menghalangi rilis kanonis.
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ github.ref_name }}
+          name: Ressist ${{ github.ref_name }}
+          body: |
+            Ressist ${{ github.ref_name }} (code ${{ env.APK_CODE }}).
+
+            Arsip — rilis kanonis ada di repo RESSIST-MOBILE.
             Download APK di bawah. Update langsung timpa versi lama, tidak perlu uninstall.
             SHA-256 lihat SHA256SUMS.txt.
           files: |

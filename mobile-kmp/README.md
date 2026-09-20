@@ -71,10 +71,11 @@ Syarat & checklist:
    client di Google Cloud Console. Kalau tidak cocok, Google Sign-In gagal
    dengan `exchange_failed`. Ambil SHA-1:
     `keytool -list -v -keystore ressist-release.jks -alias ressist | grep SHA1`
-4. Distribusi otomatis via `release-mirror.yml` ke repo public
-   `Jeremi16/RESSIST-MOBILE` (tiru Mihon: HP cek
+4. Distribusi otomatis via `release-mirror.yml` ke dua tempat: repo public
+   `Jeremi16/RESSIST-MOBILE` (kanonis — HP cek
    `api.github.com/repos/Jeremi16/RESSIST-MOBILE/releases/latest`
-   langsung, tanpa backend). Repo utama boleh private.
+   langsung, tanpa backend; web juga menunjuk ke sini) dan repo ini
+   sendiri (sekadar arsip, tak terbaca publik setelah repo di-private).
    Jangan commit binary ke `releases/` (di-gitignore).
 5. Build release hardcode prod `https://ressist-api.jsx.qzz.io`,
    jadi HP fisik langsung bisa pakai. Debug tetap pakai
