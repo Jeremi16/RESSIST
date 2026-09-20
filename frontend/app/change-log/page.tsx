@@ -22,20 +22,20 @@ const APK_RELEASED = "19 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 
 const V021_VERSION = "v0.2.1";
-const V021_NAME = "ressist-0.2.1-release.apk";
-const V021_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${V021_VERSION}/${V021_NAME}`;
+const V021_NAME = "ressist-0.2.1-code3-release.apk";
+const V021_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V021_VERSION}/${V021_NAME}`;
 const V021_SIZE = "3.41 MB";
 const V021_RELEASED = "18 September 2026";
 
 const V020_VERSION = "v0.2.0";
-const V020_NAME = "ressist-0.2.0-release.apk";
-const V020_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${V020_VERSION}/${V020_NAME}`;
+const V020_NAME = "ressist-0.2.0-code2-release.apk";
+const V020_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V020_VERSION}/${V020_NAME}`;
 const V020_SIZE = "3.41 MB";
 const V020_RELEASED = "18 September 2026";
 
 const V010_VERSION = "v0.1.0";
-const V010_NAME = "ressist-0.1.0-release.apk";
-const V010_PATH = `https://github.com/Jeremi16/RESSIST/releases/download/${V010_VERSION}/${V010_NAME}`;
+const V010_NAME = "ressist-0.1.0-code1-release.apk";
+const V010_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V010_VERSION}/${V010_NAME}`;
 const V010_SIZE = "2.86 MB";
 const V010_RELEASED = "18 September 2026";
 
