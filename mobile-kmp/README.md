@@ -42,13 +42,21 @@ Kontrak API: `backend/API_DOCUMENTATION.md` — selalu prefix `/v1`,
 `Authorization: Bearer`, refresh via header `X-Refresh-Token`.
 Mobile dilarang import kode `frontend/src/*`; hanya meniru behavior-nya.
 
-## Rilis v0.2.2 (sideload APK)
+## Rilis (sideload APK via RESSIST-MOBILE)
 
 ```bash
-cd mobile-kmp
-./gradlew :androidApp:assembleRelease # APK signed → androidApp/build/outputs/apk/release/
-# rename → releases/ressist-0.2.2-release.apk, lalu upload ke GitHub Release v0.2.2
+# 1. bump versionCode+1 & versionName di androidApp/build.gradle.kts, commit
+git commit -m "release v0.2.3 (code 5)"
+# 2. tag + push → CI (.github/workflows/release-mirror.yml) bangun
+#    assembleRelease lalu mirror ke repo public Jeremi16/RESSIST-MOBILE
+git tag v0.2.3; git push origin main --tags
 ```
+
+Nama file wajib `ressist-X.Y.Z-codeN-release.apk` (N = versionCode) —
+update-checker HP membaca versionCode dari nama file ini (GitHub API
+tidak punya field versionCode). Contoh: `ressist-0.2.2-code4-release.apk`.
+Cek manual lokal tetap bisa: `./gradlew :androidApp:assembleRelease`
+(APK signed → `androidApp/build/outputs/apk/release/`).
 
 Syarat & checklist:
 
@@ -63,13 +71,19 @@ Syarat & checklist:
    client di Google Cloud Console. Kalau tidak cocok, Google Sign-In gagal
    dengan `exchange_failed`. Ambil SHA-1:
     `keytool -list -v -keystore ressist-release.jks -alias ressist | grep SHA1`
-4. Distribusi via GitHub Release (`gh release create v0.2.2 ...apk`),
-   bukan commit binary ke `releases/` (di-gitignore).
+4. Distribusi otomatis via `release-mirror.yml` ke repo public
+   `Jeremi16/RESSIST-MOBILE` (tiru Mihon: HP cek
+   `api.github.com/repos/Jeremi16/RESSIST-MOBILE/releases/latest`
+   langsung, tanpa backend). Repo utama boleh private.
+   Jangan commit binary ke `releases/` (di-gitignore).
 5. Build release hardcode prod `https://ressist-api.jsx.qzz.io`,
    jadi HP fisik langsung bisa pakai. Debug tetap pakai
    `ressist.apiBaseUrl` di `local.properties` (emulator `10.0.2.2:8080`).
 6. Skema versi ke depan: `versionName` semver manual + `versionCode` +1
-   tiap rilis, 1 commit bump + 1 tag `vX.Y.Z` + 1 GitHub Release.
+   tiap rilis, 1 commit bump + 1 tag `vX.Y.Z` (CI yang membuat release
+   + file `SHA256SUMS.txt`). Update-checker di HP: tombol manual di
+   Tentang + auto-check 1x/24 jam + notifikasi + download via
+   DownloadManager (lihat `update/AppUpdater.kt`, `ui/update/`).
 
 ## Loop di consent Google (diagnosis)
 

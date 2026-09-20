@@ -1,0 +1,94 @@
+name: release-mirror
+
+# Rilis APK ke repo public RESSIST-MOBILE (kode utama tetap private di repo ini).
+# Alur: bump versionCode+1 & versionName → commit → git tag vX.Y.Z → push --tags.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-mirror:
+    name: build release + mirror to RESSIST-MOBILE
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-kmp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create local.properties (CI defaults)
+        # GOOGLE_WEB_CLIENT_ID publik (sama seperti di web bundle) — aman di-hardcode.
+        # Keystore tetap secret, disuntik di step berikutnya.
+        run: |
+          printf '%s\n' \
+            "sdk.dir=$ANDROID_SDK_ROOT" \
+            "ressist.apiBaseUrl=https://ressist-api.jsx.qzz.io" \
+            "ressist.googleWebClientId=858279804864-eo1st7na40s49jn8hgkjvv4n0822g7rd.apps.googleusercontent.com" > local.properties
+
+      - name: Restore keystore from secrets
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > ressist-release.jks
+          printf '%s\n' \
+            "storeFile=ressist-release.jks" \
+            "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" \
+            "keyAlias=${{ secrets.KEY_ALIAS }}" \
+            "keyPassword=${{ secrets.KEY_PASSWORD }}" > keystore.properties
+
+      - name: Assemble release
+        run: ./gradlew :androidApp:assembleRelease --stacktrace
+
+      - name: Rename + validate codeN
+        # Konvensi: ressist-X.Y.Z-codeN-release.apk — codeN = versionCode,
+        # satu-satunya tempat versionCode tersimpan untuk updater HP
+        # (GitHub API tidak punya field versionCode).
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="${TAG#v}"
+          CODE=$(grep -oP 'versionCode\s*=\s*\K\d+' androidApp/build.gradle.kts)
+          grep -q "versionName = \"$VER\"" androidApp/build.gradle.kts
+          SRC="androidApp/build/outputs/apk/release/app-release.apk"
+          OUT="ressist-${VER}-code${CODE}-release.apk"
+          mv "$SRC" "$OUT"
+          sha256sum "$OUT" | tee SHA256SUMS.txt
+          echo "APK_NAME=$OUT" >> "$GITHUB_ENV"
+          echo "APK_VER=$VER" >> "$GITHUB_ENV"
+          echo "APK_CODE=$CODE" >> "$GITHUB_ENV"
+
+      - name: Mirror to RESSIST-MOBILE
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: Jeremi16/RESSIST-MOBILE
+          token: ${{ secrets.RELEASE_MIRROR_TOKEN }}
+          tag_name: ${{ github.ref_name }}
+          name: Ressist ${{ github.ref_name }}
+          body: |
+            Ressist ${{ github.ref_name }} (code ${{ env.APK_CODE }}).
+
+            Download APK di bawah. Update langsung timpa versi lama, tidak perlu uninstall.
+            SHA-256 lihat SHA256SUMS.txt.
+          files: |
+            mobile-kmp/${{ env.APK_NAME }}
+            mobile-kmp/SHA256SUMS.txt
+          draft: false
+          prerelease: false
