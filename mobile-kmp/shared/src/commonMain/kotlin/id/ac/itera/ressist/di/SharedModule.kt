@@ -5,6 +5,7 @@ import id.ac.itera.ressist.api.AuthApi
 import id.ac.itera.ressist.api.AuthedHttpClient
 import id.ac.itera.ressist.api.CalendarApi
 import id.ac.itera.ressist.api.CourseApi
+import id.ac.itera.ressist.api.ReleaseApi
 import id.ac.itera.ressist.api.TokenRefresher
 import id.ac.itera.ressist.api.UserApi
 import id.ac.itera.ressist.api.createHttpClient
@@ -14,6 +15,7 @@ import id.ac.itera.ressist.data.repository.AssignmentRepository
 import id.ac.itera.ressist.data.repository.AuthRepository
 import id.ac.itera.ressist.data.repository.CalendarRepository
 import id.ac.itera.ressist.data.repository.CourseRepository
+import id.ac.itera.ressist.data.repository.UpdateRepository
 import id.ac.itera.ressist.data.repository.UserRepository
 import io.ktor.client.engine.HttpClientEngine
 import org.koin.dsl.module
@@ -37,9 +39,11 @@ fun sharedModule(
     single { CalendarApi(get()) }
     single { UserApi(get()) }
     single { CourseApi(get()) }
+    single { ReleaseApi(get()) }
     single { AuthRepository(get(), get(), get()) }
     single { AssignmentRepository(get()) }
     single { CalendarRepository(get()) }
     single { UserRepository(get()) }
     single { CourseRepository(get()) }
+    single { UpdateRepository(get()) }
 }

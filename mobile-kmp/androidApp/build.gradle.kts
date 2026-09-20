@@ -31,6 +31,9 @@ android {
         val googleWebClientId = prop("ressist.googleWebClientId", "")
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
+        // Update-checker butuh versionCode int (banding versi via codeN di nama file
+        // rilis RESSIST-MOBILE, bukan string semver). Sinkron dengan versionCode di atas.
+        buildConfigField("int", "VERSION_CODE", "$versionCode")
     }
 
     // Release signing uses mobile-kmp/ressist-release.jks (gitignored, never lose it).

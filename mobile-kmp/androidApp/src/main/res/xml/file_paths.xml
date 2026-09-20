@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider untuk install APK hasil DownloadManager (update-checker). -->
+<paths>
+    <external-cache-path name="updates" path="updates/" />
+    <external-files-path name="updates_files" path="Download/updates/" />
+    <cache-path name="updates_internal" path="updates/" />
+</paths>

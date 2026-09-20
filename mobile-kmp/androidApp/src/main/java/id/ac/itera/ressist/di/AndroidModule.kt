@@ -5,6 +5,7 @@ import id.ac.itera.ressist.auth.AuthManager
 import id.ac.itera.ressist.auth.GoogleSignInHelper
 import id.ac.itera.ressist.data.AndroidSessionStorage
 import id.ac.itera.ressist.data.ThemePrefs
+import id.ac.itera.ressist.data.UpdatePrefs
 import id.ac.itera.ressist.data.repository.AuthRepository
 import id.ac.itera.ressist.data.SessionStorage
 import id.ac.itera.ressist.reminders.ReminderScheduler
@@ -16,6 +17,8 @@ import id.ac.itera.ressist.ui.tugas.TugasViewModel
 import id.ac.itera.ressist.ui.kalender.KalenderViewModel
 import id.ac.itera.ressist.ui.lms.LmsViewModel
 import id.ac.itera.ressist.ui.profil.ProfilViewModel
+import id.ac.itera.ressist.ui.update.UpdateViewModel
+import id.ac.itera.ressist.update.AppUpdater
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -30,6 +33,8 @@ val androidModule = module {
     single { GoogleSignInHelper(androidContext(), BuildConfig.GOOGLE_WEB_CLIENT_ID) }
     single { AuthManager(get<AuthRepository>()) }
     single { ReminderScheduler(androidContext(), get(), get()) }
+    single { UpdatePrefs(androidContext()) }
+    single { AppUpdater(androidContext()) }
     viewModel { LoginViewModel(get(), get(), get()) }
     viewModel { OverviewViewModel(get(), get(), get(), get()) }
     viewModel { TugasViewModel(get(), get(), get()) }
@@ -38,4 +43,5 @@ val androidModule = module {
     viewModel { KelasViewModel(get(), get(), get()) }
     viewModel { PengingatViewModel(get(), get(), get(), get()) }
     viewModel { ProfilViewModel(get(), get(), { get<GoogleSignInHelper>().signOut() }, get()) }
+    viewModel { UpdateViewModel(get(), get(), get()) }
 }

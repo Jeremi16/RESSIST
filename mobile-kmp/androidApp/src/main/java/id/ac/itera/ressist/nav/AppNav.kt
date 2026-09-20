@@ -25,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import id.ac.itera.ressist.auth.AuthManager
+import id.ac.itera.ressist.reminders.NotificationHelper
 import id.ac.itera.ressist.ui.common.LoadingBox
 import id.ac.itera.ressist.ui.common.RessistBottomBar
 import id.ac.itera.ressist.ui.common.RessistIcons
@@ -41,7 +42,9 @@ import id.ac.itera.ressist.ui.pengaturan.TampilanScreen
 import id.ac.itera.ressist.ui.pengingat.PengingatScreen
 import id.ac.itera.ressist.ui.profil.ProfilScreen
 import id.ac.itera.ressist.ui.tugas.TugasScreen
+import id.ac.itera.ressist.ui.update.UpdateViewModel
 import kotlinx.coroutines.flow.collectLatest
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 /** Bottom nav: 4 primer + Lainnya (Profil pindah ke Lainnya). */
@@ -109,7 +112,7 @@ fun AppNav(authManager: AuthManager = koinInject()) {
 }
 
 @Composable
-private fun MainScaffold() {
+private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     // Sub-navigasi internal:
     // - Tampilan penuh kalender dibuka dari kartu Overview.
@@ -140,6 +143,15 @@ private fun MainScaffold() {
         }
     }
     RequestNotificationPermission()
+    // Auto-check pembaruan ala Mihon (tiap cold start, dibatasi 1x/24 jam
+    // di UpdateViewModel). Notifikasi sistem hanya jika ada versi baru.
+    val appContext = LocalContext.current
+    LaunchedEffect(Unit) {
+        val release = updateViewModel.autoCheck()
+        if (release != null) {
+            NotificationHelper.notifyUpdateAvailable(appContext, release.versionTag)
+        }
+    }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         // Header (TopAppBar) sudah handle statusBars inset sendiri,
