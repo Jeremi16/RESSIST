@@ -78,7 +78,7 @@ jobs:
           VER="${TAG#v}"
           CODE=$(grep -oP 'versionCode\s*=\s*\K\d+' androidApp/build.gradle.kts)
           grep -q "versionName = \"$VER\"" androidApp/build.gradle.kts
-          SRC="androidApp/build/outputs/apk/release/app-release.apk"
+          SRC="androidApp/build/outputs/apk/release/androidApp-release.apk"
           OUT="ressist-${VER}-code${CODE}-release.apk"
           mv "$SRC" "$OUT"
           sha256sum "$OUT" | tee SHA256SUMS.txt
