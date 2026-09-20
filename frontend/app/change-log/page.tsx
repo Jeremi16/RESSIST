@@ -14,11 +14,11 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.2.2";
-const APK_NAME = "ressist-0.2.2-code4-release.apk";
+const APK_VERSION = "v0.2.3";
+const APK_NAME = "ressist-0.2.3-code5-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
-const APK_SIZE = "3.41 MB";
-const APK_RELEASED = "19 September 2026";
+const APK_SIZE = "3.42 MB";
+const APK_RELEASED = "20 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 
 const V021_VERSION = "v0.2.1";
@@ -55,19 +55,35 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-2-2",
+    id: "v0-2-3",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
-    title: "Kelas Terpisah & Lainnya Rapi",
+    title: "Cek Pembaruan Otomatis",
     description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Cek Pembaruan di Tentang: aplikasi tahu sendiri kalau ada versi baru.",
+      "Notifikasi otomatis + unduh dan install langsung dari aplikasi.",
+      "Tampilan Tentang baru: Versi, Cek Pembaruan, dan Yang Baru.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-2-2",
+    version: "v0.2.2",
+    fileName: "ressist-0.2.2-code4-release.apk",
+    filePath: `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/v0.2.2/ressist-0.2.2-code4-release.apk`,
+    size: "3.41 MB",
+    released: "19 September 2026",
+    title: "Kelas Terpisah & Lainnya Rapi",
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
     highlights: [
       "Mata Kuliah dan Filter Kelas kini layar terpisah berheader sendiri, tanpa tab.",
       "Kartu beta dihapus; statistik tampil per layar sesuai konteks.",
       "Header Lainnya disederhanakan — logo saja, versi tetap ada di Tentang.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      "Ringan — hanya sekitar 3.41 MB.",
     ],
   },
   {
@@ -226,8 +242,8 @@ export default function ChangeLog() {
             {LATEST.title}
           </h2>
           <p className="text-white/60 text-sm leading-relaxed max-w-2xl">
-            Kartu Tugas tanpa badge Classroom yang mengganggu, dan tombol
-            Back HP kini kembali ke menu sebelumnya.
+            Aplikasi kini bisa cek pembaruan sendiri, memberi notifikasi,
+            dan mengunduh versi baru langsung dari HP.
           </p>
         </motion.div>
 

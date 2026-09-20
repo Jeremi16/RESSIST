@@ -21,14 +21,14 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.2.2";
-const APK_NAME = "ressist-0.2.2-code4-release.apk";
+const APK_VERSION = "v0.2.3";
+const APK_NAME = "ressist-0.2.3-code5-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
-const APK_SIZE = "3.41 MB";
-const APK_RELEASED = "19 September 2026";
+const APK_SIZE = "3.42 MB";
+const APK_RELEASED = "20 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 const APK_SHA256 =
-  "7afde7b55af878ceb691254c28c830f89dce503740c32394b8e5d20b4e28e2c4";
+  "c1d72bd169a1f6afbebfbeab3050f5537c7e87cce817219ea8cdb73e8a58eed6";
 
 const SIDEBAR = docsSidebar([
   { label: "Rilis Stabil", to: "#stabil" },
@@ -38,8 +38,9 @@ const SIDEBAR = docsSidebar([
 ]);
 
 const CHANGELOG = [
-  "Mata Kuliah dan Filter Kelas kini layar terpisah berheader sendiri, tanpa tab.",
-  "Header Lainnya disederhanakan — logo saja, versi tetap ada di Tentang.",
+  "Cek Pembaruan di Tentang: aplikasi tahu sendiri kalau ada versi baru.",
+  "Notifikasi otomatis + unduh dan install langsung dari aplikasi.",
+  "Tampilan Tentang baru: Versi, Cek Pembaruan, dan Yang Baru.",
 ];
 
 const INSTALL_STEPS = [
