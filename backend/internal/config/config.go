@@ -32,7 +32,7 @@ type Config struct {
 	JWTAccessSecret      string
 	AccessTokenTTLMinute int
 	RefreshTokenTTLHour  int
-	// MobileRefreshTokenTTLHour is used for native Android (Capacitor)
+	// MobileRefreshTokenTTLHour is used for native Android (KMP)
 	// refresh tokens issued via POST /v1/auth/google/native.
 	// Web keeps RefreshTokenTTLHour (72h), mobile defaults to 720h (30 days).
 	MobileRefreshTokenTTLHour int
@@ -51,8 +51,8 @@ type Config struct {
 	TelegramBotUsername string
 
 	AllowedOrigins []string
-	// AllowedCustomOrigins holds non-http(s) origins (e.g. capacitor://localhost,
-	// ionic://localhost) matched via cors AllowOriginFunc. gin-contrib/cors
+	// AllowedCustomOrigins holds non-http(s) origins (e.g. native WebView
+	// schemes) matched via cors AllowOriginFunc. gin-contrib/cors
 	// panics if such schemes are put in AllowOrigins, so they must be split.
 	AllowedCustomOrigins []string
 
@@ -115,7 +115,7 @@ func Load() (*Config, error) {
 		TelegramBotUsername: getEnv("TELEGRAM_BOT_USERNAME", "ressist_bot"),
 
 		// ALLOWED_ORIGINS is comma-separated and may mix http(s) origins with
-		// custom-scheme origins (capacitor://...). Split them so gin-contrib/cors
+		// custom-scheme origins. Split them so gin-contrib/cors
 		// never receives a non-http(s) entry in AllowOrigins (it panics).
 		// Invalid entries (bare domain, path, "*") are skipped with a warning.
 		// httpOrigins and customOrigins are assigned below after cfg is built.
@@ -162,7 +162,7 @@ func SplitCorsOrigins(raw []string) (httpOrigins []string, customOrigins []strin
 		}
 		u, err := url.Parse(v)
 		if err != nil || u.Scheme == "" || u.Host == "" {
-			log.Printf("warn: skip invalid cors origin %q: must be like https://example.com or capacitor://localhost", entry)
+			log.Printf("warn: skip invalid cors origin %q: must be like https://example.com", entry)
 			continue
 		}
 		if u.Path != "" && u.Path != "/" {

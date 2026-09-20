@@ -8,7 +8,7 @@ import (
 func TestSplitCorsOrigins_ProductionValue(t *testing.T) {
 	raw := []string{
 		"https://ressist.web.id",
-		"capacitor://localhost",
+		"app://localhost",
 		"http://localhost",
 		"https://localhost",
 	}
@@ -18,7 +18,7 @@ func TestSplitCorsOrigins_ProductionValue(t *testing.T) {
 	if !reflect.DeepEqual(httpOrigins, wantHTTP) {
 		t.Fatalf("httpOrigins = %v, want %v", httpOrigins, wantHTTP)
 	}
-	wantCustom := []string{"capacitor://localhost"}
+	wantCustom := []string{"app://localhost"}
 	if !reflect.DeepEqual(customOrigins, wantCustom) {
 		t.Fatalf("customOrigins = %v, want %v", customOrigins, wantCustom)
 	}

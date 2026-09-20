@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Brand background = putih #FFFFFF (60%), selaras web + splash Capacitor.
+<!-- Brand background = putih #FFFFFF (60%), selaras web.
      Status/navigation bar transparan (edge-to-edge ala Mihon);
      warna ikon bar diatur dinamis dari MainActivity mengikuti tema. -->
 <resources>

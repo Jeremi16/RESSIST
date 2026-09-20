@@ -24,7 +24,7 @@ Link cepat: [Download App](frontend/app/app/) · [Changelog](frontend/app/change
 *   **Agregasi LMS** — Moodle (ICS/URL) + Google Classroom (`classroom.courses.readonly`, `classroom.coursework.me.readonly`), preview + force sync, sort `deadline_asc/desc/newest/oldest`.
 *   **Bot Telegram** — `/tugas`, `/hariini`, `/minggu`, `/selesai <id>` + inline `✅`, morning briefing 07:00 WIB + reminder H-24/12/6/3/1 jam, link akun via kode 6-char dari dashboard.
 *   **Dashboard web** — login Google (khusus `student.itera.ac.id`), kalender, matkul + alias, API keys `rsk_`, halaman statis (docs, FAQ, guide, changelog, download).
-*   **Android native (KMP)** — login Google native, overview, tugas, kalender, LMS, pengingat lokal + briefing; rilis paralel dengan app Capacitor sampai KMP stabil (plan F0–F6, lihat `mobile-kmp/README.md`).
+*   **Android native (KMP)** — login Google native, overview, tugas, kalender, LMS, pengingat lokal + briefing (lihat `mobile-kmp/README.md`).
 *   **API untuk integrasi** — JWT atau `X-API-Key: rsk_...`, rate limit, Prometheus metrics, OpenAPI di `GET /openapi.json`.
 
 ---
@@ -46,7 +46,6 @@ Bot :8081  ──→  Telegram Bot API (getUpdates, sendMessage)
    └──→ API /internal/scheduler/* + /v1/assignments
 
 Android KMP ──→ Go API langsung (Bearer + X-Refresh-Token, prefix /v1)
-Capacitor (/frontend/android, legacy paralel) ──→ sama, via VITE_API_URL
 ```
 
 *   **Frontend** tidak pernah pegang secret; semua `VITE_*` ter-bundle ke browser (publik), `BACKEND_API_URL`/`SESSION_SECRET` hanya di BFF.
@@ -65,7 +64,6 @@ ressist/
 │   ├── app/           # Halaman statis (home, /app download, change-log, docs, faq, ...)
 │   ├── server/        # Hono app.ts, middleware/auth.ts
 │   ├── api/index.ts   # Vercel Functions entry
-│   ├── android/       # App Capacitor legacy (paralel sampai KMP rilis/F6)
 │   └── vercel.json    # rewrite /api/*, redirect ID→EN, SPA fallback
 ├── backend/           # Go API (lihat backend/README.md)
 │   ├── cmd/api/main.go
@@ -187,7 +185,7 @@ Aturan penting:
 
 *   Frontend: `VITE_*` → ter-bundle ke browser (publik). Tanpa prefix → server-only BFF. `NEXT_PUBLIC_*` masih dibaca sebagai fallback (legacy, jangan dipakai untuk env baru).
 *   Sesi: web **3 hari + sliding** (`REFRESH_TOKEN_TTL_HOURS=72`, samakan `SESSION_TTL_DAYS=3` di Vercel, access JWT 60 mnt). Android native **30 hari sliding** (`MOBILE_REFRESH_TOKEN_TTL_HOURS=720`), absolute max 90 hari. **Jangan regenerate secret saat redeploy** — semua sesi user mati.
-*   CORS: `ALLOWED_ORIGINS` comma-separated — `http(s)` → `AllowOrigins`, custom scheme (`capacitor://localhost`) → `AllowOriginFunc`. Bare domain/path/`*` dilewati dengan warning (tidak panic).
+*   CORS: `ALLOWED_ORIGINS` comma-separated — `http(s)` → `AllowOrigins`, custom scheme (mis. WebView) → `AllowOriginFunc`. Bare domain/path/`*` dilewati dengan warning (tidak panic).
 *   `BOT_SERVICE_TOKEN` wajib identik di backend + bot (+ root `.env` untuk compose), kalau kosong `/internal/*` return 503.
 
 ---
@@ -204,15 +202,14 @@ Aturan penting:
 
 *   Image otomatis via GHCR (`.github/workflows/docker.yml`): `ressist-api` + `ressist-bot`, tag `main`/`latest`/`sha-*`, build tiap push ke `main` yang menyentuh `backend/` atau `bot/`.
 *   `docker-compose.yml` production-ready: healthcheck `wget /livez`, `GIN_MODE=release`, `AUTO_MIGRATE=true`.
-*   Coolify: set `ALLOWED_ORIGINS=https://<vercel-app>,capacitor://localhost` dan sinkron `BOT_SERVICE_TOKEN` + `JWT_ACCESS_SECRET` di kedua service. Google Cloud Console redirect URI: `https://ressist-api.jsx.qzz.io/v1/auth/google/callback` (alias legacy `/auth/google/callback` masih aktif).
+*   Coolify: set `ALLOWED_ORIGINS=https://<vercel-app>` dan sinkron `BOT_SERVICE_TOKEN` + `JWT_ACCESS_SECRET` di kedua service. Google Cloud Console redirect URI: `https://ressist-api.jsx.qzz.io/v1/auth/google/callback` (alias legacy `/auth/google/callback` masih aktif).
 *   Alternatif single-serve frontend di VPS: `SERVE_STATIC=1 bun run server/index.ts` (serve `dist/` + `/api/*` dalam 1 proses, lihat `frontend/nixpacks.toml`).
 
 ### Mobile — GitHub Release (sideload)
 
-*   Rilis saat ini **v0.2.2 (`versionCode 4`)**, `applicationId id.ac.itera.ressist` (sama dengan Capacitor supaya dianggap update).
-*   Signing reuse keystore Capacitor (`frontend/android/ressist-release.jks`), password di `mobile-kmp/keystore.properties` (gitignored). Build debug juga pakai key ini supaya SHA-1 cocok dengan OAuth client.
+*   Rilis saat ini **v0.2.2 (`versionCode 4`)**, `applicationId id.ac.itera.ressist`.
+*   Signing: keystore rilis di `mobile-kmp/ressist-release.jks` (gitignored, jangan hilang — tanpa key ini tidak bisa publish update dengan `applicationId` yang sama), password di `mobile-kmp/keystore.properties` (gitignored). Build debug juga pakai key ini supaya SHA-1 cocok dengan OAuth client.
 *   Checklist rilis: bump `versionCode +1` + `versionName`, 1 commit + 1 tag `vX.Y.Z`, `./gradlew :androidApp:assembleRelease`, verifikasi SHA-1 (`apksigner verify --print-certs` vs Android OAuth client di GCP), upload APK ke GitHub Release — **jangan commit binary ke `releases/`**. Detail + troubleshooting loop consent Google: `mobile-kmp/README.md`.
-*   Strategi paralel: app Capacitor (`frontend/android/`) tetap hidup sampai KMP crash-free 99% selama 14 hari (F6), baru dipensiunkan.
 
 ### Backup
 

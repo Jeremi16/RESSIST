@@ -117,11 +117,11 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, urlutil.Join(h.cfg.FrontendURL, h.cfg.FrontendSuccessPath))
 }
 
-// GoogleNative handles Android native sign-in (Capacitor).
+// GoogleNative handles Android native sign-in (mobile-kmp).
 // Body: {"server_auth_code": "..."} from GoogleSignInClient.
 // No state cookie — the code itself is single-use and bound to the
 // Android OAuth client. Returns Ressist tokens as JSON (no httpOnly cookie)
-// because WebView origin (capacitor://localhost) can't use SameSite cookies reliably.
+// because the native app can't use SameSite cookies reliably.
 func (h *Handler) GoogleNative(c *gin.Context) {
 	var body struct {
 		ServerAuthCode string `json:"server_auth_code"`
@@ -190,9 +190,9 @@ func (h *Handler) GoogleNative(c *gin.Context) {
 }
 
 // Refresh handles token refresh.
-// Web sends the httpOnly cookie; mobile (Capacitor) sends X-Refresh-Token
+// Web sends the httpOnly cookie; mobile (KMP) sends X-Refresh-Token
 // header or {"refresh_token": "..."} body since cookies are unreliable
-// on capacitor://localhost origin.
+// outside the browser.
 func (h *Handler) Refresh(c *gin.Context) {
 	rawRefreshToken, err := c.Cookie(refreshTokenCookieName)
 	isMobile := false

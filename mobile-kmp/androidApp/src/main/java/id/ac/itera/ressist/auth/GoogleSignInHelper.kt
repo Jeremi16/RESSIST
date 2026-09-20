@@ -23,8 +23,8 @@ data class SignInResult(
 )
 
 /**
- * Google sign-in via play-services-auth (same server-auth-code flow the
- * Capacitor plugin used with grantOfflineAccess=true).
+ * Google sign-in via play-services-auth (server-auth-code flow with
+ * grantOfflineAccess=true).
  *
  * NOTE: Credential Manager cannot yield a server_auth_code (ID token only),
  * while our backend endpoint POST /v1/auth/google/native requires the code.

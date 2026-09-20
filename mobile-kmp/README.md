@@ -1,8 +1,7 @@
 # Ressist Mobile KMP — Android dulu, siap iOS
 
-Pengganti app Android Capacitor (`frontend/android/`). Modul `shared`
-Kotlin Multiplatform murni + UI `androidApp` Jetpack Compose native.
-App Capacitor tetap hidup paralel sampai KMP rilis (lihat plan F6).
+Aplikasi Android native (pengganti WebView hybrid yang sudah dipensiunkan).
+Modul `shared` Kotlin Multiplatform murni + UI `androidApp` Jetpack Compose native.
 
 ## Prasyarat
 
@@ -22,13 +21,11 @@ cp local.properties.example local.properties   # sesuaikan sdk.dir + apiBaseUrl
 ```properties
 sdk.dir=C\:\\Users\\<kamu>\\AppData\\Local\\Android\\Sdk
 ressist.apiBaseUrl=http://10.0.2.2:8080   # emulator → localhost; device fisik: http://<LAN-IP>:8080
-ressist.googleWebClientId=<sama dengan VITE_GOOGLE_WEB_CLIENT_ID / backend GOOGLE_CLIENT_ID>
+ressist.googleWebClientId=<sama dengan backend GOOGLE_CLIENT_ID>
 ```
 
-> `applicationId` = `id.ac.itera.ressist` (sama dengan Capacitor) supaya Play
-> Store menganggap KMP sebagai update. Saat rilis: `versionCode` KMP harus
-> LEBIH TINGGI dari rilis Capacitor terakhir + signing key yang sama
-> (`frontend/android/ressist-release.jks`).
+> `applicationId` = `id.ac.itera.ressist`. Saat rilis: signing key
+> (`mobile-kmp/ressist-release.jks`, gitignored — jangan sampai hilang).
 
 ## Struktur
 
@@ -56,7 +53,7 @@ cd mobile-kmp
 Syarat & checklist:
 
 1. `mobile-kmp/keystore.properties` ada (gitignored) menunjuk ke
-   `../frontend/android/ressist-release.jks` (reuse keystore Capacitor).
+   `ressist-release.jks` (satu folder, relatif terhadap `mobile-kmp/`).
 2. `versionCode = 4`, `versionName = "0.2.2"` di `androidApp/build.gradle.kts`.
    Versi UI (Lainnya/Tentang) otomatis ikut via `BuildConfig.VERSION_NAME`.
    Pemilik KMP 0.2.2/code 4 lama (bila masih ada) wajib uninstall manual
@@ -65,7 +62,7 @@ Syarat & checklist:
    (`apksigner verify --print-certs ...apk`) harus cocok dengan Android OAuth
    client di Google Cloud Console. Kalau tidak cocok, Google Sign-In gagal
    dengan `exchange_failed`. Ambil SHA-1:
-   `keytool -list -v -keystore ../frontend/android/ressist-release.jks -alias ressist | grep SHA1`
+    `keytool -list -v -keystore ressist-release.jks -alias ressist | grep SHA1`
 4. Distribusi via GitHub Release (`gh release create v0.2.2 ...apk`),
    bukan commit binary ke `releases/` (di-gitignore).
 5. Build release hardcode prod `https://ressist-api.jsx.qzz.io`,
@@ -93,5 +90,21 @@ dan sesi dibersihkan. Cek berurutan:
 ## Roadmap
 
 - F0 scaffold (ini) → F1 shared API+auth → F2 login+overview+tugas →
-  F3 kalender+LMS+profil → F4 reminder lokal+polish → F5 rilis paralel →
-  F6 pensiun Capacitor (terpisah, setelah crash-free 99% 14 hari)
+  F3 kalender+LMS+profil → F4 reminder lokal+polish → F5 rilis
+
+## Warisan WebView hybrid (sudah dihapus dari `frontend/`)
+
+Perilaku yang dipindahkan/diwarisi — jangan regresi:
+
+- Flow auth: `server_auth_code` → `POST /v1/auth/google/native`,
+  refresh via header `X-Refresh-Token` (+ body `{"refresh_token"}`),
+  token keys `ressist.access_token` / `ressist.refresh_token`.
+- Scope Google: `classroom.courses.readonly`,
+  `classroom.coursework.me.readonly` (+ `openid`, `profile`, `email`).
+  Catatan: config lama juga meminta `classroom.course-work.readonly`
+  (tanda hubung) — belum diminta KMP; tambahkan bila backend butuh.
+- Endpoint web-only yang belum ada di KMP (tetap via BFF web, bukan blocker):
+  `GET/POST/DELETE /v1/api-keys*`, `POST /v1/telegram/test-reminder`,
+  `POST /v1/telegram/test-briefing`, `POST /v1/user/telegram/verify-code`.
+- Deep link `ressist://auth` tidak dibawa — KMP memakai GoogleSignIn
+  native, bukan OAuth via Custom Tabs.

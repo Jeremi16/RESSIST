@@ -33,7 +33,7 @@ android {
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
-    // Release signing reuses the Capacitor keystore (same appId = update path).
+    // Release signing uses mobile-kmp/ressist-release.jks (gitignored, never lose it).
     // Passwords live in mobile-kmp/keystore.properties (gitignored, never commit).
     // The debug build ALSO uses this key (option B): Google OAuth matches the
     // signing fingerprint, so Run-from-Android-Studio presents the same SHA-1

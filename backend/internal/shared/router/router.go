@@ -42,7 +42,7 @@ func New(
 	r.Use(middleware.JSONAccessLogger())
 	r.Use(gin.Recovery())
 	r.Use(middleware.HTTPMetrics())
-	// Custom-scheme origins (capacitor://, ionic://, ...) cannot go into
+	// Custom-scheme origins (e.g. native WebView) cannot go into
 	// AllowOrigins (gin-contrib/cors panics) — match them via AllowOriginFunc.
 	customOriginSet := make(map[string]struct{}, len(cfg.AllowedCustomOrigins))
 	for _, o := range cfg.AllowedCustomOrigins {

@@ -69,7 +69,7 @@ api/index.ts          # entry Vercel Functions (Node, tanpa API Bun.*)
   rewrite `/api/*` → Functions, redirect 301 ID→EN, SPA fallback `index.html`.
 - Env di Vercel: `VITE_APP_URL`, `VITE_API_URL=https://ressist-api.nodryx.com`,
   `BACKEND_API_URL` (sama), `SESSION_SECRET`, `COOKIE_DOMAIN` (bila custom domain).
-- Go di Coolify: `ALLOWED_ORIGINS=https://<vercel-app>,capacitor://localhost` (+ `SESSION_SECRET` sinkron).
+- Go di Coolify: `ALLOWED_ORIGINS=https://<vercel-app>` (+ `SESSION_SECRET` sinkron).
 
 ## Single-serve (Nixpacks/Coolify, opsional)
 
