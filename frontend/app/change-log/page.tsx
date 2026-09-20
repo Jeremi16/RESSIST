@@ -17,7 +17,7 @@ import { docsSidebar } from "@/components/docs-sidebar";
 const APK_VERSION = "v0.3.0";
 const APK_NAME = "ressist-0.3.0-code6-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
-const APK_SIZE = "3.42 MB"; // TODO(rilis): sesuaikan dengan ukuran APK v0.3.0 dari CI.
+const APK_SIZE = "3.44 MB";
 const APK_RELEASED = "20 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 
