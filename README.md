@@ -13,7 +13,7 @@ Monorepo 4 service yang bisa di-deploy terpisah + tooling ops:
 | **frontend** | Vite 6 + React 19 + Hono BFF + Bun | `frontend/` | Vercel |
 | **backend (api)** | Go 1.25 + Gin + GORM + Postgres 16 | `backend/` | Homeserver/Coolify `https://ressist-api.jsx.qzz.io` |
 | **bot** | Go 1.25 + tgbotapi + cron | `bot/` | Homeserver (single replica, long-polling) |
-| **mobile-kmp** | Kotlin Multiplatform + Jetpack Compose | `mobile-kmp/` | Sideload APK via GitHub Release (saat ini v0.2.2) |
+| **mobile-kmp** | Kotlin Multiplatform + Jetpack Compose | `mobile-kmp/` | Sideload APK via GitHub Release (saat ini v0.2.3) |
 
 Link cepat: [Download App](frontend/app/app/) · [Changelog](frontend/app/change-log/) · [API docs](backend/API_DOCUMENTATION.md) · [Mobile](mobile-kmp/README.md) · [Backup](ops/backup/README.md)
 
@@ -83,7 +83,7 @@ ressist/
 │   └── internal/{config,client,telegram,scheduler}/
 ├── mobile-kmp/        # Android native KMP (lihat mobile-kmp/README.md)
 │   ├── shared/        # KMP murni (commonMain/androidMain/iosMain)
-│   ├── androidApp/    # Compose UI (applicationId id.ac.itera.ressist, v0.2.2/code 4)
+│   ├── androidApp/    # Compose UI (applicationId id.ac.itera.ressist, v0.2.3/code 5)
 │   └── local.properties.example
 ├── ops/backup/        # pg_dump → Neon backup (lihat ops/backup/README.md)
 ├── .github/workflows/ # docker.yml (api+bot → GHCR), mobile-kmp.yml (debug APK)
@@ -207,7 +207,7 @@ Aturan penting:
 
 ### Mobile — GitHub Release (sideload)
 
-*   Rilis saat ini **v0.2.2 (`versionCode 4`)**, `applicationId id.ac.itera.ressist`.
+*   Rilis saat ini **v0.2.3 (`versionCode 5`)**, `applicationId id.ac.itera.ressist`.
 *   Signing: keystore rilis di `mobile-kmp/ressist-release.jks` (gitignored, jangan hilang — tanpa key ini tidak bisa publish update dengan `applicationId` yang sama), password di `mobile-kmp/keystore.properties` (gitignored). Build debug juga pakai key ini supaya SHA-1 cocok dengan OAuth client.
 *   Checklist rilis: bump `versionCode +1` + `versionName`, 1 commit + 1 tag `vX.Y.Z`, `./gradlew :androidApp:assembleRelease`, verifikasi SHA-1 (`apksigner verify --print-certs` vs Android OAuth client di GCP), upload APK ke GitHub Release — **jangan commit binary ke `releases/`**. Detail + troubleshooting loop consent Google: `mobile-kmp/README.md`.
 

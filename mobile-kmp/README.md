@@ -54,7 +54,7 @@ git tag v0.2.3; git push origin main --tags
 
 Nama file wajib `ressist-X.Y.Z-codeN-release.apk` (N = versionCode) —
 update-checker HP membaca versionCode dari nama file ini (GitHub API
-tidak punya field versionCode). Contoh: `ressist-0.2.2-code4-release.apk`.
+tidak punya field versionCode). Contoh: `ressist-0.2.3-code5-release.apk`.
 Cek manual lokal tetap bisa: `./gradlew :androidApp:assembleRelease`
 (APK signed → `androidApp/build/outputs/apk/release/`).
 
@@ -62,9 +62,9 @@ Syarat & checklist:
 
 1. `mobile-kmp/keystore.properties` ada (gitignored) menunjuk ke
    `ressist-release.jks` (satu folder, relatif terhadap `mobile-kmp/`).
-2. `versionCode = 4`, `versionName = "0.2.2"` di `androidApp/build.gradle.kts`.
+2. `versionCode = 5`, `versionName = "0.2.3"` di `androidApp/build.gradle.kts`.
    Versi UI (Lainnya/Tentang) otomatis ikut via `BuildConfig.VERSION_NAME`.
-   Pemilik KMP 0.2.2/code 4 lama (bila masih ada) wajib uninstall manual
+   Pemilik KMP 0.2.3/code 5 lama (bila masih ada) wajib uninstall manual
    karena Android menolak code yang sama/turun.
 3. **SHA-1 check (sekali saja):** sidik jari sertifikat rilis
    (`apksigner verify --print-certs ...apk`) harus cocok dengan Android OAuth
