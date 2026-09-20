@@ -7,7 +7,7 @@ plugins {
 import java.util.Properties
 
 android {
-    // v0.3.0 rilis sideload: versionCode 6 (skema +1 dari v0.2.3 code 5).
+    // v0.3.1 rilis sideload: versionCode 7 (skema +1 dari v0.3.0 code 6).
     // Konsekuensi: pemilik KMP 0.2.3/code 5 lama (bila masih ada) wajib
     // uninstall manual karena Android menolak code yang sama/turun.
     namespace = "id.ac.itera.ressist"
@@ -17,8 +17,8 @@ android {
         applicationId = "id.ac.itera.ressist"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.3.0"
+        versionCode = 7
+        versionName = "0.3.1"
 
         // NOTE: project.findProperty does NOT read local.properties, so load it
         // manually. Order: -P flag > local.properties > fallback.

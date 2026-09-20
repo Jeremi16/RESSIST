@@ -123,9 +123,11 @@ export function EventPreview({ events, error }: EventPreviewProps) {
 
                     <div className="px-3 py-1.5 sm:p-0 bg-slate-50 sm:bg-transparent rounded-xl border border-slate-100 sm:border-none">
                       <span className="text-sm sm:text-base font-black text-slate-900 whitespace-nowrap">
-                        {event.timeRemaining === "besok"
+                        {event.timeRemaining.toLowerCase() === "besok"
                           ? "Besok"
-                          : event.timeRemaining}
+                          : event.timeRemaining.toLowerCase() === "hari ini"
+                            ? "Hari ini"
+                            : event.timeRemaining}
                       </span>
                     </div>
                   </div>

@@ -374,7 +374,8 @@ func buildBriefing(name string, items []client.Assignment) string {
 }
 
 func buildReminder(title, course string, due time.Time) string {
-	hours := int(time.Until(due).Hours())
+	d := time.Until(due)
+	hours := int(d.Hours())
 	if hours < 0 {
 		hours = 0
 	}
@@ -386,7 +387,29 @@ func buildReminder(title, course string, due time.Time) string {
 		emoji = "⚠️"
 	}
 	return fmt.Sprintf(
-		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s WIB\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
-		emoji, course, title, due.In(time.FixedZone("WIB", 7*3600)).Format("Monday, 2 Jan 2006 15:04 WIB"), hours,
+		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s WIB\n⏳ *Sisa Waktu:* %s\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
+		emoji, course, title, due.In(time.FixedZone("WIB", 7*3600)).Format("Monday, 2 Jan 2006 15:04 WIB"), reminderDayLabel(due, d, hours),
 	)
+}
+
+// reminderDayLabel maps reminder countdowns: midnight WIB in the 24-48h
+// bucket -> "Hari ini", otherwise "besok" only when diff <=24h and the WIB
+// calendar day differs. Outside those cases it falls back to "N jam".
+func reminderDayLabel(due time.Time, d time.Duration, hours int) string {
+	wib := time.FixedZone("WIB", 7*3600)
+	dl := due.In(wib)
+	nw := time.Now().In(wib)
+	bedaHari := dl.YearDay() != nw.YearDay() || dl.Year() != nw.Year()
+	isMidnight := dl.Hour() == 0 && dl.Minute() == 0
+	switch {
+	case hours >= 24 && hours < 48 && isMidnight:
+		return "Hari ini"
+	case d <= 24*time.Hour && d > 0 && bedaHari && !isMidnight:
+		return "besok"
+	default:
+		if hours < 0 {
+			hours = 0
+		}
+		return fmt.Sprintf("%d jam", hours)
+	}
 }

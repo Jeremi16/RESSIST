@@ -562,6 +562,9 @@ func formatTimeRemaining(deadline time.Time) string {
 		if hours > 0 {
 			return strings.TrimSpace(daysToString(days) + " " + hoursToString(hours))
 		}
+		if days == 1 {
+			return dayLabelForTomorrow(deadline, now, diff)
+		}
 		return daysToString(days)
 	}
 	if hours > 0 {
@@ -574,6 +577,23 @@ func formatTimeRemaining(deadline time.Time) string {
 		return minutesToString(minutes)
 	}
 	return "kurang dari 1 menit"
+}
+
+// wib is Asia/Jakarta (UTC+7, no DST) for calendar-day comparisons.
+var wib = time.FixedZone("WIB", 7*3600)
+
+// dayLabelForTomorrow maps the "1 hari" bucket: midnight WIB -> "Hari ini",
+// otherwise "besok" only when diff <=24h and the WIB calendar day differs.
+func dayLabelForTomorrow(deadline, now time.Time, diff time.Duration) string {
+	dl := deadline.In(wib)
+	nw := now.In(wib)
+	if dl.Hour() == 0 && dl.Minute() == 0 {
+		return "Hari ini"
+	}
+	if diff <= 24*time.Hour && (dl.YearDay() != nw.YearDay() || dl.Year() != nw.Year()) {
+		return "besok"
+	}
+	return daysToString(1)
 }
 
 func daysToString(days int) string {

@@ -99,19 +99,21 @@ func (b *Bot) SendAssignmentNotification(userID string, assignmentTitle string, 
 		urgencyEmoji = "📌"
 	}
 
+	sisa := reminderDayLabel(dueDate, timeUntilDue, hours)
+
 	message := fmt.Sprintf(
 		"%s *Pengingat Tugas*\n\n"+
 			"📚 *Kelas:* %s\n"+
 			"📝 *Tugas:* %s\n"+
 			"⏰ *Deadline:* %s WIB\n"+
-			"⏳ *Sisa Waktu:* %d jam\n\n"+
+			"⏳ *Sisa Waktu:* %s\n\n"+
 			"Ayo segera dikerjakan! 💪\n\n"+
 			"🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
 		urgencyEmoji,
 		courseName,
 		assignmentTitle,
 		dueDate.Format("Monday, 2 Jan 2006 15:04 WIB"),
-		hours,
+		sisa,
 	)
 
 	return b.SendMessage(chatID, message)
@@ -134,6 +136,28 @@ func isClassCodeSelected(classCode string, userClassCodesJSON *string) bool {
 		}
 	}
 	return false
+}
+
+// reminderDayLabel maps reminder countdowns: midnight WIB in the 24-48h
+// bucket -> "Hari ini", otherwise "besok" only when diff <=24h and the WIB
+// calendar day differs. Outside those cases it falls back to "N jam".
+func reminderDayLabel(due time.Time, d time.Duration, hours int) string {
+	wib := time.FixedZone("WIB", 7*3600)
+	dl := due.In(wib)
+	nw := time.Now().In(wib)
+	bedaHari := dl.YearDay() != nw.YearDay() || dl.Year() != nw.Year()
+	isMidnight := dl.Hour() == 0 && dl.Minute() == 0
+	switch {
+	case hours >= 24 && hours < 48 && isMidnight:
+		return "Hari ini"
+	case d <= 24*time.Hour && d > 0 && bedaHari && !isMidnight:
+		return "besok"
+	default:
+		if hours < 0 {
+			hours = 0
+		}
+		return fmt.Sprintf("%d jam", hours)
+	}
 }
 
 // Ensure log is used to avoid unused import if needed.

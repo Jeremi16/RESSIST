@@ -2,6 +2,8 @@ package id.ac.itera.ressist.domain.time
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration.Companion.hours
 
 /** Staleness threshold mirrors the web Dashboard warning (>6h since sync). */
@@ -45,8 +47,28 @@ fun formatTimeRemainingId(deadline: Instant, now: Instant = Clock.System.now()):
         diff.inWholeMinutes < 1 -> "Segera"
         diff.inWholeMinutes < 60 -> "${diff.inWholeMinutes} mnt lagi"
         diff.inWholeHours < 24 -> "${diff.inWholeHours} jam lagi"
+        diff.inWholeDays == 1L -> dayLabelForTomorrow(deadline, now, diff)
         else -> "${diff.inWholeDays} hari lagi"
     }
+}
+
+/**
+ * Label untuk bucket "1 hari": deadline 00.00 WIB jadi "Hari ini",
+ * selain itu jadi "besok" hanya bila selisih <=24 jam dan beda hari WIB.
+ */
+private fun dayLabelForTomorrow(
+    deadline: Instant,
+    now: Instant,
+    diff: kotlin.time.Duration,
+): String {
+    runCatching {
+        val wib = TimeZone.of("Asia/Jakarta")
+        val dl = deadline.toLocalDateTime(wib)
+        val r = now.toLocalDateTime(wib)
+        if (dl.hour == 0 && dl.minute == 0) return "Hari ini"
+        if (diff <= 24.hours && dl.date != r.date) return "besok"
+    }
+    return "1 hari lagi"
 }
 
 /**

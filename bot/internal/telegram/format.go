@@ -120,9 +120,26 @@ func timeRemaining(due time.Time) string {
 	days := h / 24
 	rem := h % 24
 	if rem == 0 {
+		if days == 1 {
+			return dayLabelForTomorrow(due, d)
+		}
 		return fmt.Sprintf("%d hari", days)
 	}
 	return fmt.Sprintf("%d hari %d jam", days, rem)
+}
+
+// dayLabelForTomorrow maps the "1 hari" bucket: midnight WIB -> "Hari ini",
+// otherwise "besok" only when diff <=24h and the WIB calendar day differs.
+func dayLabelForTomorrow(due time.Time, d time.Duration) string {
+	dl := due.In(wib)
+	nw := time.Now().In(wib)
+	if dl.Hour() == 0 && dl.Minute() == 0 {
+		return "Hari ini"
+	}
+	if d <= 24*time.Hour && (dl.YearDay() != nw.YearDay() || dl.Year() != nw.Year()) {
+		return "besok"
+	}
+	return "1 hari"
 }
 
 func pending(a []client.Assignment) []client.Assignment {
@@ -240,7 +257,8 @@ func filterDue(items []client.Assignment, from, to time.Time) []client.Assignmen
 }
 
 func formatReminder(title, course string, due time.Time) string {
-	hours := int(time.Until(due).Hours())
+	d := time.Until(due)
+	hours := int(d.Hours())
 	if hours < 0 {
 		hours = 0
 	}
@@ -251,9 +269,23 @@ func formatReminder(title, course string, due time.Time) string {
 	case hours <= 12:
 		emoji = "⚠️"
 	}
+	// Petakan sisa ~24 jam ke "besok"/"Hari ini" (aturan yang sama).
+	var sisa string
+	dl := due.In(wib)
+	nw := time.Now().In(wib)
+	isMidnight := dl.Hour() == 0 && dl.Minute() == 0
+	bedaHari := dl.YearDay() != nw.YearDay() || dl.Year() != nw.Year()
+	switch {
+	case hours >= 24 && hours < 48 && isMidnight:
+		sisa = "Hari ini"
+	case d <= 24*time.Hour && d > 0 && bedaHari && !isMidnight:
+		sisa = "besok"
+	default:
+		sisa = fmt.Sprintf("%d jam", hours)
+	}
 	return fmt.Sprintf(
-		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
-		emoji, escape(course), escape(title), due.In(wib).Format("Monday, 2 Jan 2006 15:04"), hours,
+		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s\n⏳ *Sisa Waktu:* %s\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
+		emoji, escape(course), escape(title), due.In(wib).Format("Monday, 2 Jan 2006 15:04"), sisa,
 	)
 }
 

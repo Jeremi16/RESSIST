@@ -13,6 +13,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlin.time.Duration.Companion.hours
 
 /**
  * Local deadline reminders (no FCM). Alarms are exact when the OS grants
@@ -101,7 +102,10 @@ class ReminderScheduler(
                         at = instant,
                         assignmentId = task.id,
                         title = "Deadline: ${task.title}",
-                        text = "${task.course ?: "Tugas"} • ${formatCountdown(task.deadline, now)}",
+                        // Hitung dari waktu bunyi (fire instant), bukan waktu
+                        // penjadwalan, agar label "besok"/"Hari ini" benar
+                        // saat notifikasi tampil.
+                        text = "${task.course ?: "Tugas"} • ${formatCountdown(task.deadline, instant)}",
                     )
                 }
             }
@@ -142,12 +146,23 @@ class ReminderScheduler(
         )
     }
 
-    private fun formatCountdown(deadline: Instant, now: Instant): String {
-        val hours = (deadline - now).inWholeHours
-        return when {
-            hours < 1 -> "kurang dari 1 jam lagi"
-            hours < 24 -> "$hours jam lagi"
-            else -> "${hours / 24} hari lagi"
+    private fun formatCountdown(deadline: Instant, ref: Instant): String {
+        val diff = deadline - ref
+        val hours = diff.inWholeHours
+        if (hours < 1) return "kurang dari 1 jam lagi"
+        if (hours < 24) return "$hours jam lagi"
+        val days = hours / 24
+        if (days == 1L) {
+            runCatching {
+                val dl = java.time.Instant.ofEpochMilli(deadline.toEpochMilliseconds()).atZone(JAKARTA)
+                val r = java.time.Instant.ofEpochMilli(ref.toEpochMilliseconds()).atZone(JAKARTA)
+                // Deadline 00.00 WIB tidak boleh jadi "besok": tampilkan "Hari ini".
+                if (dl.hour == 0 && dl.minute == 0) return "Hari ini"
+                // "1 hari" jadi "besok" hanya bila selisih <=24 jam dan beda hari WIB.
+                if (diff <= 24.hours && dl.toLocalDate() != r.toLocalDate()) return "besok"
+            }
+            return "1 hari lagi"
         }
+        return "$days hari lagi"
     }
 }

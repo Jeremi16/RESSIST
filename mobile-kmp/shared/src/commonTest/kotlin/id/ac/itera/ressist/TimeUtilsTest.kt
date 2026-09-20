@@ -44,6 +44,24 @@ class TimeUtilsTest {
     }
 
     @Test
+    fun formatRemaining_besokWhenWithin24hAndDifferentDay() {
+        // now = 2026-09-17T12:00Z = 19:00 WIB; +24h tepat = 19:00 WIB besoknya.
+        assertEquals("besok", formatTimeRemainingId(Instant.parse("2026-09-18T12:00:00Z"), now))
+    }
+
+    @Test
+    fun formatRemaining_hariIniWhenMidnightWib() {
+        // 2026-09-18T17:00Z = 00:00 WIB 19 Sep; diff 29h (bucket 1 hari) -> "Hari ini".
+        assertEquals("Hari ini", formatTimeRemainingId(Instant.parse("2026-09-18T17:00:00Z"), now))
+    }
+
+    @Test
+    fun formatRemaining_staysOneDayWhenOver24h() {
+        // diff 30h, beda hari, bukan 00.00 -> tetap "1 hari lagi".
+        assertEquals("1 hari lagi", formatTimeRemainingId(Instant.parse("2026-09-18T18:00:00Z"), now))
+    }
+
+    @Test
     fun reminderInstants_deadlineMinusHours() {
         val deadline = Instant.parse("2026-09-20T12:00:00Z")
         assertEquals(

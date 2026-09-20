@@ -104,7 +104,8 @@ func isFilterError(err error) bool {
 }
 
 func buildTestReminderMessage(title, course string, due time.Time) string {
-	hours := int(time.Until(due).Hours())
+	d := time.Until(due)
+	hours := int(d.Hours())
 	if hours < 0 {
 		hours = 0
 	}
@@ -116,8 +117,8 @@ func buildTestReminderMessage(title, course string, due time.Time) string {
 		emoji = "⚠️"
 	}
 	return fmt.Sprintf(
-		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s WIB\n⏳ *Sisa Waktu:* %d jam\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
-		emoji, course, title, due.Format("Monday, 2 Jan 2006 15:04 WIB"), hours,
+		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s WIB\n⏳ *Sisa Waktu:* %s\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
+		emoji, course, title, due.Format("Monday, 2 Jan 2006 15:04 WIB"), reminderDayLabel(due, d, hours),
 	)
 }
 
