@@ -68,8 +68,8 @@ const SIDEBAR = docsSidebar([
 ]);
 
 const CHANGELOG = [
-  "Update mulus via PackageInstaller: sistem mengenali update resmi, tidak scan ulang tiap kali.",
-  "Build debug dipisah (…ressist.dev) agar tidak mencemari sertifikat rilis.",
+  "Sesi anti-logout: tetap login saat sinyal tidak stabil atau server sibuk.",
+  "Sinkron latar belakang tidak lagi memutus sesi.",
   "Halaman download otomatis ikut rilis GitHub terbaru + panduan Play Protect.",
 ];
 

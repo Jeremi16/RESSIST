@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.3.2";
-const APK_NAME = "ressist-0.3.2-code8-release.apk";
+const APK_VERSION = "v0.3.3";
+const APK_NAME = "ressist-0.3.3-code9-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.44 MB";
 const APK_RELEASED = "21 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V032_VERSION = "v0.3.2";
+const V032_NAME = "ressist-0.3.2-code8-release.apk";
+const V032_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V032_VERSION}/${V032_NAME}`;
+const V032_SIZE = "3.44 MB";
+const V032_RELEASED = "21 September 2026";
 
 const V031_VERSION = "v0.3.1";
 const V031_NAME = "ressist-0.3.1-code7-release.apk";
@@ -73,19 +79,35 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-3-2",
+    id: "v0-3-3",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Sesi Anti-Logout",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Perbaikan sesi login di HP, web, dan backend sekaligus. Update langsung timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Sesi tidak lagi hilang saat sinyal tidak stabil atau server sibuk sesaat.",
+      "Login tetap terjaga saat aplikasi sinkron di latar belakang.",
+      "Web: halaman tidak lagi tiba-tiba kembali ke login setelah 3 hari pemakaian aktif.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-3-2",
+    version: V032_VERSION,
+    fileName: V032_NAME,
+    filePath: V032_PATH,
+    size: V032_SIZE,
+    released: V032_RELEASED,
     title: "Update Mulus & Install Lebih Tenang",
-    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
     highlights: [
       "Update via PackageInstaller session API: sistem mengenali sertifikat yang sama sebagai update resmi.",
       "Build debug dipisah (…ressist.dev, ala Mihon) agar tidak mencemari sertifikat rilis.",
       "Halaman download otomatis ikut rilis GitHub terbaru + panduan Play Protect.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      `Ringan — hanya sekitar ${V032_SIZE}.`,
     ],
   },
   {
@@ -309,9 +331,9 @@ export default function ChangeLog() {
             {LATEST.title}
           </h2>
           <p className="text-white/60 text-sm leading-relaxed max-w-2xl">
-            Update kini lewat PackageInstaller resmi sehingga dianggap update
-            yang sah, build debug dipisah agar sertifikat rilis tetap bersih,
-            dan halaman download selalu ikut rilis terbaru.
+            Sesi tidak lagi hilang saat sinyal tidak stabil atau server sibuk,
+            login tetap terjaga saat sinkron latar belakang, dan web tidak
+            lagi tiba-tiba kembali ke login setelah pemakaian aktif.
           </p>
         </motion.div>
 
