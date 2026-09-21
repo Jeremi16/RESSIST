@@ -31,11 +31,30 @@ var (
 	ErrUserIdentityConflict  = errors.New("google account conflicts with existing user")
 )
 
-// reuseGraceWindow adalah toleransi pemakaian ulang refresh token yang baru
-// saja dirotasi. BFF (khususnya di serverless seperti Vercel) menembak
-// beberapa request paralel dengan cookie lama yang sama, sehingga request
-// yang kalah race TIDAK boleh dianggap pencurian token.
-const reuseGraceWindow = 120 * time.Second
+// reuseGrace adalah toleransi pemakaian ulang refresh token yang baru
+// saja dirotasi. BFF (khususnya di serverless seperti Vercel) dan mobile
+// (UI + SyncWorker) menembak beberapa request paralel dengan token lama
+// yang sama, sehingga request yang kalah race TIDAK boleh dianggap
+// pencurian token. Configurable via REFRESH_REUSE_GRACE_SECONDS (default 300).
+func (s *Service) reuseGrace() time.Duration {
+	if s.cfg != nil && s.cfg.RefreshReuseGraceSeconds > 0 {
+		return time.Duration(s.cfg.RefreshReuseGraceSeconds) * time.Second
+	}
+	return 300 * time.Second
+}
+
+// RefreshTTLForClient exposes the sliding TTL for handlers so cookie maxAge
+// never diverges from the DB expiry.
+func (s *Service) RefreshTTLForClient(client string) time.Duration {
+	return s.refreshTTLForClient(client)
+}
+
+func normalizeClient(client string) string {
+	if client == "mobile" {
+		return "mobile"
+	}
+	return "web"
+}
 
 type GoogleUserInfo struct {
 	Sub           string `json:"sub"`
@@ -303,7 +322,62 @@ func (s *Service) ValidateRefreshToken(ctx context.Context, rawToken string) boo
 	return true
 }
 
+// RotateResult carries the outcome of a refresh-token rotation.
+// NewRefresh is always non-empty on success: on a normal rotation it is the
+// fresh token; on a grace-hit (lost rotation race) it is a compensating
+// fresh token minted for the caller. Raw tokens are stored hashed, so the
+// winner's token cannot be recovered — minting a new one is the only way to
+// hand every racer a valid cookie/body token. The tradeoff (an attacker
+// replaying a stolen token inside the short grace window also gets a fresh
+// token) already existed — grace-hits previously got a valid access token.
+// Reuse outside the grace window still revokes and returns ErrRefreshTokenReuse.
+type RotateResult struct {
+	User       *models.User
+	NewRefresh string
+	Client     string
+	// Rotated is true for a normal single-use rotation, false when the
+	// presented token was already revoked inside the grace window and a
+	// compensating token was minted instead.
+	Rotated bool
+}
+
 func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userAgent string, ipAddress string) (*models.User, string, error) {
+	res, err := s.rotate(ctx, rawToken, userAgent, ipAddress)
+	if err != nil {
+		return nil, "", err
+	}
+	return res.User, res.NewRefresh, nil
+}
+
+// RotateRefreshTokenEx is the preferred entry point: it also reports the
+// token client (web/mobile, taken from the DB record — never inferred from
+// cookies/headers) and whether a normal rotation happened.
+func (s *Service) RotateRefreshTokenEx(ctx context.Context, rawToken string, userAgent string, ipAddress string) (*RotateResult, error) {
+	return s.rotate(ctx, rawToken, userAgent, ipAddress)
+}
+
+// mintFreshToken creates a new valid refresh-token record for user+client.
+// Used for normal rotations and for compensating grace-hit racers.
+func (s *Service) mintFreshToken(ctx context.Context, user *models.User, client string, userAgent string, ipAddress string, now time.Time) (string, error) {
+	raw, err := generateSecureToken(48)
+	if err != nil {
+		return "", err
+	}
+	record := models.RefreshToken{
+		UserID:    user.ID,
+		TokenHash: hashToken(raw),
+		ExpiresAt: now.Add(s.refreshTTLForClient(client)),
+		Client:    client,
+		UserAgent: userAgent,
+		IPAddress: ipAddress,
+	}
+	if err := s.db.WithContext(ctx).Create(&record).Error; err != nil {
+		return "", err
+	}
+	return raw, nil
+}
+
+func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string, ipAddress string) (*RotateResult, error) {
 	hashed := hashToken(rawToken)
 	now := time.Now().UTC()
 	var existing models.RefreshToken
@@ -312,26 +386,32 @@ func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userA
 		First(&existing).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, "", ErrInvalidRefreshToken
+			return nil, ErrInvalidRefreshToken
 		}
-		return nil, "", err
+		return nil, err
 	}
 	if existing.RevokedAt != nil {
-		if now.Sub(*existing.RevokedAt) < reuseGraceWindow {
+		if now.Sub(*existing.RevokedAt) < s.reuseGrace() {
 			var user models.User
 			if err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error; err == nil {
-				return &user, "", nil
+				client := normalizeClient(existing.Client)
+				if comp, cerr := s.mintFreshToken(ctx, &user, client, userAgent, ipAddress, now); cerr == nil {
+					return &RotateResult{User: &user, NewRefresh: comp, Client: client, Rotated: false}, nil
+				}
+				// DB failure while minting: fall back to access-only success
+				// so a transient DB hiccup does not log the user out.
+				return &RotateResult{User: &user, Client: client}, nil
 			}
 		}
 		_ = s.RevokeAllUserRefreshTokens(ctx, existing.UserID)
-		return nil, "", ErrRefreshTokenReuse
+		return nil, ErrRefreshTokenReuse
 	}
 	if existing.ExpiresAt.Before(now) {
 		_ = s.db.WithContext(ctx).
 			Model(&models.RefreshToken{}).
 			Where("id = ? AND revoked_at IS NULL", existing.ID).
 			Update("revoked_at", &now).Error
-		return nil, "", ErrExpiredRefreshToken
+		return nil, ErrExpiredRefreshToken
 	}
 	// Absolute max lifetime: even with sliding rotation, force re-login.
 	if maxDays := s.cfg.RefreshTokenAbsoluteMaxDays; maxDays > 0 {
@@ -340,21 +420,18 @@ func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userA
 				Model(&models.RefreshToken{}).
 				Where("id = ? AND revoked_at IS NULL", existing.ID).
 				Update("revoked_at", &now).Error
-			return nil, "", ErrExpiredRefreshToken
+			return nil, ErrExpiredRefreshToken
 		}
 	}
 	var user models.User
 	if err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error; err != nil {
-		return nil, "", err
+		return nil, err
 	}
 	newRaw, err := generateSecureToken(48)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
-	client := existing.Client
-	if client != "mobile" {
-		client = "web"
-	}
+	client := normalizeClient(existing.Client)
 	newRecord := models.RefreshToken{
 		UserID:    user.ID,
 		TokenHash: hashToken(newRaw),
@@ -382,22 +459,26 @@ func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userA
 		if errors.Is(err, ErrRefreshTokenReuse) {
 			// Kalah race rotasi concurrent (dua request baca token yang sama
 			// sebagai valid, satu menang commit). Perlakukan sebagai benign:
-			// request tetap sukses, cookie browser akan diperbarui oleh
-			// response pemenang yang membawa token baru. RevokeAll HANYA
-			// untuk pemakaian ulang di luar grace window (indikasi pencurian).
+			// mint token kompensasi agar penelepon juga dapat token valid.
+			// RevokeAll HANYA untuk pemakaian ulang di luar grace window
+			// (indikasi pencurian).
 			var current models.RefreshToken
 			if rerr := s.db.WithContext(ctx).Where("token_hash = ?", hashed).First(&current).Error; rerr == nil &&
-				current.RevokedAt != nil && now.Sub(*current.RevokedAt) < reuseGraceWindow {
-				var user models.User
-				if uerr := s.db.WithContext(ctx).Where("id = ?", current.UserID).First(&user).Error; uerr == nil {
-					return &user, "", nil
+				current.RevokedAt != nil && now.Sub(*current.RevokedAt) < s.reuseGrace() {
+				var graceUser models.User
+				if uerr := s.db.WithContext(ctx).Where("id = ?", current.UserID).First(&graceUser).Error; uerr == nil {
+					graceClient := normalizeClient(current.Client)
+					if comp, cerr := s.mintFreshToken(ctx, &graceUser, graceClient, userAgent, ipAddress, now); cerr == nil {
+						return &RotateResult{User: &graceUser, NewRefresh: comp, Client: graceClient, Rotated: false}, nil
+					}
+					return &RotateResult{User: &graceUser, Client: graceClient}, nil
 				}
 			}
 			_ = s.RevokeAllUserRefreshTokens(ctx, user.ID)
 		}
-		return nil, "", err
+		return nil, err
 	}
-	return &user, newRaw, nil
+	return &RotateResult{User: &user, NewRefresh: newRaw, Client: client, Rotated: true}, nil
 }
 
 func (s *Service) RevokeAllUserRefreshTokens(ctx context.Context, userID string) error {

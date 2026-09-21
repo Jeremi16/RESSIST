@@ -195,7 +195,6 @@ func (h *Handler) GoogleNative(c *gin.Context) {
 // outside the browser.
 func (h *Handler) Refresh(c *gin.Context) {
 	rawRefreshToken, err := c.Cookie(refreshTokenCookieName)
-	isMobile := false
 	if err != nil || rawRefreshToken == "" {
 		rawRefreshToken = strings.TrimSpace(c.GetHeader("X-Refresh-Token"))
 	}
@@ -206,25 +205,29 @@ func (h *Handler) Refresh(c *gin.Context) {
 		_ = c.ShouldBindJSON(&body)
 		rawRefreshToken = strings.TrimSpace(body.RefreshToken)
 	}
-	if _, cookieErr := c.Cookie(refreshTokenCookieName); cookieErr != nil && rawRefreshToken != "" {
-		// No cookie but token supplied via header/body => native mobile client.
-		isMobile = true
-	}
 	if rawRefreshToken == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing refresh token"})
 		return
 	}
 
-	user, newRefresh, err := h.auth.RotateRefreshToken(
+	result, err := h.auth.RotateRefreshTokenEx(
 		c.Request.Context(),
 		rawRefreshToken,
 		c.GetHeader("User-Agent"),
 		c.ClientIP(),
 	)
 	if err != nil {
+		log.Printf("[auth] refresh failed err=%s", h.mapRefreshError(err))
 		c.JSON(http.StatusUnauthorized, gin.H{"error": h.mapRefreshError(err)})
 		return
 	}
+	user := result.User
+	newRefresh := result.NewRefresh
+	if !result.Rotated {
+		log.Printf("[auth] refresh grace-hit user=%s client=%s", user.ID, result.Client)
+	}
+	// Client diambil dari record DB — tidak ditebak dari ada/tidaknya cookie.
+	isMobile := result.Client == "mobile"
 
 	accessToken, expiresAt, err := h.auth.GenerateAccessToken(*user)
 	if err != nil {
@@ -233,11 +236,16 @@ func (h *Handler) Refresh(c *gin.Context) {
 	}
 
 	if newRefresh != "" {
-		ttlHours := h.cfg.RefreshTokenTTLHour
-		if isMobile && h.cfg.MobileRefreshTokenTTLHour > 0 {
-			ttlHours = h.cfg.MobileRefreshTokenTTLHour
+		maxAge := int(h.auth.RefreshTTLForClient(result.Client).Seconds())
+		if maxAge <= 0 {
+			maxAge = 72 * 3600
 		}
-		h.setCookie(c, refreshTokenCookieName, newRefresh, ttlHours*3600)
+		h.setCookie(c, refreshTokenCookieName, newRefresh, maxAge)
+	}
+	if result.Rotated {
+		c.Header("X-Refresh-Rotated", "true")
+	} else {
+		c.Header("X-Refresh-Rotated", "false")
 	}
 	resp := gin.H{
 		"access_token": accessToken,
@@ -474,8 +482,18 @@ func (h *Handler) createAndSetRefreshToken(c *gin.Context, userID string) error 
 		return fmt.Errorf("refresh_create_failed")
 	}
 
-	h.setCookie(c, refreshTokenCookieName, rawRefreshToken, h.cfg.RefreshTokenTTLHour*3600)
+	h.setCookie(c, refreshTokenCookieName, rawRefreshToken, h.webRefreshMaxAge())
 	return nil
+}
+
+// webRefreshMaxAge returns the web cookie maxAge derived from the same TTL
+// the service uses for DB expiry, so cookie and record expire together.
+func (h *Handler) webRefreshMaxAge() int {
+	maxAge := int(h.auth.RefreshTTLForClient("web").Seconds())
+	if maxAge <= 0 {
+		maxAge = 72 * 3600
+	}
+	return maxAge
 }
 
 func (h *Handler) mapRefreshError(err error) string {

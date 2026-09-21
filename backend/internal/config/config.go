@@ -39,6 +39,10 @@ type Config struct {
 	// RefreshTokenAbsoluteMaxDays caps sliding refresh forever.
 	// Even with sliding rotation, a token chain older than this forces re-login.
 	RefreshTokenAbsoluteMaxDays int
+	// RefreshReuseGraceSeconds adalah toleransi pemakaian ulang refresh token
+	// yang baru saja dirotasi (race antar BFF instance / tab paralel).
+	// Default 300s. Naik dari 120s agar serverless multi-instance aman.
+	RefreshReuseGraceSeconds int
 
 	FrontendURL         string
 	FrontendSuccessPath string
@@ -103,6 +107,7 @@ func Load() (*Config, error) {
 		RefreshTokenTTLHour:  getEnvAsInt("REFRESH_TOKEN_TTL_HOURS", 72),
 		MobileRefreshTokenTTLHour: getEnvAsInt("MOBILE_REFRESH_TOKEN_TTL_HOURS", 720),
 		RefreshTokenAbsoluteMaxDays: getEnvAsInt("REFRESH_TOKEN_ABSOLUTE_MAX_DAYS", 90),
+		RefreshReuseGraceSeconds: getEnvAsInt("REFRESH_REUSE_GRACE_SECONDS", 300),
 
 		FrontendURL:         getEnv("FRONTEND_URL", "http://localhost:3000"),
 		FrontendSuccessPath: getEnv("FRONTEND_SUCCESS_PATH", "/login?auth=success"),
