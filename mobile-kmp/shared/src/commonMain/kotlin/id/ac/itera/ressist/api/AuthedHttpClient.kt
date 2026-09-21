@@ -59,8 +59,11 @@ suspend inline fun <reified T> HttpResponse.bodyOrThrow(): T {
 }
 
 /**
- * Authenticated client: adds Bearer, retries once after silent refresh on 401,
- * then throws [SessionExpiredException] (caller navigates to Login).
+ * Authenticated client: adds Bearer, refreshes proactively when the access
+ * token is (almost) expired, retries once after silent refresh on 401,
+ * then throws. Only [SessionExpiredException] means "navigate to Login" —
+ * other exceptions (rate-limit/server/network) must be shown as errors
+ * without wiping the session.
  */
 class AuthedHttpClient(
     @PublishedApi internal val client: HttpClient,
@@ -96,6 +99,16 @@ class AuthedHttpClient(
         rawBody: String?,
         retry: Boolean = true,
     ): HttpResponse {
+        // Proaktif (best-effort): access kedaluwarsa menurut expires_at →
+        // refresh dulu agar tidak boros 1 request 401 (sekaligus mengurangi
+        // peluang race). Kegagalan diabaikan — alur reaktif di bawah yang
+        // otoritatif (termasuk melempar SessionExpired bila sesi mati).
+        // Dilewati untuk endpoint refresh itu sendiri (anti-rekursi).
+        if (retry && !path.startsWith("/v1/auth/refresh") &&
+            isAccessExpired(storage.expiresAt())
+        ) {
+            runCatching { refresher.refreshOrThrow() }
+        }
         val token = storage.accessToken()
         val response = client.request("$baseUrl$path") {
             this.method = method
@@ -108,7 +121,7 @@ class AuthedHttpClient(
         // Every other 401 (including /v1/auth/me, /v1/auth/sync) retries once
         // after silent refresh, mirroring the web BFF behaviour.
         if (response.status == HttpStatusCode.Unauthorized && retry && !path.startsWith("/v1/auth/refresh")) {
-            refresher.refreshOrThrow()
+            refresher.refreshOrThrow(token)
             return executeWithRefresh(method, path, params, rawBody, retry = false)
         }
         return response

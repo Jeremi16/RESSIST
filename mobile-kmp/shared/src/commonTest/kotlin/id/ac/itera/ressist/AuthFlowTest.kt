@@ -6,6 +6,8 @@ import id.ac.itera.ressist.api.AuthedHttpClient
 import id.ac.itera.ressist.api.ClassroomReadOnlyException
 import id.ac.itera.ressist.api.DomainNotAllowedException
 import id.ac.itera.ressist.api.IdentityConflictException
+import id.ac.itera.ressist.api.RateLimitedException
+import id.ac.itera.ressist.api.ServerException
 import id.ac.itera.ressist.api.SessionExpiredException
 import id.ac.itera.ressist.api.TokenRefresher
 import id.ac.itera.ressist.api.createHttpClient
@@ -20,7 +22,10 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -139,6 +144,150 @@ class AuthFlowTest {
         storage.save("a", "r", null)
         repo.logout()
         assertNull(storage.refreshToken())
+    }
+
+    @Test
+    fun concurrent401_singleRefreshCall() = runTest {
+        val storage = InMemorySessionStorage()
+        storage.save("stale-access", "refresh-1", null)
+        var refreshCalls = 0
+        val (_, authed, _) = graph(MockEngine { request ->
+            when (request.url.encodedPath) {
+                "/v1/assignments" -> {
+                    if (request.headers[HttpHeaders.Authorization] == "Bearer stale-access") {
+                        json("""{"error":"invalid access token"}""", HttpStatusCode.Unauthorized)
+                    } else {
+                        json(ASSIGNMENTS, HttpStatusCode.OK)
+                    }
+                }
+                "/v1/auth/refresh" -> {
+                    refreshCalls++
+                    json(
+                        TOKENS.replace("access-1", "access-2").replace("refresh-1", "refresh-2"),
+                        HttpStatusCode.OK,
+                    )
+                }
+                else -> notFound()
+            }
+        }, storage)
+        // Dua request paralel dengan access basi: hanya 1 refresh ke backend,
+        // keduanya sukses (tanpa singleflight, yang kalah race bisa logout).
+        val first = async { authed.get<List<AssignmentDto>>("/v1/assignments") }
+        val second = async { authed.get<List<AssignmentDto>>("/v1/assignments") }
+        assertEquals(1, first.await().size)
+        assertEquals(1, second.await().size)
+        assertEquals(1, refreshCalls)
+        assertEquals("access-2", storage.accessToken())
+        assertEquals("refresh-2", storage.refreshToken())
+    }
+
+    @Test
+    fun refreshRateLimited_preservesSession() = runTest {
+        val storage = InMemorySessionStorage()
+        storage.save("stale-access", "refresh-1", null)
+        val (_, authed, _) = graph(MockEngine { request ->
+            when (request.url.encodedPath) {
+                "/v1/auth/me" -> json("""{"error":"invalid access token"}""", HttpStatusCode.Unauthorized)
+                "/v1/auth/refresh" -> json("""{"error":"too many requests"}""", HttpStatusCode.TooManyRequests)
+                else -> notFound()
+            }
+        }, storage)
+        // 429 = transient: error aslinya dilempar, sesi TIDAK dihapus.
+        assertFailsWith<RateLimitedException> {
+            authed.get<AuthUserDto>("/v1/auth/me")
+        }
+        assertEquals("stale-access", storage.accessToken())
+        assertEquals("refresh-1", storage.refreshToken())
+    }
+
+    @Test
+    fun refreshServerError_preservesSession() = runTest {
+        val storage = InMemorySessionStorage()
+        storage.save("stale-access", "refresh-1", null)
+        val (_, authed, _) = graph(MockEngine { request ->
+            when (request.url.encodedPath) {
+                "/v1/auth/me" -> json("""{"error":"invalid access token"}""", HttpStatusCode.Unauthorized)
+                "/v1/auth/refresh" -> json("""{"error":"internal"}""", HttpStatusCode.InternalServerError)
+                else -> notFound()
+            }
+        }, storage)
+        assertFailsWith<ServerException> {
+            authed.get<AuthUserDto>("/v1/auth/me")
+        }
+        assertEquals("stale-access", storage.accessToken())
+        assertEquals("refresh-1", storage.refreshToken())
+    }
+
+    @Test
+    fun refreshWithoutNewToken_keepsOldRefresh() = runTest {
+        val storage = InMemorySessionStorage()
+        storage.save("stale-access", "refresh-1", null)
+        var meCalls = 0
+        val (_, authed, _) = graph(MockEngine { request ->
+            when (request.url.encodedPath) {
+                "/v1/auth/me" -> {
+                    meCalls++
+                    if (meCalls == 1) {
+                        json("""{"error":"invalid access token"}""", HttpStatusCode.Unauthorized)
+                    } else {
+                        json("""{"id":"u-1","email":"mhs@student.itera.ac.id","name":"Mhs"}""", HttpStatusCode.OK)
+                    }
+                }
+                // Grace-hit backend: 200 tanpa refresh_token baru.
+                "/v1/auth/refresh" -> json("""{"access_token":"access-2","token_type":"Bearer"}""", HttpStatusCode.OK)
+                else -> notFound()
+            }
+        }, storage)
+        val me: AuthUserDto = authed.get("/v1/auth/me")
+        assertEquals("u-1", me.id)
+        assertEquals("access-2", storage.accessToken())
+        assertEquals("refresh-1", storage.refreshToken())
+    }
+
+    @Test
+    fun expiredAccess_proactiveRefreshWithout401() = runTest {
+        val storage = InMemorySessionStorage()
+        storage.save("old-access", "refresh-1", "2020-01-01T00:00:00Z")
+        var assignmentsCalls = 0
+        val (_, authed, _) = graph(MockEngine { request ->
+            when (request.url.encodedPath) {
+                "/v1/assignments" -> {
+                    assignmentsCalls++
+                    json(ASSIGNMENTS, HttpStatusCode.OK)
+                }
+                "/v1/auth/refresh" -> json(
+                    TOKENS.replace("access-1", "access-2").replace("refresh-1", "refresh-2"),
+                    HttpStatusCode.OK,
+                )
+                else -> notFound()
+            }
+        }, storage)
+        // Tanpa proaktif refresh, assignments akan dipanggil 2x (401 + retry).
+        val list: List<AssignmentDto> = authed.get("/v1/assignments")
+        assertEquals(1, list.size)
+        assertEquals(1, assignmentsCalls)
+        assertEquals("access-2", storage.accessToken())
+    }
+
+    @Test
+    fun freshAccess_noRefreshCall() = runTest {
+        val future = Instant.fromEpochSeconds(Clock.System.now().epochSeconds + 3600).toString()
+        val storage = InMemorySessionStorage()
+        storage.save("access-1", "refresh-1", future)
+        var refreshCalls = 0
+        val (_, authed, _) = graph(MockEngine { request ->
+            when (request.url.encodedPath) {
+                "/v1/assignments" -> json(ASSIGNMENTS, HttpStatusCode.OK)
+                "/v1/auth/refresh" -> {
+                    refreshCalls++
+                    json(TOKENS, HttpStatusCode.OK)
+                }
+                else -> notFound()
+            }
+        }, storage)
+        val list: List<AssignmentDto> = authed.get("/v1/assignments")
+        assertEquals(1, list.size)
+        assertEquals(0, refreshCalls)
     }
 }
 

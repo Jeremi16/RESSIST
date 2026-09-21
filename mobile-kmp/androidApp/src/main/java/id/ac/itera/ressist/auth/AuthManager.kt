@@ -1,5 +1,7 @@
 package id.ac.itera.ressist.auth
 
+import id.ac.itera.ressist.api.SessionExpiredException
+import id.ac.itera.ressist.api.UnauthorizedException
 import id.ac.itera.ressist.data.repository.AuthRepository
 import id.ac.itera.ressist.domain.model.AuthAccount
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -25,9 +27,24 @@ class AuthManager(private val authRepository: AuthRepository) {
 
     /** Validate stored session against GET /v1/auth/me; null on any failure. */
     suspend fun restore(): AuthAccount? {
-        val me = runCatching { authRepository.me() }.getOrNull()
-        _account.value = me
-        return me
+        return try {
+            authRepository.me().also { _account.value = it }
+        } catch (e: SessionExpiredException) {
+            // Sesi benar-benar mati — bersihkan agar tidak dipakai lagi.
+            runCatching { authRepository.logout() }
+            _account.value = null
+            null
+        } catch (e: UnauthorizedException) {
+            runCatching { authRepository.logout() }
+            _account.value = null
+            null
+        } catch (e: Exception) {
+            // Transient (offline/429/5xx): PERTAHANKAN storage. Penelepon
+            // (AppNav) mengarah ke Login, tapi sesi tidak dihancurkan —
+            // login berikutnya / percobaan online tetap bisa memakai token.
+            _account.value = null
+            null
+        }
     }
 
     fun setAccount(account: AuthAccount) {
