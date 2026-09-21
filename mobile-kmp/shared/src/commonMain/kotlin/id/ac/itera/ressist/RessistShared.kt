@@ -5,6 +5,6 @@ package id.ac.itera.ressist
  * (DTO + Ktor client + repository + use cases, see mobile-kmp/README.md).
  */
 object RessistShared {
-    const val VERSION = "0.3.0"
+    const val VERSION = "0.3.2"
     const val API_PREFIX = "/v1"
 }

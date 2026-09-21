@@ -24,7 +24,9 @@ ressist.apiBaseUrl=http://10.0.2.2:8080   # emulator → localhost; device fisik
 ressist.googleWebClientId=<sama dengan backend GOOGLE_CLIENT_ID>
 ```
 
-> `applicationId` = `id.ac.itera.ressist`. Saat rilis: signing key
+> `applicationId` = `id.ac.itera.ressist`. Debug = `id.ac.itera.ressist.dev`
+> (debug key bawaan, ala Mihon — tidak mencemari reputasi cert rilis di mata
+> Play Protect). Saat rilis: signing key
 > (`mobile-kmp/ressist-release.jks`, gitignored — jangan sampai hilang).
 
 ## Struktur
@@ -62,7 +64,7 @@ Syarat & checklist:
 
 1. `mobile-kmp/keystore.properties` ada (gitignored) menunjuk ke
    `ressist-release.jks` (satu folder, relatif terhadap `mobile-kmp/`).
-2. `versionCode = 7`, `versionName = "0.3.1"` di `androidApp/build.gradle.kts`.
+2. `versionCode = 8`, `versionName = "0.3.2"` di `androidApp/build.gradle.kts`.
    Versi UI (Lainnya/Tentang) otomatis ikut via `BuildConfig.VERSION_NAME`.
    Pemilik KMP 0.2.3/code 5 lama (bila masih ada) wajib uninstall manual
    karena Android menolak code yang sama/turun.
@@ -95,8 +97,11 @@ dan sesi dibersihkan. Cek berurutan:
 1. `adb logcat -s RessistAuth` — lihat `status=` (10 = SHA-1 belum
    terdaftar, 12501 = dibatalkan user) atau `native login failed`.
 2. SHA-1 APK yang terpasang (`apksigner verify --print-certs`) vs
-   Android OAuth client di GCP Console. Debug KMP memakai keystore
-   rilis — daftarkan SHA-1 varian yang dipakai, bukan debug key lama.
+   Android OAuth client di GCP Console. **Daftarkan 2 SHA-1**: cert rilis
+   (`keytool -list -v -keystore ressist-release.jks`) dan debug bawaan
+   (`99:F4:29:FB:E2:D9:A8:05:50:76:A8:73:58:BA:26:C2:AD:CD:63:AF` untuk
+   `id.ac.itera.ressist.dev`). Tanpa SHA-1 debug, login dari Android
+   Studio gagal dengan `exchange_failed`.
 3. OAuth consent screen masih Testing → akun penguji harus terdaftar
    di Test Users (scope Classroom sensitif).
 4. `GOOGLE_CLIENT_ID` backend == Web Client ID aplikasi.

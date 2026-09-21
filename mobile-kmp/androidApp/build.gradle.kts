@@ -7,7 +7,7 @@ plugins {
 import java.util.Properties
 
 android {
-    // v0.3.1 rilis sideload: versionCode 7 (skema +1 dari v0.3.0 code 6).
+    // v0.3.2 rilis sideload: versionCode 8 (skema +1 dari v0.3.1 code 7).
     // Konsekuensi: pemilik KMP 0.2.3/code 5 lama (bila masih ada) wajib
     // uninstall manual karena Android menolak code yang sama/turun.
     namespace = "id.ac.itera.ressist"
@@ -17,8 +17,8 @@ android {
         applicationId = "id.ac.itera.ressist"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.3.1"
+        versionCode = 8
+        versionName = "0.3.2"
 
         // NOTE: project.findProperty does NOT read local.properties, so load it
         // manually. Order: -P flag > local.properties > fallback.
@@ -38,9 +38,10 @@ android {
 
     // Release signing uses mobile-kmp/ressist-release.jks (gitignored, never lose it).
     // Passwords live in mobile-kmp/keystore.properties (gitignored, never commit).
-    // The debug build ALSO uses this key (option B): Google OAuth matches the
-    // signing fingerprint, so Run-from-Android-Studio presents the same SHA-1
-    // as release and login works without registering the default debug key.
+    // Ala Mihon: build debug TIDAK BOLEH pakai key release. Debug pakai debug key
+    // bawaan + applicationIdSuffix ".dev" (lihat buildTypes.debug di bawah),
+    // sehingga 1 package release selalu 1 cert di mata Play Protect.
+    // Konsekuensi OAuth: daftarkan 2 SHA-1 di GCP (debug + release).
     val keystorePropsFile = rootProject.file("keystore.properties")
     if (keystorePropsFile.exists()) {
         val props = Properties().apply { load(keystorePropsFile.inputStream()) }
@@ -52,16 +53,16 @@ android {
                 keyAlias = props.getProperty("keyAlias")
                 keyPassword = props.getProperty("keyPassword")
             }
-            getByName("debug") {
-                storeFile = releaseKeystore
-                storePassword = props.getProperty("storePassword")
-                keyAlias = props.getProperty("keyAlias")
-                keyPassword = props.getProperty("keyPassword")
-            }
         }
     }
 
     buildTypes {
+        debug {
+            // Ala Mihon (.dev): package debug = id.ac.itera.ressist.dev,
+            // cert = debug key bawaan. Tidak mencemari reputasi cert rilis.
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

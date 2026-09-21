@@ -14,12 +14,24 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.3.0";
-const APK_NAME = "ressist-0.3.0-code6-release.apk";
+const APK_VERSION = "v0.3.2";
+const APK_NAME = "ressist-0.3.2-code8-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.44 MB";
-const APK_RELEASED = "20 September 2026";
+const APK_RELEASED = "21 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V031_VERSION = "v0.3.1";
+const V031_NAME = "ressist-0.3.1-code7-release.apk";
+const V031_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V031_VERSION}/${V031_NAME}`;
+const V031_SIZE = "3.44 MB";
+const V031_RELEASED = "21 September 2026";
+
+const V030_VERSION = "v0.3.0";
+const V030_NAME = "ressist-0.3.0-code6-release.apk";
+const V030_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V030_VERSION}/${V030_NAME}`;
+const V030_SIZE = "3.44 MB";
+const V030_RELEASED = "20 September 2026";
 
 const V023_VERSION = "v0.2.3";
 const V023_NAME = "ressist-0.2.3-code5-release.apk";
@@ -61,12 +73,44 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-3-0",
+    id: "v0-3-2",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Update Mulus & Install Lebih Tenang",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Update via PackageInstaller session API: sistem mengenali sertifikat yang sama sebagai update resmi.",
+      "Build debug dipisah (…ressist.dev, ala Mihon) agar tidak mencemari sertifikat rilis.",
+      "Halaman download otomatis ikut rilis GitHub terbaru + panduan Play Protect.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-3-1",
+    version: V031_VERSION,
+    fileName: V031_NAME,
+    filePath: V031_PATH,
+    size: V031_SIZE,
+    released: V031_RELEASED,
+    title: "Pengingat & Bot Telegram Lebih Andal",
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Penjadwalan pengingat lokal diperbaiki (termasuk util waktu + test).",
+      "Format pesan dan handler bot Telegram diperbaiki + scheduler lebih stabil.",
+      "Pratinjau event kalender di web diperbaiki.",
+      `Ringan — hanya sekitar ${V031_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-3-0",
+    version: V030_VERSION,
+    fileName: V030_NAME,
+    filePath: V030_PATH,
+    size: V030_SIZE,
+    released: V030_RELEASED,
     title: "Sinkronisasi Otomatis",
     description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Update langsung timpa versi lama, tidak perlu uninstall.`,
     highlights: [
@@ -265,9 +309,9 @@ export default function ChangeLog() {
             {LATEST.title}
           </h2>
           <p className="text-white/60 text-sm leading-relaxed max-w-2xl">
-            Aplikasi kini tersinkron otomatis dari Moodle & Classroom,
-            memberi tahu saat ada tugas baru, dan semua pengaturannya
-            ada di Lainnya → Sinkronisasi.
+            Update kini lewat PackageInstaller resmi sehingga dianggap update
+            yang sah, build debug dipisah agar sertifikat rilis tetap bersih,
+            dan halaman download selalu ikut rilis terbaru.
           </p>
         </motion.div>
 
