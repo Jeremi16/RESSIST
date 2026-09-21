@@ -28,6 +28,14 @@ async function proxy(
 ) {
   const result = await callBackendAsUser(c, path, init);
   applyBackendAuthCookies(c, result);
+  if (result.status !== 401 && result.rotatedRefreshToken) {
+    // Sliding sesi frontend: backend merotasi refresh → perpanjang
+    // el-learning-session juga agar keduanya kedaluwarsa bersamaan.
+    // Sebelumnya sesi frontend mati duluan setelah 3 hari walau backend
+    // masih valid (terasa "tiba-tiba logout").
+    const sess = verifySession(c);
+    if (sess) createSession(c, sess);
+  }
   return c.json(result.body, result.status as 200);
 }
 

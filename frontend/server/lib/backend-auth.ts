@@ -12,10 +12,24 @@ export interface BackendAuthCallResult {
   rotatedRefreshToken?: string;
 }
 
-function extractRefreshToken(setCookieHeader: string | null): string | undefined {
-  if (!setCookieHeader) return undefined;
-  const match = setCookieHeader.match(/refresh_token=([^;]+)/);
-  return match?.[1];
+function getSetCookieHeaders(headers: Headers): string[] {
+  // Node 18+/Vercel: Headers.getSetCookie() ada; fallback ke get("set-cookie").
+  // WAJIB baca semuanya: backend bisa mengirim beberapa Set-Cookie dan token
+  // hasil rotasi hilang (= sesi mati saat grace habis) kalau hanya baca satu.
+  const anyHeaders = headers as unknown as { getSetCookie?: () => string[] };
+  if (typeof anyHeaders.getSetCookie === "function") {
+    return anyHeaders.getSetCookie();
+  }
+  const single = headers.get("set-cookie");
+  return single ? [single] : [];
+}
+
+function extractRefreshToken(headers: Headers): string | undefined {
+  for (const sc of getSetCookieHeaders(headers)) {
+    const match = sc.match(/refresh_token=([^;]+)/);
+    if (match?.[1]) return match[1];
+  }
+  return undefined;
 }
 
 /** Terapkan rotasi/hapus cookie auth backend ke response Hono. */
@@ -51,9 +65,15 @@ export function applyBackendAuthCookies(
 }
 
 // Deduplikasi refresh concurrent per refresh_token (port Map di backend-auth.ts)
+type RefreshSuccess = { accessToken: string; rotatedRefreshToken?: string };
+// unauthorized=true HANYA saat backend balas 401 (token invalid/expired/
+// reuse = sesi benar-benar mati). unauthorized=false = transient
+// (429/5xx/network) — sesi HARUS dipertahankan, jangan hapus cookie.
+type RefreshFailure = { unauthorized: boolean; status: number };
+
 const refreshPromises = new Map<
   string,
-  Promise<{ accessToken: string; rotatedRefreshToken?: string } | null>
+  Promise<RefreshSuccess | RefreshFailure>
 >();
 
 // Cache access token per refresh_token agar BFF tidak me-refresh ke backend
@@ -98,11 +118,11 @@ function putCachedAccess(
 
 async function refreshAccessToken(
   c: Context,
-): Promise<{ accessToken: string; rotatedRefreshToken?: string } | null> {
+): Promise<RefreshSuccess | RefreshFailure> {
   const refreshToken = getCookie(c, REFRESH_COOKIE_NAME);
   if (!refreshToken) {
     console.warn("[refreshAccessToken] No refresh_token cookie found");
-    return null;
+    return { unauthorized: true, status: 401 };
   }
 
   const cached = getCachedAccess(refreshToken);
@@ -112,7 +132,7 @@ async function refreshAccessToken(
     return refreshPromises.get(refreshToken)!;
   }
 
-  const promise = (async () => {
+  const promise = (async (): Promise<RefreshSuccess | RefreshFailure> => {
     try {
       const response = await fetch(`${getBackendBaseUrl()}/v1/auth/refresh`, {
         method: "POST",
@@ -123,19 +143,25 @@ async function refreshAccessToken(
         },
       });
 
+      if (response.status === 401) {
+        console.error(`[refreshAccessToken] Backend rejected session (401)`);
+        return { unauthorized: true, status: 401 };
+      }
       if (!response.ok) {
-        console.error(`[refreshAccessToken] Failed: status ${response.status}`);
-        return null;
+        // Transient (429 rate-limit / 5xx): JANGAN anggap sesi mati.
+        console.error(`[refreshAccessToken] Transient failure: status ${response.status}`);
+        return { unauthorized: false, status: response.status };
       }
 
       const payload = (await response.json()) as { access_token?: string };
-      if (!payload.access_token) return null;
+      if (!payload.access_token) {
+        console.error(`[refreshAccessToken] 200 without access_token (shape drift)`);
+        return { unauthorized: false, status: 502 };
+      }
 
-      const result = {
+      const result: RefreshSuccess = {
         accessToken: payload.access_token,
-        rotatedRefreshToken: extractRefreshToken(
-          response.headers.get("set-cookie"),
-        ),
+        rotatedRefreshToken: extractRefreshToken(response.headers),
       };
       // Index di bawah token lama DAN token baru (kalau rotasi) agar request
       // berikut (yang bawa cookie baru) tetap hit cache.
@@ -147,8 +173,9 @@ async function refreshAccessToken(
       );
       return result;
     } catch (error) {
+      // Network error / backend down: transient, sesi dipertahankan.
       console.error("Refresh token error:", error);
-      return null;
+      return { unauthorized: false, status: 502 };
     } finally {
       setTimeout(() => {
         refreshPromises.delete(refreshToken);
@@ -169,8 +196,15 @@ export async function callBackendAsUser(
   } = {},
 ): Promise<BackendAuthCallResult> {
   const refreshed = await refreshAccessToken(c);
-  if (!refreshed) {
-    return { status: 401, body: { error: "Unauthorized" } };
+  if (!("accessToken" in refreshed)) {
+    if (refreshed.unauthorized) {
+      // Sesi benar-benar mati (backend 401): hapus cookie via pemanggil.
+      return { status: 401, body: { error: "Unauthorized" } };
+    }
+    // Transient (429/5xx/network): teruskan status asli agar UI tampil
+    // "coba lagi", BUKAN auto-logout. applyBackendAuthCookies hanya
+    // menghapus cookie saat 401, jadi sesi tetap utuh.
+    return { status: refreshed.status, body: { error: "Upstream error" } };
   }
 
   const response = await fetch(`${getBackendBaseUrl()}${path}`, {
