@@ -28,10 +28,10 @@ const FALLBACK_VERSION = "v0.3.4";
 const FALLBACK_NAME = "ressist-0.3.4-code10-release.apk";
 const FALLBACK_SIZE = "3.44 MB";
 const FALLBACK_RELEASED = "September 2026";
-// SHA asli APK v0.3.1 (dari GitHub API). WAJIB diganti ke SHA v0.3.4 dari
-// SHA256SUMS.txt lewat commit susulan "chore(web)" setelah CI rilis.
+// SHA asli APK v0.3.4 (dari SHA256SUMS.txt rilis). Rilis berikutnya: ganti
+// lewat commit susulan "chore(web)" setelah CI rilis.
 const FALLBACK_SHA256 =
-  "0f0a8e95e387e31c4a348172bc55672d159eeac141241df24c79873f873a7242";
+  "9f795d7ddace3bfed25c8058aaa4d95cb3074e19beecc1740b4a98a5334772a7";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 const RELEASES_REPO = "Jeremi16/RESSIST-MOBILE";
 const LATEST_API = `https://api.github.com/repos/${RELEASES_REPO}/releases/latest`;
