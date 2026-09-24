@@ -217,6 +217,12 @@ func (h *Handler) Refresh(c *gin.Context) {
 		c.ClientIP(),
 	)
 	if err != nil {
+		if !isRefreshAuthError(err) {
+			// Gangguan server (DB, dll): 503 agar klien tidak menghapus sesi.
+			log.Printf("[auth] refresh server error: %v", err)
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "refresh temporarily unavailable"})
+			return
+		}
 		log.Printf("[auth] refresh failed err=%s", h.mapRefreshError(err))
 		c.JSON(http.StatusUnauthorized, gin.H{"error": h.mapRefreshError(err)})
 		return
@@ -274,7 +280,9 @@ func (h *Handler) Logout(c *gin.Context) {
 		rawRefreshToken = strings.TrimSpace(body.RefreshToken)
 	}
 	if rawRefreshToken != "" {
-		_ = h.auth.RevokeRefreshToken(c.Request.Context(), rawRefreshToken)
+		if err := h.auth.RevokeRefreshToken(c.Request.Context(), rawRefreshToken); err != nil {
+			log.Printf("[auth] logout revoke failed: %v", err)
+		}
 	}
 	h.clearCookie(c, refreshTokenCookieName)
 	c.Status(http.StatusNoContent)
@@ -290,7 +298,12 @@ func (h *Handler) Me(c *gin.Context) {
 
 	user, err := h.auth.GetUserByID(c.Request.Context(), claims.Subject)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+			return
+		}
+		log.Printf("[auth] me lookup failed: %v", err)
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "temporarily unavailable"})
 		return
 	}
 
@@ -494,6 +507,13 @@ func (h *Handler) webRefreshMaxAge() int {
 		maxAge = 72 * 3600
 	}
 	return maxAge
+}
+
+// isRefreshAuthError: hanya error ini yang berarti sesi benar-benar mati (401).
+func isRefreshAuthError(err error) bool {
+	return errors.Is(err, ErrInvalidRefreshToken) ||
+		errors.Is(err, ErrExpiredRefreshToken) ||
+		errors.Is(err, ErrRefreshTokenReuse)
 }
 
 func (h *Handler) mapRefreshError(err error) string {

@@ -35,12 +35,12 @@ var (
 // saja dirotasi. BFF (khususnya di serverless seperti Vercel) dan mobile
 // (UI + SyncWorker) menembak beberapa request paralel dengan token lama
 // yang sama, sehingga request yang kalah race TIDAK boleh dianggap
-// pencurian token. Configurable via REFRESH_REUSE_GRACE_SECONDS (default 300).
+// pencurian token. Configurable via REFRESH_REUSE_GRACE_SECONDS (default 30).
 func (s *Service) reuseGrace() time.Duration {
 	if s.cfg != nil && s.cfg.RefreshReuseGraceSeconds > 0 {
 		return time.Duration(s.cfg.RefreshReuseGraceSeconds) * time.Second
 	}
-	return 300 * time.Second
+	return 30 * time.Second
 }
 
 // RefreshTTLForClient exposes the sliding TTL for handlers so cookie maxAge
@@ -393,14 +393,19 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 	if existing.RevokedAt != nil {
 		if now.Sub(*existing.RevokedAt) < s.reuseGrace() {
 			var user models.User
-			if err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error; err == nil {
+			err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error
+			if err == nil {
 				client := normalizeClient(existing.Client)
-				if comp, cerr := s.mintFreshToken(ctx, &user, client, userAgent, ipAddress, now); cerr == nil {
-					return &RotateResult{User: &user, NewRefresh: comp, Client: client, Rotated: false}, nil
+				comp, cerr := s.mintFreshToken(ctx, &user, client, userAgent, ipAddress, now)
+				if cerr != nil {
+					// Gagal DB: kembalikan error server (5xx), BUKAN sukses access-only.
+					// Access-only membuat klien menyimpan token yang sudah revoked,
+					// lalu refresh berikutnya (di luar grace) dianggap reuse → logout massal.
+					return nil, cerr
 				}
-				// DB failure while minting: fall back to access-only success
-				// so a transient DB hiccup does not log the user out.
-				return &RotateResult{User: &user, Client: client}, nil
+				return &RotateResult{User: &user, NewRefresh: comp, Client: client, Rotated: false}, nil
+			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, err
 			}
 		}
 		_ = s.RevokeAllUserRefreshTokens(ctx, existing.UserID)
@@ -463,16 +468,18 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 			// RevokeAll HANYA untuk pemakaian ulang di luar grace window
 			// (indikasi pencurian).
 			var current models.RefreshToken
-			if rerr := s.db.WithContext(ctx).Where("token_hash = ?", hashed).First(&current).Error; rerr == nil &&
-				current.RevokedAt != nil && now.Sub(*current.RevokedAt) < s.reuseGrace() {
-				var graceUser models.User
-				if uerr := s.db.WithContext(ctx).Where("id = ?", current.UserID).First(&graceUser).Error; uerr == nil {
-					graceClient := normalizeClient(current.Client)
-					if comp, cerr := s.mintFreshToken(ctx, &graceUser, graceClient, userAgent, ipAddress, now); cerr == nil {
-						return &RotateResult{User: &graceUser, NewRefresh: comp, Client: graceClient, Rotated: false}, nil
-					}
-					return &RotateResult{User: &graceUser, Client: graceClient}, nil
+			if rerr := s.db.WithContext(ctx).Where("token_hash = ?", hashed).First(&current).Error; rerr != nil {
+				// Gagal baca ulang = gangguan DB, bukan bukti pencurian.
+				// Jangan RevokeAll; kembalikan error server (5xx).
+				return nil, rerr
+			}
+			if current.RevokedAt != nil && now.Sub(*current.RevokedAt) < s.reuseGrace() {
+				graceClient := normalizeClient(current.Client)
+				comp, cerr := s.mintFreshToken(ctx, &user, graceClient, userAgent, ipAddress, now)
+				if cerr != nil {
+					return nil, cerr
 				}
+				return &RotateResult{User: &user, NewRefresh: comp, Client: graceClient, Rotated: false}, nil
 			}
 			_ = s.RevokeAllUserRefreshTokens(ctx, user.ID)
 		}

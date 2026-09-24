@@ -107,7 +107,7 @@ func Load() (*Config, error) {
 		RefreshTokenTTLHour:  getEnvAsInt("REFRESH_TOKEN_TTL_HOURS", 72),
 		MobileRefreshTokenTTLHour: getEnvAsInt("MOBILE_REFRESH_TOKEN_TTL_HOURS", 720),
 		RefreshTokenAbsoluteMaxDays: getEnvAsInt("REFRESH_TOKEN_ABSOLUTE_MAX_DAYS", 90),
-		RefreshReuseGraceSeconds: getEnvAsInt("REFRESH_REUSE_GRACE_SECONDS", 300),
+		RefreshReuseGraceSeconds: getEnvAsInt("REFRESH_REUSE_GRACE_SECONDS", 30),
 
 		FrontendURL:         getEnv("FRONTEND_URL", "http://localhost:3000"),
 		FrontendSuccessPath: getEnv("FRONTEND_SUCCESS_PATH", "/login?auth=success"),
