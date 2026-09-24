@@ -18,7 +18,11 @@ type RefreshToken struct {
 	Client    string `gorm:"size:16;not null;default:web;index"`
 	UserAgent string
 	IPAddress string
-	CreatedAt time.Time
+	// SessionStartedAt = waktu login awal; disalin ke setiap token hasil
+	// rotasi agar batas umur absolut sesi bisa ditegakkan. Nullable untuk
+	// baris lama (fallback ke CreatedAt).
+	SessionStartedAt *time.Time `gorm:"index"`
+	CreatedAt        time.Time
 	UpdatedAt time.Time
 
 	User User `gorm:"foreignKey:UserID"`

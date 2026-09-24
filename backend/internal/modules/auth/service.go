@@ -288,14 +288,15 @@ func (s *Service) CreateRefreshTokenForClient(ctx context.Context, userID string
 	if err != nil {
 		return "", err
 	}
-	expiresAt := time.Now().UTC().Add(s.refreshTTLForClient(client))
+	now := time.Now().UTC()
 	record := models.RefreshToken{
-		UserID:    userID,
-		TokenHash: hashToken(raw),
-		ExpiresAt: expiresAt,
-		Client:    client,
-		UserAgent: userAgent,
-		IPAddress: ipAddress,
+		UserID:           userID,
+		TokenHash:        hashToken(raw),
+		ExpiresAt:        s.capExpiry(now.Add(s.refreshTTLForClient(client)), now),
+		Client:           client,
+		UserAgent:        userAgent,
+		IPAddress:        ipAddress,
+		SessionStartedAt: &now,
 	}
 	if err := s.db.WithContext(ctx).Create(&record).Error; err != nil {
 		return "", err
@@ -358,23 +359,43 @@ func (s *Service) RotateRefreshTokenEx(ctx context.Context, rawToken string, use
 
 // mintFreshToken creates a new valid refresh-token record for user+client.
 // Used for normal rotations and for compensating grace-hit racers.
-func (s *Service) mintFreshToken(ctx context.Context, user *models.User, client string, userAgent string, ipAddress string, now time.Time) (string, error) {
+func (s *Service) mintFreshToken(ctx context.Context, user *models.User, client string, sessionStart time.Time, userAgent string, ipAddress string, now time.Time) (string, error) {
 	raw, err := generateSecureToken(48)
 	if err != nil {
 		return "", err
 	}
 	record := models.RefreshToken{
-		UserID:    user.ID,
-		TokenHash: hashToken(raw),
-		ExpiresAt: now.Add(s.refreshTTLForClient(client)),
-		Client:    client,
-		UserAgent: userAgent,
-		IPAddress: ipAddress,
+		UserID:           user.ID,
+		TokenHash:        hashToken(raw),
+		ExpiresAt:        s.capExpiry(now.Add(s.refreshTTLForClient(client)), sessionStart),
+		Client:           client,
+		UserAgent:        userAgent,
+		IPAddress:        ipAddress,
+		SessionStartedAt: &sessionStart,
 	}
 	if err := s.db.WithContext(ctx).Create(&record).Error; err != nil {
 		return "", err
 	}
 	return raw, nil
+}
+
+// sessionStartOf mengembalikan awal sesi; baris lama tanpa kolom ini
+// memakai CreatedAt (batas absolut dihitung mulai dari token itu).
+func sessionStartOf(t *models.RefreshToken) time.Time {
+	if t.SessionStartedAt != nil && !t.SessionStartedAt.IsZero() {
+		return t.SessionStartedAt.UTC()
+	}
+	return t.CreatedAt.UTC()
+}
+
+// capExpiry memotong expiry agar tidak melewati batas umur absolut sesi.
+func (s *Service) capExpiry(expiresAt, sessionStart time.Time) time.Time {
+	if maxDays := s.cfg.RefreshTokenAbsoluteMaxDays; maxDays > 0 {
+		if limit := sessionStart.Add(time.Duration(maxDays) * 24 * time.Hour); expiresAt.After(limit) {
+			return limit
+		}
+	}
+	return expiresAt
 }
 
 func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string, ipAddress string) (*RotateResult, error) {
@@ -396,7 +417,7 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 			err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error
 			if err == nil {
 				client := normalizeClient(existing.Client)
-				comp, cerr := s.mintFreshToken(ctx, &user, client, userAgent, ipAddress, now)
+				comp, cerr := s.mintFreshToken(ctx, &user, client, sessionStartOf(&existing), userAgent, ipAddress, now)
 				if cerr != nil {
 					// Gagal DB: kembalikan error server (5xx), BUKAN sukses access-only.
 					// Access-only membuat klien menyimpan token yang sudah revoked,
@@ -420,7 +441,7 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 	}
 	// Absolute max lifetime: even with sliding rotation, force re-login.
 	if maxDays := s.cfg.RefreshTokenAbsoluteMaxDays; maxDays > 0 {
-		if now.Sub(existing.CreatedAt) > time.Duration(maxDays)*24*time.Hour {
+		if now.Sub(sessionStartOf(&existing)) > time.Duration(maxDays)*24*time.Hour {
 			_ = s.db.WithContext(ctx).
 				Model(&models.RefreshToken{}).
 				Where("id = ? AND revoked_at IS NULL", existing.ID).
@@ -437,13 +458,15 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 		return nil, err
 	}
 	client := normalizeClient(existing.Client)
+	sessionStart := sessionStartOf(&existing)
 	newRecord := models.RefreshToken{
-		UserID:    user.ID,
-		TokenHash: hashToken(newRaw),
-		ExpiresAt: now.Add(s.refreshTTLForClient(client)),
-		Client:    client,
-		UserAgent: userAgent,
-		IPAddress: ipAddress,
+		UserID:           user.ID,
+		TokenHash:        hashToken(newRaw),
+		ExpiresAt:        s.capExpiry(now.Add(s.refreshTTLForClient(client)), sessionStart),
+		Client:           client,
+		UserAgent:        userAgent,
+		IPAddress:        ipAddress,
+		SessionStartedAt: &sessionStart,
 	}
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		revokeResult := tx.Model(&models.RefreshToken{}).
@@ -475,7 +498,7 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 			}
 			if current.RevokedAt != nil && now.Sub(*current.RevokedAt) < s.reuseGrace() {
 				graceClient := normalizeClient(current.Client)
-				comp, cerr := s.mintFreshToken(ctx, &user, graceClient, userAgent, ipAddress, now)
+				comp, cerr := s.mintFreshToken(ctx, &user, graceClient, sessionStartOf(&current), userAgent, ipAddress, now)
 				if cerr != nil {
 					return nil, cerr
 				}

@@ -47,5 +47,12 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 		_ = db.Exec(`UPDATE users SET reminder_hours = '[24,12,6,1]' WHERE reminder_hours IS NULL OR TRIM(reminder_hours) = '' OR TRIM(reminder_hours) = '[]'`).Error
 	}
 
+	// Selalu dijalankan (idempotent), termasuk production yang AUTO_MIGRATE=false:
+	// kolom ini wajib ada sebelum insert refresh token.
+	if err := db.Exec(`ALTER TABLE IF EXISTS refresh_tokens ADD COLUMN IF NOT EXISTS session_started_at timestamptz`).Error; err != nil {
+		return nil, fmt.Errorf("migrate refresh_tokens.session_started_at: %w", err)
+	}
+	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_session_started_at ON refresh_tokens (session_started_at)`).Error
+
 	return db, nil
 }
