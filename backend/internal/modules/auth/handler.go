@@ -243,6 +243,11 @@ func (h *Handler) Refresh(c *gin.Context) {
 
 	if newRefresh != "" {
 		maxAge := int(h.auth.RefreshTTLForClient(result.Client).Seconds())
+		if !result.RefreshExpiresAt.IsZero() {
+			// Ikuti expiry DB (bisa terpotong batas umur absolut sesi).
+			// Minimal 1 agar tidak jatuh ke fallback 72 jam di bawah.
+			maxAge = max(1, int(time.Until(result.RefreshExpiresAt).Seconds()))
+		}
 		if maxAge <= 0 {
 			maxAge = 72 * 3600
 		}

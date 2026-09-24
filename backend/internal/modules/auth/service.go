@@ -340,6 +340,9 @@ type RotateResult struct {
 	// presented token was already revoked inside the grace window and a
 	// compensating token was minted instead.
 	Rotated bool
+	// RefreshExpiresAt = expiry DB token baru (sudah dipotong batas absolut),
+	// dipakai handler untuk maxAge cookie.
+	RefreshExpiresAt time.Time
 }
 
 func (s *Service) RotateRefreshToken(ctx context.Context, rawToken string, userAgent string, ipAddress string) (*models.User, string, error) {
@@ -359,10 +362,10 @@ func (s *Service) RotateRefreshTokenEx(ctx context.Context, rawToken string, use
 
 // mintFreshToken creates a new valid refresh-token record for user+client.
 // Used for normal rotations and for compensating grace-hit racers.
-func (s *Service) mintFreshToken(ctx context.Context, user *models.User, client string, sessionStart time.Time, userAgent string, ipAddress string, now time.Time) (string, error) {
+func (s *Service) mintFreshToken(ctx context.Context, user *models.User, client string, sessionStart time.Time, userAgent string, ipAddress string, now time.Time) (string, time.Time, error) {
 	raw, err := generateSecureToken(48)
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
 	record := models.RefreshToken{
 		UserID:           user.ID,
@@ -374,9 +377,9 @@ func (s *Service) mintFreshToken(ctx context.Context, user *models.User, client 
 		SessionStartedAt: &sessionStart,
 	}
 	if err := s.db.WithContext(ctx).Create(&record).Error; err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
-	return raw, nil
+	return raw, record.ExpiresAt, nil
 }
 
 // sessionStartOf mengembalikan awal sesi; baris lama tanpa kolom ini
@@ -417,14 +420,14 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 			err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error
 			if err == nil {
 				client := normalizeClient(existing.Client)
-				comp, cerr := s.mintFreshToken(ctx, &user, client, sessionStartOf(&existing), userAgent, ipAddress, now)
+				comp, compExp, cerr := s.mintFreshToken(ctx, &user, client, sessionStartOf(&existing), userAgent, ipAddress, now)
 				if cerr != nil {
 					// Gagal DB: kembalikan error server (5xx), BUKAN sukses access-only.
 					// Access-only membuat klien menyimpan token yang sudah revoked,
 					// lalu refresh berikutnya (di luar grace) dianggap reuse → logout massal.
 					return nil, cerr
 				}
-				return &RotateResult{User: &user, NewRefresh: comp, Client: client, Rotated: false}, nil
+				return &RotateResult{User: &user, NewRefresh: comp, Client: client, Rotated: false, RefreshExpiresAt: compExp}, nil
 			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err
 			}
@@ -498,17 +501,17 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 			}
 			if current.RevokedAt != nil && now.Sub(*current.RevokedAt) < s.reuseGrace() {
 				graceClient := normalizeClient(current.Client)
-				comp, cerr := s.mintFreshToken(ctx, &user, graceClient, sessionStartOf(&current), userAgent, ipAddress, now)
+				comp, compExp, cerr := s.mintFreshToken(ctx, &user, graceClient, sessionStartOf(&current), userAgent, ipAddress, now)
 				if cerr != nil {
 					return nil, cerr
 				}
-				return &RotateResult{User: &user, NewRefresh: comp, Client: graceClient, Rotated: false}, nil
+				return &RotateResult{User: &user, NewRefresh: comp, Client: graceClient, Rotated: false, RefreshExpiresAt: compExp}, nil
 			}
 			_ = s.RevokeAllUserRefreshTokens(ctx, user.ID)
 		}
 		return nil, err
 	}
-	return &RotateResult{User: &user, NewRefresh: newRaw, Client: client, Rotated: true}, nil
+	return &RotateResult{User: &user, NewRefresh: newRaw, Client: client, Rotated: true, RefreshExpiresAt: newRecord.ExpiresAt}, nil
 }
 
 func (s *Service) RevokeAllUserRefreshTokens(ctx context.Context, userID string) error {
