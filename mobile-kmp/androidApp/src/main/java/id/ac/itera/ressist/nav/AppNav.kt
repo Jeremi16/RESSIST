@@ -25,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import id.ac.itera.ressist.auth.AuthManager
+import id.ac.itera.ressist.auth.RestoreResult
 import id.ac.itera.ressist.reminders.NotificationHelper
 import id.ac.itera.ressist.ui.common.LoadingBox
 import id.ac.itera.ressist.ui.common.RessistBottomBar
@@ -79,8 +80,12 @@ fun AppNav(authManager: AuthManager = koinInject()) {
     val nav = rememberNavController()
     var start by rememberSaveable { mutableStateOf<String?>(null) }
     // Cold start: stored session + valid /v1/auth/me → straight to main.
+    // Gagal sementara (offline/5xx) juga ke main: sesi belum tentu mati.
     LaunchedEffect(Unit) {
-        start = if (authManager.hasStoredSession() && authManager.restore() != null) {
+        start = if (
+            authManager.hasStoredSession() &&
+            authManager.restoreSession() != RestoreResult.Expired
+        ) {
             Routes.MAIN
         } else {
             Routes.LOGIN

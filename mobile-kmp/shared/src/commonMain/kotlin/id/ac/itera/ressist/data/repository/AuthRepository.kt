@@ -32,7 +32,10 @@ class AuthRepository(
 
     /** Revokes server-side best-effort, then always wipes local storage. */
     suspend fun logout() {
-        authApi.logout(storage.refreshToken())
-        storage.clear()
+        try {
+            authApi.logout(storage.refreshToken())
+        } finally {
+            storage.clear()
+        }
     }
 }

@@ -26,24 +26,26 @@ class AuthManager(private val authRepository: AuthRepository) {
     suspend fun hasStoredSession(): Boolean = authRepository.hasSession()
 
     /** Validate stored session against GET /v1/auth/me; null on any failure. */
-    suspend fun restore(): AuthAccount? {
+    suspend fun restore(): AuthAccount? = (restoreSession() as? RestoreResult.Ok)?.account
+
+    /** Like [restore], but distinguishes a dead session from a transient failure. */
+    suspend fun restoreSession(): RestoreResult {
         return try {
-            authRepository.me().also { _account.value = it }
+            RestoreResult.Ok(authRepository.me().also { _account.value = it })
         } catch (e: SessionExpiredException) {
             // Sesi benar-benar mati — bersihkan agar tidak dipakai lagi.
             runCatching { authRepository.logout() }
             _account.value = null
-            null
+            RestoreResult.Expired
         } catch (e: UnauthorizedException) {
             runCatching { authRepository.logout() }
             _account.value = null
-            null
+            RestoreResult.Expired
         } catch (e: Exception) {
-            // Transient (offline/429/5xx): PERTAHANKAN storage. Penelepon
-            // (AppNav) mengarah ke Login, tapi sesi tidak dihancurkan —
-            // login berikutnya / percobaan online tetap bisa memakai token.
+            // Transient (offline/429/5xx): PERTAHANKAN storage. AppNav tetap
+            // masuk MAIN; layar menampilkan error + retry sampai online lagi.
             _account.value = null
-            null
+            RestoreResult.Transient
         }
     }
 
@@ -61,4 +63,10 @@ class AuthManager(private val authRepository: AuthRepository) {
         _account.value = null
         _sessionExpired.emit(Unit)
     }
+}
+
+sealed interface RestoreResult {
+    data class Ok(val account: AuthAccount) : RestoreResult
+    data object Expired : RestoreResult
+    data object Transient : RestoreResult
 }

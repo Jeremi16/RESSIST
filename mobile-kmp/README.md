@@ -64,7 +64,7 @@ Syarat & checklist:
 
 1. `mobile-kmp/keystore.properties` ada (gitignored) menunjuk ke
    `ressist-release.jks` (satu folder, relatif terhadap `mobile-kmp/`).
-2. `versionCode = 9`, `versionName = "0.3.3"` di `androidApp/build.gradle.kts`.
+2. `versionCode = 10`, `versionName = "0.3.4"` di `androidApp/build.gradle.kts`.
    Versi UI (Lainnya/Tentang) otomatis ikut via `BuildConfig.VERSION_NAME`.
    Pemilik KMP 0.2.3/code 5 lama (bila masih ada) wajib uninstall manual
    karena Android menolak code yang sama/turun.
