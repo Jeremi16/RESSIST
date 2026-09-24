@@ -24,11 +24,11 @@ import { docsSidebar } from "@/components/docs-sidebar";
 // Fallback saat GitHub API tak terjangkau / rate-limit. WAJIB sinkron dengan
 // mobile-kmp/androidApp/build.gradle.kts (versionCode/versionName) dan nama
 // file rilis RESSIST-MOBILE: ressist-X.Y.Z-codeN-release.apk.
-const FALLBACK_VERSION = "v0.3.2";
-const FALLBACK_NAME = "ressist-0.3.2-code8-release.apk";
+const FALLBACK_VERSION = "v0.3.4";
+const FALLBACK_NAME = "ressist-0.3.4-code10-release.apk";
 const FALLBACK_SIZE = "3.44 MB";
 const FALLBACK_RELEASED = "September 2026";
-// SHA asli APK v0.3.1 (dari GitHub API). WAJIB diganti ke SHA v0.3.2 dari
+// SHA asli APK v0.3.1 (dari GitHub API). WAJIB diganti ke SHA v0.3.4 dari
 // SHA256SUMS.txt lewat commit susulan "chore(web)" setelah CI rilis.
 const FALLBACK_SHA256 =
   "0f0a8e95e387e31c4a348172bc55672d159eeac141241df24c79873f873a7242";

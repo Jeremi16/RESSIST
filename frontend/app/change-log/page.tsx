@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.3.3";
-const APK_NAME = "ressist-0.3.3-code9-release.apk";
+const APK_VERSION = "v0.3.4";
+const APK_NAME = "ressist-0.3.4-code10-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.44 MB";
-const APK_RELEASED = "21 September 2026";
+const APK_RELEASED = "25 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V033_VERSION = "v0.3.3";
+const V033_NAME = "ressist-0.3.3-code9-release.apk";
+const V033_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V033_VERSION}/${V033_NAME}`;
+const V033_SIZE = "3.44 MB";
+const V033_RELEASED = "21 September 2026";
 
 const V032_VERSION = "v0.3.2";
 const V032_NAME = "ressist-0.3.2-code8-release.apk";
@@ -79,19 +85,35 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-3-3",
+    id: "v0-3-4",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Tetap Masuk Saat Offline",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Perbaikan sesi saat offline dan logout yang lebih bersih. Update langsung timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Buka aplikasi saat offline tidak lagi dilempar ke halaman login — langsung ke beranda, data dimuat ulang saat online.",
+      "Logout selalu menghapus sesi di HP, walau sedang tanpa sinyal.",
+      "Info versi di aplikasi kini selalu sesuai versi yang terpasang.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-3-3",
+    version: V033_VERSION,
+    fileName: V033_NAME,
+    filePath: V033_PATH,
+    size: V033_SIZE,
+    released: V033_RELEASED,
     title: "Sesi Anti-Logout",
-    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Perbaikan sesi login di HP, web, dan backend sekaligus. Update langsung timpa versi lama, tidak perlu uninstall.`,
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Perbaikan sesi login di HP, web, dan backend sekaligus. Update langsung timpa versi lama, tidak perlu uninstall.`,
     highlights: [
       "Sesi tidak lagi hilang saat sinyal tidak stabil atau server sibuk sesaat.",
       "Login tetap terjaga saat aplikasi sinkron di latar belakang.",
       "Web: halaman tidak lagi tiba-tiba kembali ke login setelah 3 hari pemakaian aktif.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      `Ringan — hanya sekitar ${V033_SIZE}.`,
     ],
   },
   {

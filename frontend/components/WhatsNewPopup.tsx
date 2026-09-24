@@ -10,16 +10,16 @@ interface WhatsNewPopupProps { isOpen?: boolean; onClose?: () => void; showTrigg
 // WAJIB sinkron dengan RELEASES[0] di frontend/app/change-log/page.tsx
 // (single source of truth rilis APK Android). Rilis baru = update versi +
 // highlights di bawah mengikuti entry terbaru di change-log.
-const WHATS_NEW_VERSION = "v0.3.3";
+const WHATS_NEW_VERSION = "v0.3.4";
 const WHATS_NEW_STORAGE_KEY = `whats-new-${WHATS_NEW_VERSION}-seen`;
 const APK_SIZE = "3.44 MB";
-const APK_RELEASED = "21 September 2026";
+const APK_RELEASED = "25 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 
 const NEW_FEATURES = [
-  { icon: ShieldCheck, title: "Sesi Anti-Logout", description: "Sesi tidak lagi hilang saat sinyal tidak stabil atau server sibuk sesaat." },
-  { icon: RefreshCw, title: "Login Terjaga saat Sinkron", description: "Login tetap terjaga saat aplikasi sinkron di latar belakang." },
-  { icon: Globe, title: "Web Tetap Login", description: "Halaman web tidak lagi tiba-tiba kembali ke login setelah 3 hari pemakaian aktif." },
+  { icon: Globe, title: "Tetap Masuk Saat Offline", description: "Buka aplikasi tanpa sinyal tidak lagi dilempar ke halaman login." },
+  { icon: RefreshCw, title: "Data Dimuat Ulang Otomatis", description: "Begitu online lagi, beranda tinggal dimuat ulang — sesi tetap aman." },
+  { icon: ShieldCheck, title: "Logout Lebih Bersih", description: "Logout selalu menghapus sesi di HP, walau sedang tanpa sinyal." },
   { icon: Smartphone, title: "Ringan & Timpa Langsung", description: `Hanya sekitar ${APK_SIZE}. Update langsung timpa versi lama, tidak perlu uninstall.` },
 ];
 
