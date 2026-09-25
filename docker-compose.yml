@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-ressist}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-ressist}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD wajib diisi}
       POSTGRES_DB: ${DB_NAME:-ressist}
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -29,7 +29,7 @@ services:
     environment:
       ENV: production
       PORT: "8080"
-      DATABASE_URL: postgresql://${DB_USER:-ressist}:${DB_PASSWORD:-ressist}@db:5432/${DB_NAME:-ressist}?sslmode=disable
+      DATABASE_URL: postgresql://${DB_USER:-ressist}:${DB_PASSWORD:?DB_PASSWORD wajib diisi}@db:5432/${DB_NAME:-ressist}?sslmode=disable
       AUTO_MIGRATE: "true"
       GIN_MODE: release
       BOT_SERVICE_TOKEN: ${BOT_SERVICE_TOKEN:?set BOT_SERVICE_TOKEN in .env}

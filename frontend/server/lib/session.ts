@@ -5,8 +5,16 @@ import type { Context } from "hono";
 import jwt from "jsonwebtoken";
 import { getCookieDomain, isProduction } from "./env";
 
-export const SESSION_SECRET =
-  process.env.SESSION_SECRET || "fallback-secret-for-development-only";
+function getSessionSecret(): string {
+  const secret = process.env.SESSION_SECRET || "";
+  if (secret.length >= 32) return secret;
+  if (isProduction()) {
+    throw new Error("SESSION_SECRET wajib diisi (min 32 karakter) di production");
+  }
+  return secret || "fallback-secret-for-development-only";
+}
+
+export const SESSION_SECRET = getSessionSecret();
 export const COOKIE_NAME = "el-learning-session";
 export const REFRESH_COOKIE_NAME = "refresh_token";
 

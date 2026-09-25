@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"crypto/subtle"
+	"log"
 	"net/http"
 	"strings"
 
@@ -19,7 +21,7 @@ func RequireBotService(botToken string) gin.HandlerFunc {
 			return
 		}
 		got := strings.TrimSpace(c.GetHeader("X-Bot-Token"))
-		if got == "" || got != botToken {
+		if !botTokenMatches(got, botToken) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid bot token"})
 			return
 		}
@@ -27,9 +29,7 @@ func RequireBotService(botToken string) gin.HandlerFunc {
 		// If the bot impersonates a user, expose it as claims so existing
 		// AuthenticatedUserID(c) keeps working without handler changes.
 		if actAs := strings.TrimSpace(c.GetHeader("X-Act-As-User")); actAs != "" {
-			c.Set(claimsContextKey, &AccessClaims{
-				RegisteredClaims: jwt.RegisteredClaims{Subject: actAs},
-			})
+			setBotActAs(c, actAs)
 		}
 		c.Next()
 	}
@@ -53,12 +53,10 @@ func BotOrAPIKeyOrJWT(parser TokenParser, validator ApiKeyValidator, botToken st
 	apiKeyOrJWT := APIKeyOrJWT(parser, validator)
 	return func(c *gin.Context) {
 		if strings.TrimSpace(botToken) != "" {
-			if got := strings.TrimSpace(c.GetHeader("X-Bot-Token")); got != "" && got == botToken {
+			if got := strings.TrimSpace(c.GetHeader("X-Bot-Token")); botTokenMatches(got, botToken) {
 				c.Set(botContextKey, true)
 				if actAs := strings.TrimSpace(c.GetHeader("X-Act-As-User")); actAs != "" {
-					c.Set(claimsContextKey, &AccessClaims{
-						RegisteredClaims: jwt.RegisteredClaims{Subject: actAs},
-					})
+					setBotActAs(c, actAs)
 					c.Next()
 					return
 				}
@@ -76,12 +74,10 @@ func BotOrAccessToken(parser TokenParser, botToken string) gin.HandlerFunc {
 	access := AccessToken(parser)
 	return func(c *gin.Context) {
 		if strings.TrimSpace(botToken) != "" {
-			if got := strings.TrimSpace(c.GetHeader("X-Bot-Token")); got != "" && got == botToken {
+			if got := strings.TrimSpace(c.GetHeader("X-Bot-Token")); botTokenMatches(got, botToken) {
 				c.Set(botContextKey, true)
 				if actAs := strings.TrimSpace(c.GetHeader("X-Act-As-User")); actAs != "" {
-					c.Set(claimsContextKey, &AccessClaims{
-						RegisteredClaims: jwt.RegisteredClaims{Subject: actAs},
-					})
+					setBotActAs(c, actAs)
 					c.Next()
 					return
 				}
@@ -91,4 +87,20 @@ func BotOrAccessToken(parser TokenParser, botToken string) gin.HandlerFunc {
 		}
 		access(c)
 	}
+}
+
+// botTokenMatches compares tokens in constant time to avoid timing leaks.
+func botTokenMatches(got, want string) bool {
+	if got == "" || want == "" {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(got), []byte(want)) == 1
+}
+
+// setBotActAs exposes the impersonated user as claims and audits the call.
+func setBotActAs(c *gin.Context, userID string) {
+	log.Printf("bot act-as user=%s %s %s", userID, c.Request.Method, c.FullPath())
+	c.Set(claimsContextKey, &AccessClaims{
+		RegisteredClaims: jwt.RegisteredClaims{Subject: userID},
+	})
 }
