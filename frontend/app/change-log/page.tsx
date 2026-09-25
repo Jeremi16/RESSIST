@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.3.4";
-const APK_NAME = "ressist-0.3.4-code10-release.apk";
+const APK_VERSION = "v0.3.5";
+const APK_NAME = "ressist-0.3.5-code11-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.44 MB";
 const APK_RELEASED = "25 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V034_VERSION = "v0.3.4";
+const V034_NAME = "ressist-0.3.4-code10-release.apk";
+const V034_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V034_VERSION}/${V034_NAME}`;
+const V034_SIZE = "3.44 MB";
+const V034_RELEASED = "25 September 2026";
 
 const V033_VERSION = "v0.3.3";
 const V033_NAME = "ressist-0.3.3-code9-release.apk";
@@ -85,19 +91,35 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-3-4",
+    id: "v0-3-5",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Update Langsung dari Aplikasi",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Memperbaiki fitur update di dalam aplikasi. Pengguna v0.3.4 atau lebih lama perlu memasang versi ini manual sekali dari halaman download.`,
+    highlights: [
+      "Tombol update di aplikasi kini memunculkan dialog pemasangan dengan benar.",
+      "Jika pemasangan gagal, aplikasi menampilkan alasannya dan mencoba cara pemasangan lain.",
+      "Unduhan update ulang tidak lagi bentrok dengan file unduhan sebelumnya.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-3-4",
+    version: V034_VERSION,
+    fileName: V034_NAME,
+    filePath: V034_PATH,
+    size: V034_SIZE,
+    released: V034_RELEASED,
     title: "Tetap Masuk Saat Offline",
-    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Perbaikan sesi saat offline dan logout yang lebih bersih. Update langsung timpa versi lama, tidak perlu uninstall.`,
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Perbaikan sesi saat offline dan logout yang lebih bersih. Update langsung timpa versi lama, tidak perlu uninstall.`,
     highlights: [
       "Buka aplikasi saat offline tidak lagi dilempar ke halaman login — langsung ke beranda, data dimuat ulang saat online.",
       "Logout selalu menghapus sesi di HP, walau sedang tanpa sinyal.",
       "Info versi di aplikasi kini selalu sesuai versi yang terpasang.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      `Ringan — hanya sekitar ${V034_SIZE}.`,
     ],
   },
   {

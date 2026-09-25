@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.FileProvider
-import id.ac.itera.ressist.MainActivity
 import java.io.File
 
 /**
@@ -29,6 +28,8 @@ import java.io.File
 class AppUpdater(private val context: Context) {
 
     fun startDownload(url: String, fileName: String): Long {
+        // File lama bernama sama bikin DownloadManager gagal / menamai ulang.
+        localFile(fileName).delete()
         val req = DownloadManager.Request(Uri.parse(url))
             .setTitle("Ressist $fileName")
             .setDescription("Mengunduh pembaruan aplikasi")
@@ -96,7 +97,7 @@ class AppUpdater(private val context: Context) {
                         session.fsync(output)
                     }
                 }
-                session.commit(commitIntentSender(sessionId))
+                session.commit(commitIntentSender(sessionId, file))
             }
             true
         } catch (_: Exception) {
@@ -138,13 +139,15 @@ class AppUpdater(private val context: Context) {
 
     // ---------- internal ----------
 
-    private fun commitIntentSender(sessionId: Int): android.content.IntentSender {
-        val intent = Intent(context, MainActivity::class.java).apply {
-            action = "id.ac.itera.ressist.INSTALL_COMMIT"
-        }
+    private fun commitIntentSender(sessionId: Int, file: File): android.content.IntentSender {
+        // Status dikirim ke InstallResultReceiver: PENDING_USER_ACTION wajib
+        // di-startActivity di sana agar dialog konfirmasi sistem muncul.
+        val intent = Intent(context, InstallResultReceiver::class.java)
+            .putExtra(InstallResultReceiver.EXTRA_APK_PATH, file.path)
+        // MUTABLE wajib: sistem mengisi EXTRA_STATUS/EXTRA_INTENT ke intent ini.
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or
             (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0)
-        return PendingIntent.getActivity(context, sessionId, intent, flags).intentSender
+        return PendingIntent.getBroadcast(context, sessionId, intent, flags).intentSender
     }
 
     /** Salin isi unduhan DownloadManager ke file updates/ agar bisa di-session-install. */
@@ -168,7 +171,7 @@ class AppUpdater(private val context: Context) {
     }
 
     /** Fallback Legacy: ACTION_VIEW via FileProvider (jalur lama). */
-    private fun promptInstallLegacy(file: File) {
+    internal fun promptInstallLegacy(file: File) {
         val uri = FileProvider.getUriForFile(
             context, "${context.packageName}.fileprovider", file,
         )
