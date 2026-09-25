@@ -6,10 +6,12 @@ import id.ac.itera.ressist.api.CalendarApi
 import id.ac.itera.ressist.api.SessionExpiredException
 import id.ac.itera.ressist.auth.AuthManager
 import id.ac.itera.ressist.data.SyncPrefs
+import id.ac.itera.ressist.data.ThemePrefs
 import id.ac.itera.ressist.data.repository.AssignmentRepository
 import id.ac.itera.ressist.data.repository.UserRepository
 import id.ac.itera.ressist.domain.model.AuthAccount
 import id.ac.itera.ressist.domain.model.TaskBuckets
+import id.ac.itera.ressist.domain.model.limitUpcoming
 import id.ac.itera.ressist.domain.model.User
 import id.ac.itera.ressist.domain.time.isStale
 import id.ac.itera.ressist.reminders.SyncManager
@@ -27,6 +29,9 @@ data class OverviewUiState(
     val isSyncing: Boolean = false,
     val account: AuthAccount? = null,
     val buckets: TaskBuckets? = null,
+    /** Jumlah tugas mendatang yang disembunyikan oleh batas tampilan. */
+    val hiddenCount: Int = 0,
+    val horizonDays: Int? = null,
     val user: User? = null,
     val stale: Boolean = false,
     val error: String? = null,
@@ -40,12 +45,41 @@ class OverviewViewModel(
     private val authManager: AuthManager,
     private val syncPrefs: SyncPrefs,
     private val syncManager: SyncManager,
+    private val themePrefs: ThemePrefs,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OverviewUiState())
     val state: StateFlow<OverviewUiState> = _state.asStateFlow()
 
+    // Buckets mentah dari server; state.buckets = hasil batas tampilan tugas.
+    private var rawBuckets: TaskBuckets? = null
+    private var horizonDays: Int? = null
+
+    private fun limited(raw: TaskBuckets): TaskBuckets {
+        rawBuckets = raw
+        return raw.limitUpcoming(horizonDays, Clock.System.now())
+    }
+
+    private fun hiddenOf(shown: TaskBuckets): Int =
+        (rawBuckets?.upcoming?.size ?: 0) - shown.upcoming.size
+
+    private fun observeHorizon() {
+        viewModelScope.launch {
+            themePrefs.taskHorizonDays.collect { days ->
+                horizonDays = days
+                val raw = rawBuckets
+                if (raw == null) {
+                    _state.update { it.copy(horizonDays = days) }
+                } else {
+                    val shown = limited(raw)
+                    _state.update { it.copy(buckets = shown, hiddenCount = hiddenOf(shown), horizonDays = days) }
+                }
+            }
+        }
+    }
+
     init {
+        observeHorizon()
         load()
     }
 
@@ -56,7 +90,7 @@ class OverviewViewModel(
                 val account = authManager.account.value ?: authManager.restore()
                 val bucketsDeferred = async { assignments.buckets() }
                 val userDeferred = async { users.get() }
-                val buckets = bucketsDeferred.await()
+                val buckets = limited(bucketsDeferred.await())
                 val user = userDeferred.await()
                 val lastSuccess = runCatching { syncPrefs.lastSuccessOnce() }.getOrDefault(0L)
                 _state.update {
@@ -64,6 +98,7 @@ class OverviewViewModel(
                         isLoading = false,
                         account = account,
                         buckets = buckets,
+                        hiddenCount = hiddenOf(buckets),
                         user = user,
                         stale = isStale(user.lmsLastSyncedAt, Clock.System.now()),
                         lastSuccess = lastSuccess,

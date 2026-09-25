@@ -1,6 +1,7 @@
 package id.ac.itera.ressist.domain.model
 
 import kotlinx.datetime.Instant
+import kotlin.time.Duration.Companion.days
 
 data class AuthAccount(
     val id: String,
@@ -42,6 +43,19 @@ fun List<Assignment>.bucketize(now: Instant): TaskBuckets {
         overdue = sorted.filter { !it.completed && it.deadline < now },
         upcoming = sorted.filter { !it.completed && it.deadline >= now },
         done = sorted.filter { it.completed },
+    )
+}
+
+/**
+ * Batas tampilan tugas (Lainnya -> Batas Tampilan Tugas): sembunyikan tugas
+ * mendatang yang deadline-nya lebih dari [days] hari lagi. null = semua.
+ * Tugas tanpa deadline tetap tampil; terlewat & selesai tidak diubah.
+ */
+fun TaskBuckets.limitUpcoming(days: Int?, now: Instant): TaskBuckets {
+    if (days == null || days <= 0) return this
+    val limit = now + days.days
+    return copy(
+        upcoming = upcoming.filter { it.deadline == Instant.DISTANT_FUTURE || it.deadline <= limit },
     )
 }
 

@@ -181,6 +181,14 @@ fun TugasScreen(modifier: Modifier = Modifier, viewModel: TugasViewModel = koinV
                         )
                     }
                 }
+                if (state.selectedTab == 1 && state.hiddenCount > 0) {
+                    Text(
+                        "${state.hiddenCount} tugas disembunyikan (deadline > ${state.horizonDays} hari)",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                    )
+                }
                 // Tab ala Mihon: baris tab + garis indikator animasi + badge angka (sembunyi saat 0).
                 // Posisi garis dihitung manual (lebar tab sama rata) agar tepat di bawah tab aktif.
                 val tabTitles = listOf("Terlewat", "Mendatang", "Selesai")

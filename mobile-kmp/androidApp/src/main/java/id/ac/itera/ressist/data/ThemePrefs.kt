@@ -3,6 +3,7 @@ package id.ac.itera.ressist.data
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +26,7 @@ class ThemePrefs(private val context: Context) {
         val MODE = stringPreferencesKey("tampilan_mode")
         val PURE_BLACK = booleanPreferencesKey("tampilan_pure_black")
         val TEXT_SIZE = stringPreferencesKey("tampilan_text_size")
+        val TASK_HORIZON = intPreferencesKey("tugas_batas_hari")
     }
 
     val mode: Flow<ThemeMode> = context.settingsStore.data.map {
@@ -37,6 +39,15 @@ class ThemePrefs(private val context: Context) {
     val textSize: Flow<TextSize> = context.settingsStore.data.map {
         runCatching { TextSize.valueOf(it[Keys.TEXT_SIZE] ?: TextSize.NORMAL.name) }
             .getOrDefault(TextSize.NORMAL)
+    }
+
+    /** Batas tampilan tugas mendatang (hari); null = tampilkan semua. */
+    val taskHorizonDays: Flow<Int?> = context.settingsStore.data.map {
+        it[Keys.TASK_HORIZON]?.takeIf { d -> d > 0 }
+    }
+
+    suspend fun setTaskHorizonDays(days: Int?) {
+        context.settingsStore.edit { it[Keys.TASK_HORIZON] = days ?: 0 }
     }
 
     suspend fun setMode(mode: ThemeMode) {

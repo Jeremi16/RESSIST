@@ -39,6 +39,7 @@ import id.ac.itera.ressist.ui.lainnya.TentangScreen
 import id.ac.itera.ressist.ui.lms.LmsScreen
 import id.ac.itera.ressist.ui.login.LoginScreen
 import id.ac.itera.ressist.ui.overview.OverviewScreen
+import id.ac.itera.ressist.ui.pengaturan.BatasTugasScreen
 import id.ac.itera.ressist.ui.pengaturan.TampilanScreen
 import id.ac.itera.ressist.ui.pengingat.PengingatScreen
 import id.ac.itera.ressist.ui.profil.ProfilScreen
@@ -187,6 +188,7 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
             3 -> PengingatScreen(modifier = modifier)
             else -> when (lainnyaDetail) {
                 "tampilan" -> TampilanScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
+                "batas" -> BatasTugasScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 "matkul" -> MataKuliahScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 "filter" -> FilterKelasScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
                 "profil" -> ProfilScreen(onBack = { lainnyaDetail = null }, modifier = modifier)
@@ -197,6 +199,7 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
                     onOpenFilter = { lainnyaDetail = "filter" },
                     onOpenProfil = { lainnyaDetail = "profil" },
                     onOpenTampilan = { lainnyaDetail = "tampilan" },
+                    onOpenBatasTugas = { lainnyaDetail = "batas" },
                     onOpenSinkronisasi = { lainnyaDetail = "sinkronisasi" },
                     onOpenTentang = { lainnyaDetail = "tentang" },
                     modifier = modifier,

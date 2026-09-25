@@ -46,6 +46,7 @@ fun LainnyaScreen(
     onOpenFilter: () -> Unit,
     onOpenProfil: () -> Unit,
     onOpenTampilan: () -> Unit,
+    onOpenBatasTugas: () -> Unit,
     onOpenSinkronisasi: () -> Unit,
     onOpenTentang: () -> Unit,
     modifier: Modifier = Modifier,
@@ -89,6 +90,10 @@ fun LainnyaScreen(
                     MenuItem(
                         RessistIcons.Palette, "Tampilan",
                         "Mode gelap/terang & ukuran teks", onOpenTampilan,
+                    ),
+                    MenuItem(
+                        RessistIcons.FilterList, "Batas Tampilan Tugas",
+                        "Sembunyikan deadline yang masih jauh", onOpenBatasTugas,
                     ),
                     MenuItem(
                         RessistIcons.Refresh, "Sinkronisasi",

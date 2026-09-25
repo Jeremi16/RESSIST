@@ -6,15 +6,18 @@ import id.ac.itera.ressist.api.CalendarApi
 import id.ac.itera.ressist.api.SessionExpiredException
 import id.ac.itera.ressist.auth.AuthManager
 import id.ac.itera.ressist.data.SyncPrefs
+import id.ac.itera.ressist.data.ThemePrefs
 import id.ac.itera.ressist.data.repository.AssignmentRepository
 import id.ac.itera.ressist.domain.model.Assignment
 import id.ac.itera.ressist.domain.model.TaskBuckets
+import id.ac.itera.ressist.domain.model.limitUpcoming
 import id.ac.itera.ressist.ui.common.userMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 
 enum class TugasSort(val label: String) {
     DEADLINE_ASC("Deadline terdekat"),
@@ -54,6 +57,9 @@ data class TugasUiState(
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
     val buckets: TaskBuckets? = null,
+    /** Jumlah tugas mendatang yang disembunyikan oleh batas tampilan. */
+    val hiddenCount: Int = 0,
+    val horizonDays: Int? = null,
     val selectedTab: Int = 1, // default Mendatang
     val completingId: String? = null,
     val notice: String? = null,
@@ -70,12 +76,41 @@ class TugasViewModel(
     private val calendar: CalendarApi,
     private val authManager: AuthManager,
     private val syncPrefs: SyncPrefs,
+    private val themePrefs: ThemePrefs,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TugasUiState())
     val state: StateFlow<TugasUiState> = _state.asStateFlow()
 
+    // Buckets mentah dari server; state.buckets = hasil batas tampilan tugas.
+    private var rawBuckets: TaskBuckets? = null
+    private var horizonDays: Int? = null
+
+    private fun limited(raw: TaskBuckets): TaskBuckets {
+        rawBuckets = raw
+        return raw.limitUpcoming(horizonDays, Clock.System.now())
+    }
+
+    private fun hiddenOf(shown: TaskBuckets): Int =
+        (rawBuckets?.upcoming?.size ?: 0) - shown.upcoming.size
+
+    private fun observeHorizon() {
+        viewModelScope.launch {
+            themePrefs.taskHorizonDays.collect { days ->
+                horizonDays = days
+                val raw = rawBuckets
+                if (raw == null) {
+                    _state.update { it.copy(horizonDays = days) }
+                } else {
+                    val shown = limited(raw)
+                    _state.update { it.copy(buckets = shown, hiddenCount = hiddenOf(shown), horizonDays = days) }
+                }
+            }
+        }
+    }
+
     init {
+        observeHorizon()
         load()
     }
 
@@ -115,8 +150,8 @@ class TugasViewModel(
         _state.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             try {
-                val buckets = assignments.buckets()
-                _state.update { it.copy(isLoading = false, buckets = buckets) }
+                val buckets = limited(assignments.buckets())
+                _state.update { it.copy(isLoading = false, buckets = buckets, hiddenCount = hiddenOf(buckets)) }
             } catch (e: SessionExpiredException) {
                 authManager.onSessionExpired()
             } catch (e: Exception) {
@@ -133,8 +168,8 @@ class TugasViewModel(
             try {
                 runCatching { calendar.preview(force = true) }.getOrThrow()
                 runCatching { syncPrefs.setLastSuccess(now) }
-                val buckets = assignments.buckets()
-                _state.update { it.copy(isRefreshing = false, buckets = buckets) }
+                val buckets = limited(assignments.buckets())
+                _state.update { it.copy(isRefreshing = false, buckets = buckets, hiddenCount = hiddenOf(buckets)) }
             } catch (e: SessionExpiredException) {
                 authManager.onSessionExpired()
             } catch (e: Exception) {
@@ -150,9 +185,9 @@ class TugasViewModel(
         viewModelScope.launch {
             try {
                 assignments.complete(task)
-                val buckets = assignments.buckets()
+                val buckets = limited(assignments.buckets())
                 _state.update {
-                    it.copy(completingId = null, buckets = buckets, notice = "Tugas ditandai selesai")
+                    it.copy(completingId = null, buckets = buckets, hiddenCount = hiddenOf(buckets), notice = "Tugas ditandai selesai")
                 }
             } catch (e: SessionExpiredException) {
                 authManager.onSessionExpired()

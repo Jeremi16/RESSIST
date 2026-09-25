@@ -40,8 +40,8 @@ val androidModule = module {
     single { UpdatePrefs(androidContext()) }
     single { AppUpdater(androidContext()) }
     viewModel { LoginViewModel(get(), get(), get()) }
-    viewModel { OverviewViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { TugasViewModel(get(), get(), get(), get()) }
+    viewModel { OverviewViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { TugasViewModel(get(), get(), get(), get(), get()) }
     viewModel { KalenderViewModel(get(), get()) }
     viewModel { LmsViewModel(get(), get(), get()) }
     viewModel { KelasViewModel(get(), get(), get()) }
