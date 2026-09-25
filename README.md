@@ -207,7 +207,7 @@ Aturan penting:
 
 ### Mobile — GitHub Release (sideload)
 
-*   Rilis saat ini **v0.3.5 (`versionCode 11`)**, `applicationId id.ac.itera.ressist`.
+*   Rilis saat ini **v0.3.6 (`versionCode 12`)**, `applicationId id.ac.itera.ressist`.
 *   Signing: keystore rilis di `mobile-kmp/ressist-release.jks` (gitignored, jangan hilang — tanpa key ini tidak bisa publish update dengan `applicationId` yang sama), password di `mobile-kmp/keystore.properties` (gitignored). Build debug pakai debug key bawaan + `applicationId` `.dev` (ala Mihon) supaya tidak mencemari reputasi cert rilis — daftarkan SHA-1 debug juga di OAuth client GCP.
 *   Checklist rilis: bump `versionCode +1` + `versionName`, 1 commit + 1 tag `vX.Y.Z`, `./gradlew :androidApp:assembleRelease`, verifikasi SHA-1 (`apksigner verify --print-certs` vs Android OAuth client di GCP), upload APK ke GitHub Release — **jangan commit binary ke `releases/`**. Detail + troubleshooting loop consent Google: `mobile-kmp/README.md`.
 

@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.3.5";
-const APK_NAME = "ressist-0.3.5-code11-release.apk";
+const APK_VERSION = "v0.3.6";
+const APK_NAME = "ressist-0.3.6-code12-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.44 MB";
 const APK_RELEASED = "25 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V035_VERSION = "v0.3.5";
+const V035_NAME = "ressist-0.3.5-code11-release.apk";
+const V035_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V035_VERSION}/${V035_NAME}`;
+const V035_SIZE = "3.44 MB";
+const V035_RELEASED = "25 September 2026";
 
 const V034_VERSION = "v0.3.4";
 const V034_NAME = "ressist-0.3.4-code10-release.apk";
@@ -91,19 +97,35 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-3-5",
+    id: "v0-3-6",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Batas Tampilan Tugas",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Fokus ke tugas yang dekat: sembunyikan deadline yang masih jauh. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Menu baru Lainnya → Batas Tampilan Tugas: tampilkan tugas 7, 14, 28, atau 60 hari ke depan saja.",
+      "Berlaku di tab Tugas dan Beranda, lengkap dengan info jumlah tugas yang disembunyikan.",
+      "Kalender dan pengingat tetap menampilkan semua tugas, jadi tidak ada deadline yang terlewat.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-3-5",
+    version: V035_VERSION,
+    fileName: V035_NAME,
+    filePath: V035_PATH,
+    size: V035_SIZE,
+    released: V035_RELEASED,
     title: "Update Langsung dari Aplikasi",
-    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Memperbaiki fitur update di dalam aplikasi. Pengguna v0.3.4 atau lebih lama perlu memasang versi ini manual sekali dari halaman download.`,
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Memperbaiki fitur update di dalam aplikasi. Pengguna v0.3.4 atau lebih lama perlu memasang versi ini manual sekali dari halaman download.`,
     highlights: [
       "Tombol update di aplikasi kini memunculkan dialog pemasangan dengan benar.",
       "Jika pemasangan gagal, aplikasi menampilkan alasannya dan mencoba cara pemasangan lain.",
       "Unduhan update ulang tidak lagi bentrok dengan file unduhan sebelumnya.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      `Ringan — hanya sekitar ${V035_SIZE}.`,
     ],
   },
   {
