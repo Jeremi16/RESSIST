@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.3.9";
-const APK_NAME = "ressist-0.3.9-code15-release.apk";
+const APK_VERSION = "v0.4.0";
+const APK_NAME = "ressist-0.4.0-code16-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.44 MB";
 const APK_RELEASED = "29 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V039_VERSION = "v0.3.9";
+const V039_NAME = "ressist-0.3.9-code15-release.apk";
+const V039_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V039_VERSION}/${V039_NAME}`;
+const V039_SIZE = "3.44 MB";
+const V039_RELEASED = "29 September 2026";
 
 const V038_VERSION = "v0.3.8";
 const V038_NAME = "ressist-0.3.8-code14-release.apk";
@@ -115,18 +121,33 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-3-9",
+    id: "v0-4-0",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Tampilan Login Baru",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Halaman login tampil baru dengan kolase ikon dan tombol Google yang lebih besar. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Halaman login didesain ulang: kolase ikon Ressist, judul besar, dan tombol pill hitam.",
+      "Indikator loading kini tampil langsung di tombol Google saat proses masuk.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-3-9",
+    version: V039_VERSION,
+    fileName: V039_NAME,
+    filePath: V039_PATH,
+    size: V039_SIZE,
+    released: V039_RELEASED,
     title: "Perbaikan Logout",
-    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Keluar dari akun kini langsung kembali ke halaman login. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Keluar dari akun kini langsung kembali ke halaman login. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
     highlights: [
       "Tombol Keluar langsung membawa ke halaman login, tanpa harus menunggu atau memuat ulang.",
       "Ganti akun kini selalu menampilkan pemilih akun Google saat login berikutnya.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      `Ringan — hanya sekitar ${V039_SIZE}.`,
     ],
   },
   {
