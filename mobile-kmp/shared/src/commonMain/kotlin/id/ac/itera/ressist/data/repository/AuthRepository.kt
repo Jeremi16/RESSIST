@@ -4,6 +4,7 @@ import id.ac.itera.ressist.api.AuthApi
 import id.ac.itera.ressist.api.AuthedHttpClient
 import id.ac.itera.ressist.api.dto.AuthUserDto
 import id.ac.itera.ressist.api.dto.SyncResponseDto
+import id.ac.itera.ressist.data.OfflineCache
 import id.ac.itera.ressist.data.SessionStorage
 import id.ac.itera.ressist.data.toDomain
 import id.ac.itera.ressist.domain.model.AuthAccount
@@ -13,6 +14,7 @@ class AuthRepository(
     private val authApi: AuthApi,
     private val http: AuthedHttpClient,
     private val storage: SessionStorage,
+    private val cache: OfflineCache? = null,
 ) {
     suspend fun hasSession(): Boolean = storage.hasSession()
 
@@ -36,6 +38,7 @@ class AuthRepository(
             authApi.logout(storage.refreshToken())
         } finally {
             storage.clear()
+            cache?.clear() // data akun lama tak boleh tampil ke akun berikutnya
         }
     }
 }

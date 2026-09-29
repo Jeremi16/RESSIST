@@ -9,7 +9,10 @@ import id.ac.itera.ressist.api.ReleaseApi
 import id.ac.itera.ressist.api.TokenRefresher
 import id.ac.itera.ressist.api.UserApi
 import id.ac.itera.ressist.api.createHttpClient
+import id.ac.itera.ressist.data.InMemoryJsonCache
 import id.ac.itera.ressist.data.InMemorySessionStorage
+import id.ac.itera.ressist.data.JsonCache
+import id.ac.itera.ressist.data.OfflineCache
 import id.ac.itera.ressist.data.SessionStorage
 import id.ac.itera.ressist.data.repository.AssignmentRepository
 import id.ac.itera.ressist.data.repository.AuthRepository
@@ -40,10 +43,12 @@ fun sharedModule(
     single { UserApi(get()) }
     single { CourseApi(get()) }
     single { ReleaseApi(get()) }
-    single { AuthRepository(get(), get(), get()) }
-    single { AssignmentRepository(get()) }
-    single { CalendarRepository(get()) }
+    single<JsonCache> { InMemoryJsonCache() }
+    single { OfflineCache(get()) }
+    single { AuthRepository(get(), get(), get(), get()) }
+    single { AssignmentRepository(get(), get()) }
+    single { CalendarRepository(get(), get()) }
     single { UserRepository(get()) }
-    single { CourseRepository(get()) }
+    single { CourseRepository(get(), get()) }
     single { UpdateRepository(get()) }
 }

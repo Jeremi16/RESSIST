@@ -4,6 +4,8 @@ import id.ac.itera.ressist.BuildConfig
 import id.ac.itera.ressist.auth.AuthManager
 import id.ac.itera.ressist.auth.GoogleSignInHelper
 import id.ac.itera.ressist.data.AndroidSessionStorage
+import id.ac.itera.ressist.data.FileJsonCache
+import id.ac.itera.ressist.data.JsonCache
 import id.ac.itera.ressist.data.SyncPrefs
 import id.ac.itera.ressist.data.ThemePrefs
 import id.ac.itera.ressist.data.UpdatePrefs
@@ -31,6 +33,7 @@ import org.koin.dsl.module
  */
 val androidModule = module {
     single<SessionStorage> { AndroidSessionStorage(androidContext()) }
+    single<JsonCache> { FileJsonCache(androidContext()) }
     single { ThemePrefs(androidContext()) }
     single { GoogleSignInHelper(androidContext(), BuildConfig.GOOGLE_WEB_CLIENT_ID) }
     single { AuthManager(get<AuthRepository>()) }

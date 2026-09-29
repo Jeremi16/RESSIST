@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.3.6";
-const APK_NAME = "ressist-0.3.6-code12-release.apk";
+const APK_VERSION = "v0.3.7";
+const APK_NAME = "ressist-0.3.7-code13-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.44 MB";
-const APK_RELEASED = "25 September 2026";
+const APK_RELEASED = "29 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V036_VERSION = "v0.3.6";
+const V036_NAME = "ressist-0.3.6-code12-release.apk";
+const V036_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V036_VERSION}/${V036_NAME}`;
+const V036_SIZE = "3.44 MB";
+const V036_RELEASED = "25 September 2026";
 
 const V035_VERSION = "v0.3.5";
 const V035_NAME = "ressist-0.3.5-code11-release.apk";
@@ -97,19 +103,35 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-3-6",
+    id: "v0-3-7",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Mode Offline",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Tugas, kelas, dan kalender tetap bisa dibuka tanpa internet. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Tugas, kelas, dan kalender terakhir disimpan di HP dan tetap tampil saat tidak ada koneksi.",
+      "Strip penanda muncul saat data yang tampil adalah data tersimpan, lengkap dengan waktu terakhir diperbarui.",
+      "Data tersimpan otomatis dihapus saat logout.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-3-6",
+    version: V036_VERSION,
+    fileName: V036_NAME,
+    filePath: V036_PATH,
+    size: V036_SIZE,
+    released: V036_RELEASED,
     title: "Batas Tampilan Tugas",
-    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Fokus ke tugas yang dekat: sembunyikan deadline yang masih jauh. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Fokus ke tugas yang dekat: sembunyikan deadline yang masih jauh. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
     highlights: [
       "Menu baru Lainnya → Batas Tampilan Tugas: tampilkan tugas 7, 14, 28, atau 60 hari ke depan saja.",
       "Berlaku di tab Tugas dan Beranda, lengkap dengan info jumlah tugas yang disembunyikan.",
       "Kalender dan pengingat tetap menampilkan semua tugas, jadi tidak ada deadline yang terlewat.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      `Ringan — hanya sekitar ${V036_SIZE}.`,
     ],
   },
   {

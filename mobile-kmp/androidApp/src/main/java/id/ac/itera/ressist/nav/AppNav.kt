@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +29,7 @@ import id.ac.itera.ressist.auth.AuthManager
 import id.ac.itera.ressist.auth.RestoreResult
 import id.ac.itera.ressist.reminders.NotificationHelper
 import id.ac.itera.ressist.ui.common.LoadingBox
+import id.ac.itera.ressist.ui.common.OfflineBanner
 import id.ac.itera.ressist.ui.common.RessistBottomBar
 import id.ac.itera.ressist.ui.common.RessistIcons
 import id.ac.itera.ressist.ui.common.RessistTab
@@ -166,11 +168,14 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
         // Tanpa ini Scaffold kasih padding statusBar lagi → header turun 2x (gap hitam di screenshot).
         contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
-            RessistBottomBar(
-                tabs = TABS,
-                selected = tab,
-                onSelect = { selectTab(it) },
-            )
+            Column {
+                OfflineBanner()
+                RessistBottomBar(
+                    tabs = TABS,
+                    selected = tab,
+                    onSelect = { selectTab(it) },
+                )
+            }
         },
     ) { padding ->
         val modifier = Modifier.padding(padding)
