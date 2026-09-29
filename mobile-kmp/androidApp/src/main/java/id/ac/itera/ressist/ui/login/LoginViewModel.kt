@@ -114,6 +114,9 @@ class LoginViewModel(
                 doExchange(code)
             } else {
                 Log.i(TAG, "silent sign-in miss (status=${silent?.statusCode}), falling back to interactive")
+                // Buang sesi Google basi agar intent interaktif menampilkan
+                // pemilih akun segar, bukan layar "login kembali" yang macet.
+                runCatching { google.awaitSignOut() }
                 _state.update { it.copy(isLoading = false) }
                 launchInteractive()
             }

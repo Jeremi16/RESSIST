@@ -47,7 +47,11 @@ class GoogleSignInHelper(context: Context, serverClientId: String) {
         appContext,
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(serverClientId)
-            .requestServerAuthCode(serverClientId, true)
+            // forceCodeForRefreshToken=false: force=true memaksa consent ulang
+            // tiap login dan di Play Services baru membuat layar "Anda login
+            // kembali" berulang tanpa henti. Refresh token tetap diberikan saat
+            // consent pertama, dan backend mempertahankan yang lama bila kosong.
+            .requestServerAuthCode(serverClientId, false)
             .requestEmail()
             .requestScopes(
                 Scope(SCOPE_CLASSROOM_COURSES),
@@ -98,5 +102,10 @@ class GoogleSignInHelper(context: Context, serverClientId: String) {
 
     fun signOut() {
         runCatching { client.signOut() }
+    }
+
+    /** Seperti [signOut], tapi menunggu sampai selesai (tak pernah throw). */
+    suspend fun awaitSignOut(): Unit = suspendCancellableCoroutine { cont ->
+        client.signOut().addOnCompleteListener { if (cont.isActive) cont.resume(Unit) }
     }
 }
