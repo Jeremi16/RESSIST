@@ -95,7 +95,7 @@ fun AppNav(authManager: AuthManager = koinInject()) {
         }
     }
     LaunchedEffect(Unit) {
-        authManager.sessionExpired.collectLatest {
+        authManager.signedOut.collectLatest {
             nav.navigate(Routes.LOGIN) {
                 popUpTo(Routes.MAIN) { inclusive = true }
                 launchSingleTop = true

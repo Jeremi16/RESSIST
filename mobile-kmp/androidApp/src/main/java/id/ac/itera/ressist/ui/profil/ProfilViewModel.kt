@@ -107,8 +107,10 @@ class ProfilViewModel(
         viewModelScope.launch {
             runCatching { scheduler.cancelAll() }
             runCatching { syncManager.cancelAll() }
-            authManager.logout()
+            // Google sign-out dulu: logout() memicu navigasi ke Login yang
+            // menghancurkan ViewModel ini (dan coroutine-nya).
             runCatching { googleSignOut() }
+            authManager.logout()
             _state.update { it.copy(isLoggingOut = false) }
         }
     }

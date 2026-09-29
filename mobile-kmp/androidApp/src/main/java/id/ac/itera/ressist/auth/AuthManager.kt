@@ -13,14 +13,15 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * App-wide session holder. Any ViewModel that catches SessionExpiredException
- * calls [onSessionExpired]; AppNav collects [sessionExpired] and routes to Login.
+ * calls [onSessionExpired]; AppNav collects [signedOut] and routes to Login.
+ * [logout] emits the same signal so a manual logout redirects immediately.
  */
 class AuthManager(private val authRepository: AuthRepository) {
     private val _account = MutableStateFlow<AuthAccount?>(null)
     val account: StateFlow<AuthAccount?> = _account.asStateFlow()
 
-    private val _sessionExpired = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    val sessionExpired: SharedFlow<Unit> = _sessionExpired.asSharedFlow()
+    private val _signedOut = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val signedOut: SharedFlow<Unit> = _signedOut.asSharedFlow()
 
     /** Cold-start check: true when a refresh token exists (validity unknown). */
     suspend fun hasStoredSession(): Boolean = authRepository.hasSession()
@@ -56,12 +57,13 @@ class AuthManager(private val authRepository: AuthRepository) {
     suspend fun logout() {
         runCatching { authRepository.logout() }
         _account.value = null
+        _signedOut.emit(Unit)
     }
 
     suspend fun onSessionExpired() {
         runCatching { authRepository.logout() }
         _account.value = null
-        _sessionExpired.emit(Unit)
+        _signedOut.emit(Unit)
     }
 }
 
