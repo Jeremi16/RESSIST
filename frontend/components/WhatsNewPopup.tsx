@@ -10,14 +10,14 @@ interface WhatsNewPopupProps { isOpen?: boolean; onClose?: () => void; showTrigg
 // WAJIB sinkron dengan RELEASES[0] di frontend/app/change-log/page.tsx
 // (single source of truth rilis APK Android). Rilis baru = update versi +
 // highlights di bawah mengikuti entry terbaru di change-log.
-const WHATS_NEW_VERSION = "v0.3.8";
+const WHATS_NEW_VERSION = "v0.3.9";
 const WHATS_NEW_STORAGE_KEY = `whats-new-${WHATS_NEW_VERSION}-seen`;
 const APK_SIZE = "3.44 MB";
 const APK_RELEASED = "29 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 
 const NEW_FEATURES = [
-  { icon: CheckCircle2, title: "Login Google Lancar", description: "Perbaikan dialog \"Anda login kembali\" yang muncul berulang saat login." },
+  { icon: CheckCircle2, title: "Login & Logout Lancar", description: "Keluar langsung kembali ke halaman login, dan dialog \"Anda login kembali\" tidak lagi berulang." },
   { icon: Globe, title: "Mode Offline", description: "Tugas, kelas, dan kalender tetap tampil walau tanpa internet." },
   { icon: RefreshCw, title: "Update dari Aplikasi", description: "Cukup tekan update di Lainnya → Tentang, tidak perlu unduh manual lagi." },
   { icon: Smartphone, title: "Ringan & Timpa Langsung", description: `Hanya sekitar ${APK_SIZE}. Update langsung timpa versi lama, tidak perlu uninstall.` },
