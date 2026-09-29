@@ -28,10 +28,10 @@ const FALLBACK_VERSION = "v0.3.7";
 const FALLBACK_NAME = "ressist-0.3.7-code13-release.apk";
 const FALLBACK_SIZE = "3.44 MB";
 const FALLBACK_RELEASED = "September 2026";
-// SHA asli APK v0.3.6 (dari SHA256SUMS.txt rilis). Rilis berikutnya: ganti
+// SHA asli APK v0.3.7 (dari SHA256SUMS.txt rilis). Rilis berikutnya: ganti
 // lewat commit susulan "chore(web)" setelah CI rilis.
 const FALLBACK_SHA256 =
-  "4eebd8724c597b921c216c35914c11a73dbcb026e8e8f684b937663414a173c1";
+  "c8f1d3d1dd95baf778e0678cb3aaeba845a39bf90e23f024de8f5799406108aa";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 const RELEASES_REPO = "Jeremi16/RESSIST-MOBILE";
 const LATEST_API = `https://api.github.com/repos/${RELEASES_REPO}/releases/latest`;
