@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.3.7";
-const APK_NAME = "ressist-0.3.7-code13-release.apk";
+const APK_VERSION = "v0.3.8";
+const APK_NAME = "ressist-0.3.8-code14-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
 const APK_SIZE = "3.44 MB";
 const APK_RELEASED = "29 September 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V037_VERSION = "v0.3.7";
+const V037_NAME = "ressist-0.3.7-code13-release.apk";
+const V037_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V037_VERSION}/${V037_NAME}`;
+const V037_SIZE = "3.44 MB";
+const V037_RELEASED = "29 September 2026";
 
 const V036_VERSION = "v0.3.6";
 const V036_NAME = "ressist-0.3.6-code12-release.apk";
@@ -103,19 +109,34 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-3-7",
+    id: "v0-3-8",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Perbaikan Login Google",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Memperbaiki login Google yang macet di dialog "Anda login kembali". Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Dialog \"Anda login kembali\" tidak lagi muncul berulang setelah menekan Lanjutkan.",
+      "Sesi Google lama di HP otomatis dibersihkan sebelum login ulang.",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-3-7",
+    version: V037_VERSION,
+    fileName: V037_NAME,
+    filePath: V037_PATH,
+    size: V037_SIZE,
+    released: V037_RELEASED,
     title: "Mode Offline",
-    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Tugas, kelas, dan kalender tetap bisa dibuka tanpa internet. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Tugas, kelas, dan kalender tetap bisa dibuka tanpa internet. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
     highlights: [
       "Tugas, kelas, dan kalender terakhir disimpan di HP dan tetap tampil saat tidak ada koneksi.",
       "Strip penanda muncul saat data yang tampil adalah data tersimpan, lengkap dengan waktu terakhir diperbarui.",
       "Data tersimpan otomatis dihapus saat logout.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      `Ringan — hanya sekitar ${V037_SIZE}.`,
     ],
   },
   {
