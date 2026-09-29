@@ -43,6 +43,9 @@ function LoginContent() {
   // Dikecualikan ?auth=success (baru selesai OAuth, sesi dibuat di bawah).
   useEffect(() => {
     if (searchParams.get("auth") === "success") return;
+    // Baru saja dinyatakan sesi habis: jangan pantulkan balik ke dashboard
+    // (status cookie bisa basi) — cegah loop login <-> dashboard.
+    if (searchParams.get("reason") === "session-expired") return;
     if (authStatus === "authed") navigate("/dashboard", { replace: true });
   }, [authStatus, navigate, searchParams]);
 

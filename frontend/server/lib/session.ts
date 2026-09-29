@@ -74,11 +74,11 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
 export function clearSession(c: Context) {
   const domain = getCookieDomain();
-  if (domain) {
-    deleteCookie(c, COOKIE_NAME, { domain, path: "/" });
-    deleteCookie(c, REFRESH_COOKIE_NAME, { domain, path: "/" });
-  } else {
-    deleteCookie(c, COOKIE_NAME);
-    deleteCookie(c, REFRESH_COOKIE_NAME);
+  for (const name of [COOKIE_NAME, REFRESH_COOKIE_NAME]) {
+    // Selalu hapus versi host-only juga: cookie lama tanpa Domain tidak
+    // ikut terhapus oleh delete ber-domain, dan sisa el-learning-session
+    // membuat /auth/status tetap "authed" (loop login <-> dashboard).
+    deleteCookie(c, name, { path: "/" });
+    if (domain) deleteCookie(c, name, { domain, path: "/" });
   }
 }

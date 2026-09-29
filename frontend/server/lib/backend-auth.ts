@@ -1,7 +1,7 @@
 // Port lib/backend-auth.ts (next/headers cookies()/headers() -> hono Context).
 // Alur: refresh_token (httpOnly cookie) -> POST BACKEND/v1/auth/refresh
 // -> Bearer access_token -> fetch BACKEND/v1/... (+ rotasi refresh_token).
-import { getCookie, setCookie, deleteCookie } from "hono/cookie";
+import { getCookie, setCookie } from "hono/cookie";
 import type { Context } from "hono";
 import { COOKIE_NAME, REFRESH_COOKIE_NAME, SESSION_MAX_AGE_SECONDS, clearSession } from "./session";
 import { getBackendBaseUrl, getCookieDomain, isProduction } from "./env";
@@ -38,17 +38,10 @@ export function applyBackendAuthCookies(
   result: Pick<BackendAuthCallResult, "status" | "rotatedRefreshToken">,
 ): void {
   const domain = getCookieDomain();
-  const delOpts = domain ? { domain, path: "/" } : undefined;
 
   if (result.status === 401) {
     // Mirror lib/backend-auth.ts: sesi dianggap invalid saat backend 401.
-    if (delOpts) {
-      deleteCookie(c, REFRESH_COOKIE_NAME, delOpts);
-      deleteCookie(c, COOKIE_NAME, delOpts);
-    } else {
-      deleteCookie(c, REFRESH_COOKIE_NAME);
-      deleteCookie(c, COOKIE_NAME);
-    }
+    clearSession(c);
     return;
   }
 
