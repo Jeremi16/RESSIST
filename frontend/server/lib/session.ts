@@ -44,8 +44,12 @@ const baseCookieAttrs = () => ({
 });
 
 export function createSession(c: Context, payload: SessionPayload | string) {
+  // Ambil field sesi saja: payload hasil verifySession membawa exp/iat,
+  // yang bentrok dengan opsi expiresIn (jwt.sign melempar error → 500).
   const sessionData =
-    typeof payload === "string" ? { userId: payload, email: "" } : payload;
+    typeof payload === "string"
+      ? { userId: payload, email: "" }
+      : { userId: payload.userId, email: payload.email };
   const token = jwt.sign(sessionData, SESSION_SECRET, { expiresIn: SESSION_MAX_AGE_SECONDS });
   setCookie(c, COOKIE_NAME, token, {
     ...baseCookieAttrs(),
