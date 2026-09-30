@@ -39,22 +39,22 @@ export function TimelineFilter({ value, onChange, disabled }: TimelineFilterProp
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={cn(
-          "flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all duration-300",
-          "hover:border-[#60A8F8] hover:shadow-md hover:shadow-[#60A8F8]/10",
-          "focus:outline-none focus:ring-4 focus:ring-[#60A8F8]/30",
-          isOpen && "border-[#0059D0] ring-4 ring-[#60A8F8]/30",
+          "flex items-center gap-2 px-4 py-2.5 bg-white border border-black/10 rounded-xl transition-all duration-300",
+          "hover:border-black/20",
+          "focus:outline-none focus:border-[#0059D0]",
+          isOpen && "border-[#0059D0]",
           disabled && "opacity-50 cursor-not-allowed"
         )}
       >
         <ArrowUpDown className={cn(
           "size-4 transition-colors",
-          isOpen ? "text-[#0059D0]" : "text-slate-400"
+          isOpen ? "text-[#0059D0]" : "text-black/40"
         )} />
-        <span className="text-sm font-bold text-slate-700 min-w-[120px] text-left">
+        <span className="text-sm font-bold text-black/80 min-w-[120px] text-left">
           {selectedOption.label}
         </span>
         <ChevronDown className={cn(
-          "size-4 text-slate-400 transition-transform duration-300",
+          "size-4 text-black/40 transition-transform duration-300",
           isOpen && "rotate-180 text-[#0059D0]"
         )} />
       </button>
@@ -68,9 +68,9 @@ export function TimelineFilter({ value, onChange, disabled }: TimelineFilterProp
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="absolute right-0 mt-2 w-64 z-50 overflow-hidden"
           >
-            <div className="bg-white/90 backdrop-blur-xl border border-white/20 rounded-[1.5rem] shadow-2xl shadow-slate-900/10 p-2 border-slate-200">
-              <div className="px-3 py-2 border-b border-slate-100/50 mb-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <div className="bg-white border rounded-xl p-2 border-black/10">
+              <div className="px-3 py-2 border-b border-black/10 mb-1">
+                <span className="text-[10px] font-display font-bold uppercase tracking-wider text-black/40">
                   Urutkan Berdasarkan
                 </span>
               </div>
@@ -87,15 +87,15 @@ export function TimelineFilter({ value, onChange, disabled }: TimelineFilterProp
                       className={cn(
                         "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group",
                         isActive 
-                          ? "bg-[#0059D0] text-white shadow-lg shadow-[#0059D0]/20" 
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                          ? "bg-[#0059D0] text-white/20" 
+                          : "text-black/70 hover:bg-[#F5F5F5] hover:text-black"
                       )}
                     >
                       <span>{option.label}</span>
                       {isActive ? (
                         <Check className="size-4 text-white" />
                       ) : (
-                        <div className="size-4 rounded-full border border-slate-200 group-hover:border-[#60A8F8] transition-colors" />
+                        <div className="size-4 rounded-full border border-black/10 group-hover:border-[#0059D0] transition-colors" />
                       )}
                     </button>
                   );

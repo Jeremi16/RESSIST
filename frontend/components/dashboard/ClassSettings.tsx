@@ -77,28 +77,28 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
 
   return (
     <div className="space-y-6 min-w-0 max-w-full overflow-x-clip">
-      <div className="bg-[#60A8F8]/10 border border-black/5 rounded-2xl p-4 flex items-start gap-3 min-w-0">
+      <div className="bg-[#F5F5F5] border border-black/10 rounded-xl p-4 flex items-start gap-3 min-w-0">
         <div className="size-8 rounded-xl bg-[#0059D0] text-white flex items-center justify-center shrink-0 text-xs font-medium">!</div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-semibold text-black">Fitur Dalam Pengembangan</h4>
+          <h4 className="font-display text-sm font-bold tracking-tight text-black">Fitur Dalam Pengembangan</h4>
           <p className="text-xs text-black/60 leading-relaxed mt-1">Filter Kelas dan Alias Mata Kuliah masih beta. Beberapa fungsi mungkin berubah di versi mendatang.</p>
           <div className="flex gap-2 mt-2">
-            <span className="px-2.5 py-1 bg-white border border-black/5 text-black/60 text-xs rounded-full">Beta</span>
-            <span className="px-2.5 py-1 bg-white border border-black/5 text-black/60 text-xs rounded-full">v0.5.1</span>
+            <span className="px-2.5 py-1 bg-white border border-black/10 text-black/60 text-xs rounded-full">Beta</span>
+            <span className="px-2.5 py-1 bg-white border border-black/10 text-black/60 text-xs rounded-full">v0.5.1</span>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="bg-white border border-black/5 rounded-2xl p-3 sm:p-4 text-center min-w-0">
+        <div className="bg-white border border-black/10 rounded-xl p-3 sm:p-4 text-center min-w-0">
           <div className="size-7 sm:size-8 bg-[#0059D0] rounded-xl flex items-center justify-center text-white mx-auto mb-1.5 sm:mb-2"><GraduationCap className="size-3.5 sm:size-4" /></div>
           <p className="text-lg sm:text-xl font-semibold text-black leading-none">{totalClasses}</p><p className="text-[11px] sm:text-xs text-black/40 leading-tight mt-1 break-words">Kelas Tersedia</p>
         </div>
-        <div className="bg-white border border-black/5 rounded-2xl p-3 sm:p-4 text-center min-w-0">
+        <div className="bg-white border border-black/10 rounded-xl p-3 sm:p-4 text-center min-w-0">
           <div className="size-7 sm:size-8 bg-[#0059D0] rounded-xl flex items-center justify-center text-white mx-auto mb-1.5 sm:mb-2"><Users className="size-3.5 sm:size-4" /></div>
           <p className="text-lg sm:text-xl font-semibold text-black leading-none">{filteredCoursesCount}</p><p className="text-[11px] sm:text-xs text-black/40 leading-tight mt-1 break-words">Matkul Difilter</p>
         </div>
-        <div className="bg-white border border-black/5 rounded-2xl p-3 sm:p-4 text-center min-w-0">
+        <div className="bg-white border border-black/10 rounded-xl p-3 sm:p-4 text-center min-w-0">
           <div className="size-7 sm:size-8 bg-[#0059D0] rounded-xl flex items-center justify-center text-white mx-auto mb-1.5 sm:mb-2"><BookOpen className="size-3.5 sm:size-4" /></div>
           <p className="text-lg sm:text-xl font-semibold text-black leading-none">{activeCoursesCount}</p><p className="text-[11px] sm:text-xs text-black/40 leading-tight mt-1 break-words">Mata Kuliah Aktif</p>
         </div>
@@ -111,7 +111,7 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
           <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-black">Pengaturan Mata Kuliah</p><p className="text-xs text-black/40 leading-relaxed">Ubah alias tampilan dan mute notifikasi per mata kuliah</p></div>
         </div>
         {availableCourses.length === 0 ? (
-          <div className="p-6 text-center bg-white rounded-2xl border border-black/5 border-dashed">
+          <div className="p-6 text-center bg-white rounded-xl border border-black/10 border-dashed">
             <p className="text-sm text-black/40">Belum ada mata kuliah. Sinkronkan Moodle dulu.</p>
           </div>
         ) : (
@@ -119,7 +119,7 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
             {availableCourses.map((course) => {
               const isEditing = editingCourseId === course.id; const hasAlias = !!aliases[course.name];
               return (
-                <div key={course.id} className={cn("flex items-center justify-between gap-3 p-3 rounded-2xl border min-w-0 overflow-hidden", muted.includes(course.name) ? "bg-[#60A8F8]/10 border-black/5 opacity-60" : "bg-white border-black/5")}>
+                <div key={course.id} className={cn("flex items-center justify-between gap-3 p-3 rounded-xl border min-w-0 overflow-hidden", muted.includes(course.name) ? "bg-[#F5F5F5] border-black/10 opacity-60" : "bg-white border-black/10")}>
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className={cn("size-8 rounded-lg flex items-center justify-center text-xs font-medium shrink-0", muted.includes(course.name) ? "bg-black/10 text-black/30" : "bg-[#0059D0] text-white")}>{resolveDisplayCourseName(course.name).charAt(0).toUpperCase()}</div>
                     <div className="min-w-0 flex-1">
@@ -146,7 +146,7 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
       </div>
 
       {/* Section 2: Filter Kelas per Mata Kuliah (Opsi A - single) */}
-      <div className="space-y-3 pt-4 border-t border-black/5">
+      <div className="space-y-3 pt-4 border-t border-black/10">
         <div className="flex items-center gap-3">
           <div className="size-8 bg-[#0059D0] rounded-xl flex items-center justify-center text-white shrink-0"><GraduationCap className="size-4" /></div>
           <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-black">Filter Kelas</p><p className="text-xs text-black/40 leading-relaxed">Pilih kelas untuk tiap mata kuliah — hanya tugas dari kelas itu + tugas umum yang akan ditampilkan</p></div>
@@ -154,7 +154,7 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
         <p className="text-xs text-black/30 px-1">Pilih manual per mata kuliah — tidak harus menunggu deteksi otomatis. Deteksi <span className="font-medium">[RA]</span>/<span className="font-medium">(RA)</span> dimana saja tetap jalan; tugas tanpa kode dianggap umum dan tetap tampil. Kosong = tidak difilter.</p>
 
         {availableCourses.length === 0 ? (
-          <div className="p-4 text-center bg-white rounded-2xl border border-black/5 border-dashed">
+          <div className="p-4 text-center bg-white rounded-xl border border-black/10 border-dashed">
             <p className="text-xs text-black/40">Belum ada mata kuliah. Sinkronkan Moodle dulu.</p>
           </div>
         ) : (
@@ -163,12 +163,12 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
               const selected = selectedPerCourse[course.name] || "";
               const display = resolveDisplayCourseName(course.name);
               return (
-                <div key={course.id} className="bg-white border border-black/5 rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0 max-w-full overflow-hidden">
+                <div key={course.id} className="bg-white border border-black/10 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0 max-w-full overflow-hidden">
                   <div className="min-w-0 flex-1 max-w-full">
                     <p className="text-sm font-medium text-black truncate">{display}</p>
                     {display !== course.name && <p className="text-xs text-black/30 truncate">{course.name}</p>}
                     {!selected && <p className="text-xs text-black/30 mt-0.5">Tidak difilter — semua tugas tampil</p>}
-                    {selected && <p className="text-xs text-black/40 mt-0.5">Filter: <span className="font-medium text-black">{selected}</span> + umum</p>}
+                    {selected && <p className="font-serif text-xs text-black/50 mt-0.5">Filter: <span className="font-medium text-black">{selected}</span> + umum</p>}
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap justify-start sm:justify-end shrink-0 min-w-0 max-w-full">
                     {allClassCodes.map((code) => (
@@ -189,7 +189,7 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
               const isCustom = customClassCodes.includes(code);
               return (
                 <div key={code} className="relative group">
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#60A8F8]/10 border border-black/5 text-black/60">{code}</span>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#F5F5F5] border border-black/10 text-black/60">{code}</span>
                   {isCustom && <button type="button" onClick={() => handleRemoveCustomClassCode(code)} className="absolute -top-1 -right-1 size-4 bg-[#0059D0] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><X className="size-3" /></button>}
                 </div>
               );
@@ -214,11 +214,11 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
         </div>
       </div>
 
-      <div className="pt-4 border-t border-black/5 flex flex-col gap-3">
-        <button onClick={handleSave} disabled={isLoading} className="w-full h-11 bg-[#0059D0] text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#60A8F8] disabled:opacity-50 transition-colors">
+      <div className="pt-4 border-t border-black/10 flex flex-col gap-3">
+        <button onClick={handleSave} disabled={isLoading} className="w-full h-11 bg-[#0059D0] text-white rounded-full font-display text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#0043A5] disabled:opacity-50 transition-colors">
           {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} Simpan Semua Pengaturan
         </button>
-        {saveSuccess && <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="p-3 bg-[#0059D0] text-white rounded-2xl flex items-center gap-2 text-sm"><CheckCircle2 className="size-4" /> Pengaturan akademik disimpan.</motion.div>}
+        {saveSuccess && <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="p-3 bg-[#0059D0] text-white rounded-xl flex items-center gap-2 text-sm"><CheckCircle2 className="size-4" /> Pengaturan akademik disimpan.</motion.div>}
       </div>
 
       {/* Confirm mute popup - portaled agar tidak terpengaruh transform framer-motion parent di mobile */}
@@ -228,13 +228,13 @@ export function ClassSettings({ classCode, availableClassCodes, availableCourses
             {confirmMuteCourse && (
               <>
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-50" onClick={() => setConfirmMuteCourse(null)} />
-                <motion.div initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 10 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white rounded-2xl p-5 z-50 shadow-xl">
+                <motion.div initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 10 }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm bg-white rounded-xl p-5 z-50 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.4)]">
                   <div className="size-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center mb-3"><AlertTriangle className="size-5" /></div>
-                  <h4 className="text-sm font-semibold text-black">Yakin mute mata kuliah ini?</h4>
+                  <h4 className="font-display text-sm font-bold tracking-tight text-black">Yakin mute mata kuliah ini?</h4>
                   <p className="text-xs text-black/60 mt-1 leading-relaxed break-words">Mata kuliah <span className="font-medium text-black break-words">{confirmMuteCourse}</span> akan di-mute. Tugas dari mata kuliah ini tidak akan muncul di timeline dan notifikasi akan dimatikan. Kamu bisa mengaktifkannya kembali kapan saja.</p>
                   <div className="flex gap-2 mt-4">
                     <button onClick={() => setConfirmMuteCourse(null)} className="flex-1 h-9 rounded-full border border-black/10 text-sm font-medium text-black hover:bg-black/5 transition-colors">Batal</button>
-                    <button onClick={confirmMute} className="flex-1 h-9 rounded-full bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors">Ya, Mute</button>
+                    <button onClick={confirmMute} className="flex-1 h-9 rounded-full bg-[#0059D0] text-white text-sm font-medium hover:bg-[#0043A5] transition-colors">Ya, Mute</button>
                   </div>
                 </motion.div>
               </>

@@ -29,7 +29,7 @@ export function TaskStats({ overdueCount, upcomingCount, completedCount, totalCo
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.05 }}
-          className="bg-white rounded-2xl border border-black/5 p-4"
+          className="bg-white rounded-xl border border-black/10 p-4"
         >
           <div className="size-8 rounded-xl bg-black text-white flex items-center justify-center mb-3">
             <stat.icon className="size-4" />

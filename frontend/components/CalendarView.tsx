@@ -24,19 +24,19 @@ export function CalendarView({ events }: CalendarViewProps) {
   const formattedEvents = useMemo(() => visibleEvents.map((e) => ({ ...e, date: new Date(e.deadline), full_title: e.title, original_course: e.course })), [visibleEvents]);
 
   return (
-    <div className="bg-white rounded-2xl border border-black/5 overflow-hidden">
-      <div className="px-4 py-3 flex items-center justify-between border-b border-black/5">
+    <div className="bg-white rounded-xl border border-black/10 overflow-hidden">
+      <div className="px-4 py-3 flex items-center justify-between border-b border-black/10">
         <h3 className="text-sm font-semibold text-black capitalize">{format(currentMonth, "MMMM yyyy")}</h3>
         <div className="flex items-center gap-1.5">
-          <button onClick={goToToday} className="h-7 px-2.5 text-xs font-medium text-black/60 bg-[#60A8F8]/10 border border-black/5 rounded-full hover:bg-black/[0.04] transition-colors">Today</button>
-          <div className="flex items-center bg-[#60A8F8]/10 border border-black/5 rounded-full p-0.5">
+          <button onClick={goToToday} className="h-7 px-2.5 text-xs font-medium text-black/60 bg-[#F5F5F5] border border-black/10 rounded-full hover:bg-black/[0.04] transition-colors">Today</button>
+          <div className="flex items-center bg-[#F5F5F5] border border-black/10 rounded-full p-0.5">
             <button onClick={prevMonth} className="size-6 flex items-center justify-center text-black/40 hover:text-black transition-colors"><ChevronLeft className="size-4" /></button>
             <button onClick={nextMonth} className="size-6 flex items-center justify-center text-black/40 hover:text-black transition-colors"><ChevronRight className="size-4" /></button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 border-b border-black/5 bg-[#60A8F8]/10">
+      <div className="grid grid-cols-7 border-b border-black/10 bg-[#F5F5F5]">
         {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((day) => (
           <div key={day} className="py-2 text-center text-xs font-medium text-black/30">{day}</div>
         ))}
@@ -48,7 +48,7 @@ export function CalendarView({ events }: CalendarViewProps) {
           const isSelectedMonth = isSameMonth(day, currentMonth);
           const isTodayDate = isToday(day);
           return (
-            <div key={day.toISOString()} className={cn("min-h-[68px] p-1.5 border-r border-b border-black/5", !isSelectedMonth ? "opacity-30 bg-black/[0.01]" : "bg-white")}>
+            <div key={day.toISOString()} className={cn("min-h-[68px] p-1.5 border-r border-b border-black/10", !isSelectedMonth ? "opacity-30 bg-black/[0.01]" : "bg-white")}>
               <span className={cn("text-xs font-medium size-6 flex items-center justify-center rounded-full", isTodayDate ? "bg-[#0059D0] text-white" : isSelectedMonth ? "text-black" : "text-black/30")}>
                 {format(day, "d")}
               </span>

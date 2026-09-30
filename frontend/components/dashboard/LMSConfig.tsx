@@ -65,14 +65,14 @@ export function LMSConfig({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-black">Sumber Tugas</h3>
+      <h3 className="font-display text-sm font-bold tracking-tight text-black">Sumber Tugas</h3>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Moodle - simple */}
-        <div className="bg-white border border-black/5 rounded-2xl p-4">
+        <div className="bg-white border border-black/10 rounded-xl p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className={cn("size-9 rounded-xl flex items-center justify-center shrink-0", moodleEnabledState ? "bg-[#0059D0] text-white" : "bg-[#60A8F8]/10 text-black/40")}>
+              <div className={cn("size-9 rounded-xl flex items-center justify-center shrink-0", moodleEnabledState ? "bg-[#0059D0] text-white" : "bg-[#F5F5F5] text-black/40")}>
                 <GraduationCap className="size-4.5" />
               </div>
               <div className="min-w-0">
@@ -85,7 +85,7 @@ export function LMSConfig({
               className={cn("relative shrink-0 h-6 w-11 rounded-full transition-colors", moodleEnabledState ? "bg-[#0059D0]" : "bg-black/10")}
               aria-label="Toggle Moodle"
             >
-              <span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-all", moodleEnabledState ? "left-5" : "left-0.5")} />
+              <span className={cn("absolute top-0.5 size-5 rounded-full bg-white transition-all", moodleEnabledState ? "left-5" : "left-0.5")} />
             </button>
           </div>
 
@@ -100,7 +100,7 @@ export function LMSConfig({
                       value={moodleUrlInput}
                       onChange={(e) => setMoodleUrlInput(e.target.value)}
                       placeholder="https://kuliah2.itera.ac.id/calendar/export..."
-                      className="w-full h-9 bg-[#60A8F8]/10 border border-black/5 rounded-full pl-9 pr-3 text-sm text-black placeholder:text-black/30 focus:outline-none focus:border-black/10"
+                      className="w-full h-9 bg-[#F5F5F5] border border-black/10 rounded-full pl-9 pr-3 text-sm text-black placeholder:text-black/30 focus:outline-none focus:border-black/10"
                     />
                   </div>
                   <button
@@ -112,7 +112,7 @@ export function LMSConfig({
                   <AnimatePresence>
                     {showMoodleHelp && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                        <ol className="text-xs text-black/60 space-y-1 bg-[#60A8F8]/10 rounded-xl p-3 list-decimal list-inside">
+                        <ol className="text-xs text-black/60 space-y-1 bg-[#F5F5F5] rounded-xl p-3 list-decimal list-inside">
                           <li>Moodle → Calendar → Export calendar</li>
                           <li>Pilih All events &amp; Recent and next 60 days</li>
                           <li>Get calendar URL → salin ke atas</li>
@@ -127,10 +127,10 @@ export function LMSConfig({
         </div>
 
         {/* Google Classroom - simple */}
-        <div className="bg-white border border-black/5 rounded-2xl p-4">
+        <div className="bg-white border border-black/10 rounded-xl p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className={cn("size-9 rounded-xl flex items-center justify-center shrink-0", googleEnabledState && googleConnected ? "bg-[#0059D0] text-white" : "bg-[#60A8F8]/10 text-black/40")}>
+              <div className={cn("size-9 rounded-xl flex items-center justify-center shrink-0", googleEnabledState && googleConnected ? "bg-[#0059D0] text-white" : "bg-[#F5F5F5] text-black/40")}>
                 <svg className="size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" /></svg>
               </div>
               <div className="min-w-0">
@@ -144,7 +144,7 @@ export function LMSConfig({
                 className={cn("relative shrink-0 h-6 w-11 rounded-full transition-colors", googleEnabledState ? "bg-[#0059D0]" : "bg-black/10")}
                 aria-label="Toggle Classroom"
               >
-                <span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-all", googleEnabledState ? "left-5" : "left-0.5")} />
+                <span className={cn("absolute top-0.5 size-5 rounded-full bg-white transition-all", googleEnabledState ? "left-5" : "left-0.5")} />
               </button>
             ) : (
               <span className="text-xs px-2.5 py-1 rounded-full bg-black/5 text-black/40 shrink-0">Login Ulang</span>
@@ -162,14 +162,14 @@ export function LMSConfig({
         <button
           onClick={handleTest}
           disabled={isTesting || (!moodleEnabledState && !(googleEnabledState && googleConnected))}
-          className="flex-1 h-10 bg-white border border-black/10 rounded-full text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#60A8F8]/10 disabled:opacity-40"
+          className="flex-1 h-10 bg-white border border-black/10 rounded-full font-display text-sm font-medium flex items-center justify-center gap-2 hover:bg-black/[0.03] disabled:opacity-40"
         >
           {isTesting ? <Loader2 className="size-4 animate-spin" /> : <Link2 className="size-4" />} Tes
         </button>
         <button
           onClick={handleSave}
           disabled={isLoading || !hasChanges}
-          className="flex-1 h-10 bg-[#0059D0] text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#60A8F8] disabled:opacity-40"
+          className="flex-1 h-10 bg-[#0059D0] text-white rounded-full font-display text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#0043A5] disabled:opacity-40"
         >
           {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} Simpan
         </button>

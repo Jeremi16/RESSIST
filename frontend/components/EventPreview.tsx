@@ -28,7 +28,7 @@ export function EventPreview({ events, error }: EventPreviewProps) {
         <div className="size-16 bg-red-100 text-red-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
           <AlertCircle className="size-8" />
         </div>
-        <h3 className="text-red-900 font-black tracking-tight mb-2">
+        <h3 className="text-red-900 font-display font-bold tracking-tight mb-2">
           Terjadi Kesalahan
         </h3>
         <p className="text-red-600 text-sm font-medium">{error}</p>
@@ -38,14 +38,14 @@ export function EventPreview({ events, error }: EventPreviewProps) {
 
   if (!events || events.length === 0) {
     return (
-      <div className="p-8 sm:p-12 text-center bg-slate-50/30 rounded-[2.5rem] border border-slate-100 border-dashed">
+      <div className="p-8 sm:p-12 text-center bg-[#F5F5F5] rounded-xl border border-black/10 border-dashed">
         <div className="size-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 text-2xl shadow-sm">
           😴
         </div>
-        <h3 className="text-slate-900 font-black tracking-tight mb-1">
+        <h3 className="text-black font-display font-bold tracking-tight mb-1">
           Semua Aman!
         </h3>
-        <p className="text-slate-400 text-sm font-medium">
+        <p className="text-black/40 text-sm font-medium">
           Tidak ada tugas dalam 7 hari ke depan.
         </p>
       </div>
@@ -92,11 +92,11 @@ export function EventPreview({ events, error }: EventPreviewProps) {
               <AccordionTrigger className="p-4 sm:p-6 hover:no-underline">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full text-left gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-2">
-                    <h4 className="text-base sm:text-lg font-black tracking-tight text-slate-900 group-hover:text-[#0059D0] transition-colors line-clamp-2 sm:line-clamp-1 leading-tight">
+                    <h4 className="text-base sm:text-lg font-display font-bold tracking-tight text-black group-hover:text-[#0059D0] transition-colors line-clamp-2 sm:line-clamp-1 leading-tight">
                       {event.title}
                     </h4>
-                    <div className="flex items-center gap-2 text-slate-500 text-[11px] sm:text-xs font-semibold">
-                      <CalendarIcon className="size-3.5 text-slate-400 shrink-0" />
+                    <div className="flex items-center gap-2 text-black/60 text-[11px] sm:text-xs font-semibold">
+                      <CalendarIcon className="size-3.5 text-black/40 shrink-0" />
                       <span className="truncate">
                         {formatDeadline(event.deadline)}
                       </span>
@@ -110,19 +110,19 @@ export function EventPreview({ events, error }: EventPreviewProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white bg-[#0059D0] hover:bg-[#60A8F8] rounded-md transition-colors"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-display font-bold uppercase tracking-wider text-white bg-[#0059D0] hover:bg-[#0043A5] rounded-md transition-colors"
                       >
                         <ExternalLink className="size-3.5" />
                         Buka Tugas
                       </a>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400 bg-slate-100 rounded-md">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-display font-bold uppercase tracking-wider text-black/40 bg-black/5 rounded-md">
                         Link Tidak Tersedia
                       </span>
                     )}
 
-                    <div className="px-3 py-1.5 sm:p-0 bg-slate-50 sm:bg-transparent rounded-xl border border-slate-100 sm:border-none">
-                      <span className="text-sm sm:text-base font-black text-slate-900 whitespace-nowrap">
+                    <div className="px-3 py-1.5 sm:p-0 bg-[#F5F5F5] sm:bg-transparent rounded-xl border border-black/10 sm:border-none">
+                      <span className="text-sm sm:text-base font-display font-bold text-black whitespace-nowrap">
                         {event.timeRemaining.toLowerCase() === "besok"
                           ? "Besok"
                           : event.timeRemaining.toLowerCase() === "hari ini"
@@ -139,7 +139,7 @@ export function EventPreview({ events, error }: EventPreviewProps) {
                   <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={cn(
-                        "text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-md",
+                        "text-[10px] font-display font-bold uppercase tracking-wider px-2.5 py-1 rounded-md",
                         getSourceBadgeColor(event.source),
                       )}
                     >
@@ -147,14 +147,14 @@ export function EventPreview({ events, error }: EventPreviewProps) {
                     </span>
 
                     {event.class_code && (
-                      <span className="text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-1 bg-[#60A8F8]/10 border border-[#60A8F8]/30 text-[#0059D0] rounded-md">
+                      <span className="text-[10px] font-display font-bold uppercase tracking-wider px-2.5 py-1 bg-[#F5F5F5] border border-[#0059D0]/20 text-[#0059D0] rounded-md">
                         Kelas {event.class_code}
                       </span>
                     )}
                   </div>
 
                   {event.description && (
-                    <p className="text-sm text-slate-700 leading-relaxed">
+                    <p className="text-sm text-black/80 leading-relaxed">
                       {event.description}
                     </p>
                   )}
@@ -165,7 +165,7 @@ export function EventPreview({ events, error }: EventPreviewProps) {
         ))}
       </Accordion>
 
-      <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-0 justify-between text-[11px] font-bold text-slate-400">
+      <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-0 justify-between text-[11px] font-bold text-black/40">
         <p>Menampilkan {events.length} tugas terdekat</p>
         <div className="flex items-center gap-2">
           <CheckCircle2 className="size-4 text-green-500" />

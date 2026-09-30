@@ -116,7 +116,7 @@ function CountBadgeSkeleton() {
 
 function TaskCardSkeleton() {
   return (
-    <div className="bg-white p-4 rounded-2xl border border-black/5">
+    <div className="bg-white p-4 rounded-xl border border-black/10">
       <div className="space-y-3">
         <div className="flex justify-between items-start gap-3">
           <div className="space-y-2 flex-1 min-w-0">
@@ -125,7 +125,7 @@ function TaskCardSkeleton() {
           </div>
           <Skeleton className="size-8 rounded-full shrink-0" />
         </div>
-        <div className="flex items-center justify-between pt-2 border-t border-black/5">
+        <div className="flex items-center justify-between pt-2 border-t border-black/10">
           <Skeleton className="h-3 w-28" />
           <Skeleton className="h-3 w-8" />
         </div>
@@ -526,12 +526,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-white flex">
       {/* Mobile Top Bar */}
-      <div className="fixed top-0 left-0 right-0 z-30 lg:hidden bg-white/80 backdrop-blur-md border-b border-black/5">
+      <div className="fixed top-0 left-0 right-0 z-30 lg:hidden bg-white border-b border-black/10">
         <div className="h-14 px-4 flex items-center justify-between">
           <Logo size={32} />
           <button
             onClick={handleLogout}
-            className="size-8 rounded-full bg-[#0059D0] text-white flex items-center justify-center hover:bg-[#60A8F8] transition-colors"
+            className="size-8 rounded-full border border-black/10 text-black/70 flex items-center justify-center hover:text-[#0059D0] hover:border-[#0059D0] transition-colors"
             aria-label="Keluar"
           >
             <LogOut className="size-4" />
@@ -540,7 +540,7 @@ export default function Dashboard() {
       </div>
 
       {/* Mobile Bottom Bar - 4 primary + Lainnya (halaman, bukan sheet) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-white border-t border-black/5 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] flex items-center">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-white border-t border-black/10 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] flex items-center">
         {(() => {
           const primaryIds: TabType[] = ["overview", "tugas", "lms", "profile"];
           const primaryTabs = primaryIds.map((id) => TABS.find((t) => t.id === id)!).filter(Boolean);
@@ -562,12 +562,12 @@ export default function Dashboard() {
                     <div
                       className={cn(
                         "size-7 rounded-xl flex items-center justify-center transition-colors",
-                        isActive ? "bg-[#0059D0] text-white" : "bg-transparent",
+                        isActive ? "text-[#0059D0]" : "bg-transparent",
                       )}
                     >
                       <item.icon className="size-4" />
                     </div>
-                    <span className="text-[10px] font-medium leading-none truncate max-w-full">{item.label}</span>
+                    <span className="font-display text-[10px] font-medium leading-none truncate max-w-full">{item.label}</span>
                   </button>
                 );
               })}
@@ -578,10 +578,10 @@ export default function Dashboard() {
                   isLainnyaActive ? "text-black" : "text-black/40",
                 )}
               >
-                <div className={cn("size-7 rounded-xl flex items-center justify-center transition-colors", isLainnyaActive ? "bg-[#0059D0] text-white" : "bg-black/5 text-black/40")}>
+                <div className={cn("size-7 rounded-xl flex items-center justify-center transition-colors", isLainnyaActive ? "text-[#0059D0]" : "text-black/40")}>
                   <MoreHorizontal className="size-4" />
                 </div>
-                <span className="text-[10px] font-medium leading-none truncate max-w-full">Lainnya</span>
+                <span className="font-display text-[10px] font-medium leading-none truncate max-w-full">Lainnya</span>
               </button>
             </>
           );
@@ -605,7 +605,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-black/5 hidden lg:flex flex-col p-6 z-30">
+      <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-black/10 hidden lg:flex flex-col p-6 z-30">
         <Link to="/" className="mb-8">
           <Logo size={32} />
         </Link>
@@ -615,19 +615,19 @@ export default function Dashboard() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as TabType)}
-              className={cn("w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors", activeTab === item.id ? "bg-[#0059D0] text-white" : "text-black/60 hover:bg-black/[0.04] hover:text-black")}
+              className={cn("w-full flex items-center justify-between px-3 py-2.5 border-l-2 font-display text-sm font-medium transition-colors", activeTab === item.id ? "border-[#0059D0] text-black" : "border-transparent text-black/50 hover:text-black")}
             >
               <div className="flex items-center gap-3">
                 <item.icon className="size-4.5" />
                 {item.label}
               </div>
-              {activeTab === item.id && <ChevronRight className="size-4 text-white/60" />}
+              {activeTab === item.id && <ChevronRight className="size-4 text-[#0059D0]" />}
             </button>
           ))}
         </nav>
 
-        <div className="mt-6 pt-6 border-t border-black/5">
-          <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-black/60 hover:bg-black/[0.04] transition-colors">
+        <div className="mt-6 pt-6 border-t border-black/10">
+          <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2.5 font-display text-sm font-medium text-black/50 hover:text-black transition-colors">
             <LogOut className="size-4" />
             Keluar
           </button>
@@ -637,31 +637,32 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="flex-1 lg:ml-64 min-h-screen min-w-0 max-w-full overflow-x-clip pt-14 pb-24 lg:pt-0 lg:pb-0">
         <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto min-w-0 max-w-full overflow-x-clip">
-          <header className="mb-6 flex items-center justify-between gap-4 border-b border-black/5 pb-6">
+          <header className="mb-10 flex items-end justify-between gap-4 border-b border-black/10 pb-8">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-[#0059D0]">
+              <p className="font-display text-[11px] font-medium uppercase tracking-wider text-black/50 mb-3">Dashboard</p>
+              <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-black leading-[1.05]">
                 {activeTab === "overview"
                   ? `Welcome back, ${userData?.name?.split(" ")[0] || "there"}`
                   : activeTab === "lainnya"
                     ? "Lainnya"
                     : TABS.find((t) => t.id === activeTab)?.label}
               </h2>
-              <p className="text-sm text-black/60 mt-1">
+              <p className="font-serif text-base text-black/70 mt-3">
                 {activeTab === "overview" ? "Here's a quick overview of your workspace today." : "Sesuaikan pengaturan untuk pengalaman terbaik."}
               </p>
             </div>
             <div className="hidden sm:flex items-center">
-              <div className="h-8 px-3 rounded-full bg-white border border-black/5 text-xs font-medium text-black/60 flex items-center">Today · {format(new Date(), "d MMM yyyy", { locale: localeId })}</div>
+              <div className="font-display text-[11px] font-medium uppercase tracking-wider text-black/50">Today · {format(new Date(), "d MMM yyyy", { locale: localeId })}</div>
             </div>
           </header>
 
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, scale: 0.99, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.99, y: -10 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
             >
               {activeTab === "overview" && (
                 <div className="space-y-6 sm:space-y-8">
@@ -682,15 +683,15 @@ export default function Dashboard() {
 
                   <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
                     <div className="xl:col-span-8 space-y-4">
-                      <div className="bg-white rounded-2xl border border-black/5 p-4">
+                      <div className="bg-white rounded-xl border border-black/10 p-4">
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-sm font-semibold text-black">Kalender</h3>
-                          <span className="text-xs text-black/40">View tasks and project deadlines</span>
+                          <h3 className="font-display text-lg font-bold tracking-tight text-black">Kalender</h3>
+                          <span className="font-serif text-sm text-black/50">View tasks and project deadlines</span>
                         </div>
                         <div className="relative">
                           <CalendarView events={previewEvents.length > 0 ? previewEvents : []} />
                           {isInitialCalendar && (
-                            <div className="absolute inset-0 rounded-2xl bg-white/60 backdrop-blur-[1px] p-4 space-y-3">
+                            <div className="absolute inset-0 rounded-xl bg-white/80 p-4 space-y-3">
                               <Skeleton className="h-8 w-full rounded-xl" />
                               <div className="grid grid-cols-7 gap-1.5">
                                 {Array.from({ length: 14 }).map((_, i) => (
@@ -704,42 +705,42 @@ export default function Dashboard() {
                     </div>
 
                     <div className="xl:col-span-4 space-y-4">
-                      <div className="bg-[#0059D0] text-white rounded-2xl p-6">
-                        <h3 className="text-sm font-semibold mb-6">Status Koneksi</h3>
+                      <div className="bg-white border border-black/10 rounded-xl p-6">
+                        <h3 className="font-display text-lg font-bold tracking-tight text-black mb-6">Status Koneksi</h3>
                         <ul className="space-y-4">
                           <li className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className={cn("size-8 rounded-lg flex items-center justify-center text-xs font-medium", userData?.moodle_enabled ? "bg-white text-black" : "bg-white/10 text-white/40")}>M</div>
-                              <span className="text-sm text-white/80">Moodle</span>
+                              <div className={cn("size-8 rounded-lg flex items-center justify-center text-xs font-medium", userData?.moodle_enabled ? "bg-[#0059D0] text-white" : "bg-black/5 text-black/40")}>M</div>
+                              <span className="font-display text-sm text-black/80">Moodle</span>
                             </div>
-                            <div className={cn("size-2 rounded-full", userData?.moodle_enabled ? "bg-emerald-500" : "bg-white/20")} />
+                            <div className={cn("size-2 rounded-full", userData?.moodle_enabled ? "bg-emerald-500" : "bg-black/15")} />
                           </li>
                           <li className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className={cn("size-8 rounded-lg flex items-center justify-center text-xs font-medium", userData?.google_classroom_enabled ? "bg-white text-black" : "bg-white/10 text-white/40")}>G</div>
-                              <span className="text-sm text-white/80">Classroom</span>
+                              <div className={cn("size-8 rounded-lg flex items-center justify-center text-xs font-medium", userData?.google_classroom_enabled ? "bg-[#0059D0] text-white" : "bg-black/5 text-black/40")}>G</div>
+                              <span className="font-display text-sm text-black/80">Classroom</span>
                             </div>
-                            <div className={cn("size-2 rounded-full", userData?.google_classroom_enabled ? "bg-emerald-500" : "bg-white/20")} />
+                            <div className={cn("size-2 rounded-full", userData?.google_classroom_enabled ? "bg-emerald-500" : "bg-black/15")} />
                           </li>
                           <li className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="size-8 bg-white text-black rounded-lg flex items-center justify-center"><Send className="size-4" /></div>
-                              <span className="text-sm text-white/80">Bot</span>
+                              <div className="size-8 bg-[#0059D0] text-white rounded-lg flex items-center justify-center"><Send className="size-4" /></div>
+                              <span className="font-display text-sm text-black/80">Bot</span>
                             </div>
                             <div className={cn("size-2 rounded-full", userData?.telegram_enabled ? "bg-emerald-500" : "bg-red-500")} />
                           </li>
                           <li className="flex items-center justify-between opacity-60">
                             <div className="flex items-center gap-3">
-                              <div className="size-8 bg-white/10 text-white/60 rounded-lg flex items-center justify-center"><MessageSquare className="size-4" /></div>
-                              <span className="text-sm text-white/60">WhatsApp</span>
+                              <div className="size-8 bg-black/5 text-black/40 rounded-lg flex items-center justify-center"><MessageSquare className="size-4" /></div>
+                              <span className="font-display text-sm text-black/50">WhatsApp</span>
                             </div>
-                            <span className="text-xs text-white/30">Soon</span>
+                            <span className="font-display text-[11px] uppercase tracking-wider text-black/40">Soon</span>
                           </li>
                         </ul>
-                        <button onClick={() => setActiveTab("lms")} className="w-full h-9 bg-white text-[#0059D0] rounded-full text-sm font-medium mt-6 hover:bg-white/90 transition-colors">Kelola Koneksi</button>
+                        <button onClick={() => setActiveTab("lms")} className="w-full h-10 bg-[#0059D0] text-white rounded-full font-display text-sm font-medium mt-6 hover:bg-[#0047A8] transition-colors">Kelola Koneksi</button>
                       </div>
 
-                      <div className="bg-white rounded-2xl border border-black/5 p-5">
+                      <div className="bg-white rounded-xl border border-black/10 p-5">
                         <TelegramVerify chatId={userData?.telegram_chat_id} botUsername={userData?.telegram_bot_username} />
                       </div>
                     </div>
@@ -751,8 +752,8 @@ export default function Dashboard() {
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-xl font-semibold tracking-tight text-black">Timeline Tugas</h3>
-                      <p className="text-sm text-black/60 mt-1">Daftar tugas dalam tiga kelompok.</p>
+                      <h3 className="font-display text-2xl font-bold tracking-tight text-black">Timeline Tugas</h3>
+                      <p className="font-serif text-sm text-black/60 mt-1">Daftar tugas dalam tiga kelompok.</p>
                       {(() => {
                         const candidates = [
                           userData?.moodle_last_synced_at,
@@ -777,7 +778,7 @@ export default function Dashboard() {
                         );
                       })()}
                     </div>
-                    <button onClick={handleSyncTasks} disabled={isLoadingUser || isLoadingAssignments || isLoadingCalendar} className="h-9 px-5 bg-[#0059D0] text-white rounded-full text-sm font-medium inline-flex items-center gap-2 hover:bg-[#60A8F8] disabled:opacity-50 transition-colors">
+                    <button onClick={handleSyncTasks} disabled={isLoadingUser || isLoadingAssignments || isLoadingCalendar} className="h-9 px-5 bg-[#0059D0] text-white rounded-full font-display text-sm font-medium inline-flex items-center gap-2 hover:bg-[#0043A5] disabled:opacity-50 transition-colors">
                       <RefreshCw className={cn("size-4", (isLoadingAssignments || isLoadingCalendar) && "animate-spin")} />
                       {isLoadingAssignments || isLoadingCalendar ? "Menyinkronkan..." : "Sinkronkan"}
                     </button>
@@ -828,7 +829,7 @@ export default function Dashboard() {
 
               {activeTab === "lainnya" && (
                 <div className="w-full">
-                  <div className="bg-white rounded-2xl border border-black/5 overflow-hidden">
+                  <div className="bg-white rounded-xl border border-black/10 overflow-hidden">
                     <div className="divide-y divide-black/5">
                       <button
                         onClick={() => setActiveTab("kelas")}
@@ -837,7 +838,7 @@ export default function Dashboard() {
                         <GraduationCap className="size-5 text-black/70 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-black">Kelas</p>
-                          <p className="text-xs text-black/40 mt-0.5">Kelola kelas & mata kuliah</p>
+                          <p className="font-serif text-xs text-black/50 mt-0.5">Kelola kelas & mata kuliah</p>
                         </div>
                         <ChevronRight className="size-4 text-black/20 shrink-0" />
                       </button>
@@ -848,7 +849,7 @@ export default function Dashboard() {
                         <Bell className="size-5 text-black/70 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-black">Bot & Notifikasi</p>
-                          <p className="text-xs text-black/40 mt-0.5">Telegram & pengaturan pengingat</p>
+                          <p className="font-serif text-xs text-black/50 mt-0.5">Telegram & pengaturan pengingat</p>
                         </div>
                         <ChevronRight className="size-4 text-black/20 shrink-0" />
                       </button>
@@ -859,7 +860,7 @@ export default function Dashboard() {
                         <KeyRound className="size-5 text-black/70 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-black">API Keys</p>
-                          <p className="text-xs text-black/40 mt-0.5">Akses tugas via script / curl</p>
+                          <p className="font-serif text-xs text-black/50 mt-0.5">Akses tugas via script / curl</p>
                         </div>
                         <ChevronRight className="size-4 text-black/20 shrink-0" />
                       </button>
@@ -883,7 +884,7 @@ export default function Dashboard() {
                       Kembali ke Lainnya
                     </button>
                   )}
-                  <div className="bg-white p-4 sm:p-6 rounded-2xl border border-black/5 min-w-0 max-w-full overflow-hidden overflow-x-clip">
+                  <div className="bg-white p-4 sm:p-6 rounded-xl border border-black/10 min-w-0 max-w-full overflow-hidden overflow-x-clip">
                     {activeTab === "kelas" && (
                       <ClassSettings
                         classCode={userData?.class_code}
@@ -977,13 +978,13 @@ export default function Dashboard() {
                             onSave={handleUpdate}
                             isLoading={isSaving}
                           />
-                          <div className="xl:border-l xl:border-slate-100 xl:pl-16">
+                          <div className="xl:border-l xl:border-black/10 xl:pl-16">
                             <WhatsAppConfig />
                           </div>
                         </div>
                         <div className="h-px bg-black/5" />
                         <div>
-                          <h3 className="text-sm font-semibold text-black mb-4 flex items-center gap-2">
+                          <h3 className="font-display text-sm font-bold tracking-tight text-black mb-4 flex items-center gap-2">
                             <Bell className="size-4" />
                             Pengaturan Notifikasi
                           </h3>
@@ -1039,7 +1040,7 @@ export default function Dashboard() {
 
 function EmptyTasksState({ message }: { message: string }) {
   return (
-    <div className="p-6 text-center bg-white rounded-2xl border border-black/5 border-dashed">
+    <div className="p-6 text-center bg-white rounded-xl border border-black/10 border-dashed">
       <p className="text-sm text-black/40">{message}</p>
     </div>
   );
@@ -1058,20 +1059,20 @@ function TaskCard({
   const isGoogle = typeof task.source === "string" && task.source.toLowerCase().includes("google");
 
   return (
-    <div className={cn("bg-white p-4 rounded-2xl border border-black/5", isSelesai && "opacity-60", isMissed && "border-red-100")}>
+    <div className={cn("bg-white p-4 rounded-xl border border-black/10", isSelesai && "opacity-60", isMissed && "border-red-100")}>
       <div className="space-y-3">
         <div className="flex justify-between items-start gap-3">
           <div className="space-y-1.5 flex-1 min-w-0">
             <h5 className={cn("text-sm font-medium text-black leading-tight line-clamp-2", isSelesai && "line-through text-black/40")}>{task.title}</h5>
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="inline-flex text-xs text-black/40 bg-[#60A8F8]/10 px-2 py-1 rounded-full truncate max-w-full">{task.course}</span>
-              {isMissed && <span className="inline-flex text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-50 text-red-600 rounded-full">Terlewat</span>}
-              {isGoogle && <span className="inline-flex text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-50 text-green-700 rounded-full">Classroom</span>}
+              <span className="inline-flex text-xs text-black/40 bg-[#F5F5F5] px-2 py-1 rounded-full truncate max-w-full">{task.course}</span>
+              {isMissed && <span className="inline-flex text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-red-50 text-red-600 rounded-full">Terlewat</span>}
+              {isGoogle && <span className="inline-flex text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-green-50 text-green-700 rounded-full">Classroom</span>}
             </div>
           </div>
           {!isSelesai ? (
             isGoogle ? null : (
-              <button onClick={() => onComplete(task.id)} className="size-8 bg-[#0059D0] text-white rounded-full flex items-center justify-center shrink-0 hover:bg-[#60A8F8] transition-colors" title="Tandai Selesai">
+              <button onClick={() => onComplete(task.id)} className="size-8 bg-[#0059D0] text-white rounded-full flex items-center justify-center shrink-0 hover:bg-[#0043A5] transition-colors" title="Tandai Selesai">
                 <CheckCircle2 className="size-4" />
               </button>
             )
@@ -1079,7 +1080,7 @@ function TaskCard({
             <div className="size-8 bg-[#0059D0]/10 text-[#0059D0] rounded-full flex items-center justify-center shrink-0"><CheckCircle2 className="size-4" /></div>
           )}
         </div>
-        <div className="flex items-center justify-between pt-2 border-t border-black/5">
+        <div className="flex items-center justify-between pt-2 border-t border-black/10">
           <span className={cn("text-xs", isOverdue ? "text-red-500 font-medium" : "text-black/40")}>
             {new Date(task.deadline).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} WIB
           </span>

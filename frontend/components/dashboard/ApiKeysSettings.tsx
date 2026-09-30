@@ -11,6 +11,7 @@ import {
   Loader2,
   AlertTriangle,
   EyeOff,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/src/lib/api-client";
@@ -26,12 +27,21 @@ interface ApiKeyItem {
   created_at: string;
 }
 
+const EXPIRY_OPTIONS = [
+  { value: "never", label: "Never expire" },
+  { value: "7", label: "7 hari" },
+  { value: "30", label: "30 hari" },
+  { value: "90", label: "90 hari" },
+  { value: "365", label: "1 tahun" },
+];
+
 export function ApiKeysSettings() {
   const [keys, setKeys] = useState<ApiKeyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [expiry, setExpiry] = useState<string>("never");
+  const [expiryOpen, setExpiryOpen] = useState(false);
   const [rawKey, setRawKey] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +124,7 @@ export function ApiKeysSettings() {
           <KeyRound className="size-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-black">API Keys</h3>
+          <h3 className="font-display text-sm font-bold tracking-tight text-black">API Keys</h3>
           <p className="text-xs text-black/40 mt-1 leading-relaxed">
             Buat API key untuk cek tugas tanpa buka website. Pakai <code className="px-1 py-0.5 bg-black/5 rounded text-black">X-API-Key</code> header.
           </p>
@@ -128,7 +138,7 @@ export function ApiKeysSettings() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3"
+            className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3"
           >
             <div className="flex items-center gap-2 text-amber-700">
               <AlertTriangle className="size-4" />
@@ -163,7 +173,7 @@ export function ApiKeysSettings() {
       </AnimatePresence>
 
       {/* Create */}
-      <div className="bg-white border border-black/5 rounded-2xl p-4 space-y-3">
+      <div className="bg-white border border-black/10 rounded-xl p-4 space-y-3">
         <p className="text-sm font-medium text-black">Buat key baru</p>
         <div className="flex flex-col sm:flex-row gap-3">
           <input
@@ -171,23 +181,54 @@ export function ApiKeysSettings() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Nama key, ex: curl laptop"
             maxLength={64}
-            className="flex-1 h-10 px-4 bg-[#60A8F8]/10 border border-black/5 rounded-full text-sm text-black placeholder:text-black/30 focus:outline-none focus:border-black/10"
+            className="flex-1 h-10 px-4 bg-[#F5F5F5] border border-black/10 rounded-full text-sm text-black placeholder:text-black/30 focus:outline-none focus:border-black/10"
           />
-          <select
-            value={expiry}
-            onChange={(e) => setExpiry(e.target.value)}
-            className="h-10 px-3 bg-[#60A8F8]/10 border border-black/5 rounded-full text-sm text-black focus:outline-none"
-          >
-            <option value="never">Never expire</option>
-            <option value="7">7 hari</option>
-            <option value="30">30 hari</option>
-            <option value="90">90 hari</option>
-            <option value="365">1 tahun</option>
-          </select>
+          <div className="relative sm:w-40">
+            <button
+              type="button"
+              onClick={() => setExpiryOpen((o) => !o)}
+              onBlur={() => setTimeout(() => setExpiryOpen(false), 120)}
+              aria-haspopup="listbox"
+              aria-expanded={expiryOpen}
+              className="w-full h-10 pl-4 pr-3 bg-[#F5F5F5] border border-black/10 rounded-full text-sm text-black flex items-center justify-between gap-2 focus:outline-none focus:border-[#0059D0]"
+            >
+              {EXPIRY_OPTIONS.find((o) => o.value === expiry)?.label}
+              <ChevronDown className={cn("size-4 text-black/50 transition-transform", expiryOpen && "rotate-180")} />
+            </button>
+            <AnimatePresence>
+              {expiryOpen && (
+                <motion.ul
+                  role="listbox"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute z-20 left-0 right-0 mt-2 py-1.5 bg-white border border-black/10 rounded-xl shadow-[0_12px_30px_-12px_rgba(0,0,0,0.2)] overflow-hidden"
+                >
+                  {EXPIRY_OPTIONS.map((o) => (
+                    <li key={o.value} role="option" aria-selected={expiry === o.value}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { setExpiry(o.value); setExpiryOpen(false); }}
+                        className={cn(
+                          "w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors",
+                          expiry === o.value ? "text-[#0059D0] font-medium" : "text-black/70 hover:bg-black/[0.03] hover:text-black",
+                        )}
+                      >
+                        {o.label}
+                        {expiry === o.value && <Check className="size-3.5" />}
+                      </button>
+                    </li>
+                  ))}
+                </motion.ul>
+              )}
+            </AnimatePresence>
+          </div>
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="h-10 px-5 bg-[#0059D0] text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#60A8F8] disabled:opacity-50 shrink-0"
+            className="h-10 px-5 bg-[#0059D0] text-white rounded-full font-display text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#0043A5] disabled:opacity-50 shrink-0"
           >
             {creating ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
             {creating ? "Membuat..." : "Buat"}
@@ -198,8 +239,8 @@ export function ApiKeysSettings() {
       </div>
 
       {/* List — no inner scrollbar, expands naturally */}
-      <div className="bg-white border border-black/5 rounded-2xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-black/5 flex items-center justify-between">
+      <div className="bg-white border border-black/10 rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-black/10 flex items-center justify-between">
           <p className="text-sm font-medium text-black">Key kamu</p>
           <span className="text-xs px-2 py-1 bg-[#0059D0] text-white rounded-full">{keys.length}/5</span>
         </div>
@@ -243,7 +284,7 @@ export function ApiKeysSettings() {
       </div>
 
       {/* Docs mini */}
-      <div className="bg-[#0059D0] text-white rounded-2xl p-5 space-y-3">
+      <div className="bg-[#0059D0] text-white rounded-xl p-5 space-y-3">
         <p className="text-sm font-semibold">Endpoint yang bisa pakai API key</p>
         <div className="space-y-2 text-xs font-mono">
           <div className="bg-white/10 rounded-lg px-3 py-2">GET /v1/assignments — daftar tugas</div>
