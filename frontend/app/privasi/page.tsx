@@ -9,7 +9,7 @@ export default function Privasi() {
     >
       <div className="space-y-8">
         <section className="space-y-2">
-          <h3 className="text-base font-semibold text-black tracking-tight">
+          <h3 className="font-display text-base font-semibold text-black tracking-tight">
             Data yang Kami Kumpulkan
           </h3>
           <p className="text-sm text-black/60 leading-relaxed">
@@ -24,7 +24,7 @@ export default function Privasi() {
         </section>
 
         <section className="space-y-2">
-          <h3 className="text-base font-semibold text-black tracking-tight">
+          <h3 className="font-display text-base font-semibold text-black tracking-tight">
             Bagaimana Kami Menggunakan Data
           </h3>
           <p className="text-sm text-black/60 leading-relaxed">
@@ -34,7 +34,7 @@ export default function Privasi() {
         </section>
 
         <section className="space-y-2">
-          <h3 className="text-base font-semibold text-black tracking-tight">
+          <h3 className="font-display text-base font-semibold text-black tracking-tight">
             Keamanan
           </h3>
           <p className="text-sm text-black/60 leading-relaxed">

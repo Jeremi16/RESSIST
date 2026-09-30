@@ -1,75 +1,66 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, Bell, GraduationCap, Send } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CalendarSync, GraduationCap, MessageCircle } from "lucide-react";
 
 const features = [
   {
-    name: "Sinkronisasi Moodle",
-    description: "Sinkronisasi instan dengan kalender Moodle ITERA.",
-    icon: Calendar,
+    name: "Sinkron Moodle.",
+    description:
+      "Tugas dari kuliah2.itera.ac.id terambil otomatis — cukup tempel URL kalender sekali.",
+    icon: CalendarSync,
   },
   {
-    name: "Sinkronisasi Classroom",
-    description: "Integrasi otomatis dengan Google Classroom.",
+    name: "Sinkron Classroom.",
+    description:
+      "Login dengan akun Google ITERA, tugas Google Classroom langsung masuk ke daftar.",
     icon: GraduationCap,
   },
   {
-    name: "Bot Telegram",
-    description: "Dapatkan notifikasi tugas langsung via Bot Telegram.",
-    icon: Send,
-  },
-  {
-    name: "Bot WhatsApp",
+    name: "Ingat via chat.",
     description:
-      "Pesan pengingat langsung ke WhatsApp pribadimu. Cara tercepat tetap update.",
-    icon: Bell,
+      "Pengingat dikirim ke WhatsApp atau Telegram sebelum deadline, sesuai jadwal pilihanmu.",
+    icon: MessageCircle,
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="bg-white px-4 lg:px-8 pb-8">
-      <div className="mx-auto max-w-[1280px] bg-white rounded-[24px] border border-black/5 px-6 lg:px-10 py-12 lg:py-16">
-        <div className="max-w-2xl mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-          >
-            <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight text-[#0059D0] leading-tight mb-4 text-balance">
-              Asisten studi terbaik untuk anak ITERA.
-            </h2>
-            <p className="text-sm lg:text-base text-black/60 leading-relaxed">
-              Ressist bukan sekadar Website, Ressist adalah sistem produktivitas
-              yang dirancang untuk membantu deadliners mengelola deadline tugas.
-            </p>
-          </motion.div>
-        </div>
+    <section id="features" className="bg-white py-24 lg:py-32">
+      <div className="mx-auto max-w-[1120px] px-6">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="max-w-xl mb-16"
+        >
+          <h2 className="font-display text-4xl lg:text-5xl font-bold tracking-tight mb-5">
+            Mulai perjalananmu.
+          </h2>
+          <p className="font-serif text-lg text-black/80 leading-relaxed">
+            Datang dengan semua deadline, tugas yang menumpuk, dan grup kelas
+            yang ramai — biar Ressist yang merapikannya.
+          </p>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.name}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.06 }}
-              className="p-6 rounded-2xl bg-white border border-black/5 hover:border-black/10 transition-colors"
-            >
-              <div className="size-10 rounded-xl bg-[#0059D0] text-white flex items-center justify-center mb-5">
-                <feature.icon className="size-5" />
-              </div>
-              <h3 className="text-[15px] font-semibold text-black tracking-tight mb-2">
-                {feature.name}
-              </h3>
-              <p className="text-sm text-black/60 leading-relaxed">
-                {feature.description}
-              </p>
-            </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
+          {features.map((f) => (
+            <div key={f.name}>
+              <f.icon className="size-9 text-black mb-6" strokeWidth={1.25} />
+              <h3 className="font-display text-sm font-bold mb-3">{f.name}</h3>
+              <p className="font-serif text-black/70 leading-relaxed">{f.description}</p>
+            </div>
           ))}
         </div>
+
+        <Link
+          to="/features"
+          className="inline-block mt-16 font-display text-xs uppercase tracking-wider text-black/60 underline underline-offset-4 hover:text-[#0059D0] transition-colors"
+        >
+          Lihat semua fitur &rarr;
+        </Link>
       </div>
     </section>
   );

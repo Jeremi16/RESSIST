@@ -9,7 +9,7 @@ export default function Ketentuan() {
     >
       <div className="space-y-6 sm:space-y-8">
         <section className="space-y-3 sm:space-y-4">
-          <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+          <h3 className="font-display text-lg sm:text-xl font-black text-slate-900 tracking-tight">
             Penggunaan Layanan
           </h3>
           <p className="text-slate-600 text-sm sm:text-base font-medium leading-relaxed">
@@ -21,7 +21,7 @@ export default function Ketentuan() {
         </section>
 
         <section className="space-y-3 sm:space-y-4">
-          <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+          <h3 className="font-display text-lg sm:text-xl font-black text-slate-900 tracking-tight">
             Akun Pengguna
           </h3>
           <p className="text-slate-600 text-sm sm:text-base font-medium leading-relaxed">
@@ -32,7 +32,7 @@ export default function Ketentuan() {
         </section>
 
         <section className="space-y-3 sm:space-y-4">
-          <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+          <h3 className="font-display text-lg sm:text-xl font-black text-slate-900 tracking-tight">
             Pembatasan
           </h3>
           <p className="text-slate-600 text-sm sm:text-base font-medium leading-relaxed">

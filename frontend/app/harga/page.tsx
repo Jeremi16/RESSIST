@@ -8,10 +8,10 @@ export default function Harga() {
       subtitle="Ressist berkomitmen untuk membantu pendidikan. Gunakan fitur dasar secara gratis selamanya."
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-8 rounded-2xl bg-white border border-black/5 space-y-6">
+        <div className="p-8 rounded-none bg-white border border-black/5 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-black">Pejuang IPK</h3>
-            <span className="px-2.5 py-1 bg-[#60A8F8]/10 text-black/40 rounded-full text-xs font-medium">Gratis</span>
+            <h3 className="font-display text-lg font-semibold text-black">Pejuang IPK</h3>
+            <span className="px-2.5 py-1 bg-[#F5F5F5] text-black/40 rounded-full text-xs font-medium">Gratis</span>
           </div>
           <p className="text-3xl font-semibold tracking-tight text-black">Rp 0 <span className="text-sm font-normal text-black/40">/ selamanya</span></p>
           <ul className="space-y-2.5">
@@ -22,14 +22,14 @@ export default function Harga() {
               </li>
             ))}
           </ul>
-          <button className="w-full h-10 bg-[#60A8F8]/10 text-black rounded-full text-sm font-medium">
+          <button className="w-full h-10 bg-[#F5F5F5] text-black rounded-full text-sm font-medium">
             Sudah Aktif
           </button>
         </div>
 
-        <div className="p-8 rounded-2xl bg-[#0059D0] text-white space-y-6">
+        <div className="p-8 rounded-none bg-[#0059D0] text-white space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Cum Laude</h3>
+            <h3 className="font-display text-lg font-semibold">Cum Laude</h3>
             <span className="px-2.5 py-1 bg-white text-black rounded-full text-xs font-medium">Coming Soon</span>
           </div>
           <p className="text-3xl font-semibold tracking-tight">Rp 19rb <span className="text-sm font-normal text-white/40">/ bulan</span></p>
@@ -41,7 +41,7 @@ export default function Harga() {
               </li>
             ))}
           </ul>
-          <button className="w-full h-10 bg-white text-[#0059D0] rounded-full text-sm font-medium opacity-90 cursor-not-allowed">
+          <button className="w-full h-10 bg-white text-black rounded-full text-sm font-medium opacity-90 cursor-not-allowed">
             Tunggu Kami
           </button>
         </div>

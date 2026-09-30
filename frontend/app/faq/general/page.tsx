@@ -33,12 +33,12 @@ const ITEMS: FaqItem[] = [
         Tidak wajib. Versi Web di{" "}
         <Link
           to="/dashboard"
-          className="text-[#0059D0] font-medium hover:underline"
+          className="text-black font-medium hover:underline"
         >
           dashboard
         </Link>{" "}
         punya fitur yang sama. Aplikasi Android (
-        <Link to="/app" className="text-[#0059D0] font-medium hover:underline">
+        <Link to="/app" className="text-black font-medium hover:underline">
           download di sini
         </Link>
         ) berguna kalau kamu mau pengingat deadline langsung di HP.
@@ -56,10 +56,10 @@ export default function FaqGeneral() {
     <DocsLayout sidebar={SIDEBAR}>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-black mb-3">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-black mb-3">
             FAQ Umum
           </h1>
-          <p className="text-sm sm:text-base text-black/60 leading-relaxed">
+          <p className="font-serif text-sm sm:text-base text-black/60 leading-relaxed">
             Pertanyaan umum seputar akun, biaya, dan keamanan Ressist.
           </p>
         </div>

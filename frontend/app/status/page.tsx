@@ -16,10 +16,10 @@ export default function Status() {
       subtitle="Pantau performa layanan Ressist secara real-time."
     >
       <div className="space-y-8">
-        <div className="p-6 rounded-2xl bg-[#0059D0] text-white flex items-center justify-between">
+        <div className="p-6 rounded-none bg-[#0059D0] text-white flex items-center justify-between">
           <div>
             <p className="text-xs font-medium tracking-wide text-white/40 mb-1">Status Global</p>
-            <h3 className="text-xl font-semibold tracking-tight">Semua Sistem Normal</h3>
+            <h3 className="font-display text-xl font-semibold tracking-tight">Semua Sistem Normal</h3>
           </div>
           <div className="size-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
             <div className="size-3 bg-emerald-500 rounded-full" />
@@ -27,10 +27,10 @@ export default function Status() {
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-medium tracking-wide text-black/40">Kesehatan Layanan</h3>
+          <h3 className="font-display text-sm font-medium tracking-wide text-black/40">Kesehatan Layanan</h3>
           <div className="grid gap-3">
             {SYSTEMS.map(sys => (
-              <div key={sys.name} className="flex items-center justify-between p-4 bg-white border border-black/5 rounded-2xl">
+              <div key={sys.name} className="flex items-center justify-between p-4 bg-white border border-black/5 rounded-none">
                 <span className="text-sm font-medium text-black">{sys.name}</span>
                 <div className="flex items-center gap-2.5">
                   <span className="text-xs text-black/40">{sys.status}</span>

@@ -12,6 +12,13 @@ interface LandingNavbarProps {
   className?: string;
 }
 
+const navLinks = [
+  { name: "Fitur", href: "/features" },
+  { name: "Panduan", href: "/guide" },
+  { name: "FAQ", href: "/faq/general" },
+  { name: "Unduh App", href: "/app" },
+];
+
 export function LandingNavbar({
   showBackButton = false,
   backHref = "/",
@@ -20,44 +27,41 @@ export function LandingNavbar({
   // Hook selalu dipanggil (aturan hooks), hasilnya hanya dipakai varian default.
   const authStatus = useAuthStatus();
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-black/5",
-        className,
-      )}
-    >
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Logo size={32} />
+    <header className={cn("sticky top-0 z-50 bg-white/95 backdrop-blur-sm", className)}>
+      <div className="mx-auto max-w-[1120px] px-6 h-20 flex items-center justify-between gap-6">
+        <Logo size={30} />
 
-        {showBackButton ? (
-          <Link
-            to={backHref}
-            className="flex items-center gap-1.5 text-sm font-medium text-black/60 hover:text-black transition-colors"
-          >
-            <ChevronLeft className="size-4" />
-            Kembali
-          </Link>
-        ) : authStatus === "authed" ? (
-          <Link
-            to="/dashboard"
-            className="bg-[#0059D0] text-white h-9 px-5 rounded-full text-sm font-medium hover:bg-[#60A8F8] transition-colors inline-flex items-center justify-center"
-          >
-            Dashboard
-          </Link>
-        ) : authStatus === "checking" ? (
-          <span
-            aria-hidden
-            className="h-9 w-[104px] rounded-full bg-black/10 animate-pulse"
-          />
-        ) : (
-          <Link
-            to="/login"
-            className="bg-[#0059D0] text-white h-9 px-5 rounded-full text-sm font-medium hover:bg-[#60A8F8] transition-colors inline-flex items-center justify-center"
-          >
-            Masuk
-          </Link>
-        )}
+        <nav className="flex items-center gap-6 sm:gap-8 font-display text-[13px] text-black/70">
+          {showBackButton ? (
+            <Link
+              to={backHref}
+              className="flex items-center gap-1 hover:text-black transition-colors"
+            >
+              <ChevronLeft className="size-4" />
+              Kembali
+            </Link>
+          ) : (
+            navLinks.map((l) => (
+              <Link
+                key={l.href}
+                to={l.href}
+                className="hidden md:inline hover:text-[#0059D0] transition-colors"
+              >
+                {l.name}
+              </Link>
+            ))
+          )}
+          {authStatus === "checking" ? (
+            <span aria-hidden className="h-4 w-20 bg-black/5 animate-pulse" />
+          ) : (
+            <Link
+              to={authStatus === "authed" ? "/dashboard" : "/login"}
+              className="font-bold text-black hover:text-[#0059D0] transition-colors"
+            >
+              {authStatus === "authed" ? "Dashboard" : "Masuk"}
+            </Link>
+          )}
+        </nav>
       </div>
     </header>
   );

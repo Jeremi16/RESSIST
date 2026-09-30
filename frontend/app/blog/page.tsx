@@ -15,13 +15,13 @@ export default function Blog() {
     >
       <div className="space-y-3">
         {POSTS.map((post, i) => (
-          <div key={i} className="group flex items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-black/5 hover:border-black/10 transition-colors cursor-pointer">
+          <div key={i} className="group flex items-center justify-between gap-4 p-6 rounded-none bg-white border border-black/5 hover:border-black/10 transition-colors cursor-pointer">
             <div className="space-y-2">
-              <span className="inline-flex px-2.5 py-1 bg-[#60A8F8]/10 text-black/60 rounded-full text-xs font-medium">{post.tag}</span>
-              <h3 className="text-base font-semibold text-black tracking-tight group-hover:text-black/70 transition-colors">{post.title}</h3>
+              <span className="inline-flex px-2.5 py-1 bg-[#F5F5F5] text-black/60 rounded-full text-xs font-medium">{post.tag}</span>
+              <h3 className="font-display text-base font-semibold text-black tracking-tight group-hover:text-black/70 transition-colors">{post.title}</h3>
               <p className="text-sm text-black/40">{post.date}</p>
             </div>
-            <div className="size-9 rounded-xl bg-[#60A8F8]/10 flex items-center justify-center text-black/40 group-hover:bg-[#0059D0] group-hover:text-white transition-colors shrink-0">
+            <div className="size-9 rounded-xl bg-[#F5F5F5] flex items-center justify-center text-black/40 group-hover:bg-black group-hover:text-white transition-colors shrink-0">
               →
             </div>
           </div>

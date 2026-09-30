@@ -20,43 +20,32 @@ export function InfoLayout({
 }: InfoLayoutProps) {
   return (
     <div className="min-h-screen bg-white">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] size-[500px] bg-black/[0.03] blur-[100px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] size-[500px] bg-black/[0.03] blur-[100px] rounded-full" />
-      </div>
-
       <LandingNavbar showBackButton />
 
-      <main className="relative pt-10 pb-16 sm:pb-24">
-        <div className="mx-auto max-w-4xl px-6 lg:px-8">
-          <header className="mb-10">
-            <p className="text-xs font-semibold tracking-wide text-black/40 mb-3">
+      <main className="pt-16 lg:pt-24 pb-16">
+        <div className="mx-auto max-w-[1120px] px-6">
+          <motion.header
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            className="mb-16 max-w-3xl"
+          >
+            <p className="font-display text-[11px] font-medium uppercase tracking-wider text-black/50 mb-4">
               {category}
             </p>
-            <motion.h1
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-3xl sm:text-4xl font-semibold text-[#0059D0] tracking-tight leading-tight mb-4 text-balance"
-            >
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-black tracking-tight leading-[1.05] mb-6 text-balance">
               {title}
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="text-base text-black/60 leading-relaxed max-w-2xl"
-            >
+            </h1>
+            <p className="font-serif text-lg text-black/70 leading-relaxed max-w-2xl">
               {subtitle}
-            </motion.p>
-          </header>
+            </p>
+          </motion.header>
 
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white p-6 sm:p-8 lg:p-10 rounded-2xl border border-black/5 shadow-sm prose prose-neutral max-w-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="max-w-[720px] font-serif text-black/80 leading-relaxed [&_h2]:font-display [&_h2]:tracking-tight [&_h3]:font-display [&_h3]:tracking-tight [&_p_a]:underline [&_p_a:hover]:text-[#0059D0]"
           >
             {children}
           </motion.div>

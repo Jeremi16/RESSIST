@@ -1,78 +1,61 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { UserPlus, Link2, BellRing, Coffee } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Logo } from "@/components/Logo";
+import { useAuthStatus } from "@/src/hooks/use-auth-status";
 
 const steps = [
-  {
-    title: "Pendaftaran",
-    description: "Masuk dengan akun Student ITERA",
-    icon: UserPlus,
-  },
-  {
-    title: "Integrasi",
-    description: "Hubungkan dengan kuliah2.itera.ac.id cukup dengan URL.",
-    icon: Link2,
-  },
-  {
-    title: "Otomatisasi",
-    description: "Atur kapan kamu ingin menerima pesan pengingat.",
-    icon: BellRing,
-  },
-  {
-    title: "Fokus Belajar",
-    description:
-      "Biarkan Ressist yang memantau deadline sementara kamu fokus belajar.",
-    icon: Coffee,
-  },
+  { title: "Masuk", description: "Gunakan akun Google @student.itera.ac.id. Tanpa daftar manual." },
+  { title: "Hubungkan", description: "Tempel URL kalender Moodle; Classroom tersambung otomatis." },
+  { title: "Atur pengingat", description: "Pilih WhatsApp atau Telegram, lalu tentukan kapan diingatkan." },
+  { title: "Fokus belajar", description: "Ressist memantau deadline, kamu cukup mengerjakan tugasnya." },
 ];
 
 export function StepsSection() {
+  const authStatus = useAuthStatus();
   return (
-    <section id="how-it-works" className="bg-white py-16 lg:py-20">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-          >
-            <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight text-[#0059D0] leading-tight text-balance">
-              Dari Deadliners jadi non-chalant.
-            </h2>
-          </motion.div>
+    <section id="how-it-works" className="bg-[#F5F5F5] py-24 lg:py-32">
+      <div className="mx-auto max-w-[1120px] px-6 grid lg:grid-cols-12 gap-16 items-start">
+        <div className="lg:col-span-7">
+          <h2 className="font-display text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+            Mulai hari ini.
+          </h2>
+          <p className="font-serif text-lg text-black/80 mb-14">
+            Empat langkah dari deadliner jadi non-chalant.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-x-12 gap-y-12">
+            {steps.map((s, i) => (
+              <div key={s.title}>
+                <h3 className="font-display text-sm font-bold mb-3">
+                  {i + 1}. {s.title}
+                </h3>
+                <p className="font-serif text-black/70 leading-relaxed">{s.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="relative">
-          <div className="hidden lg:block absolute top-6 left-[12%] right-[12%] h-px bg-black/5" />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
-            {steps.map((step, index) => (
-              <motion.div
-                key={step.title}
-                initial={{ opacity: 0, y: 8 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.06 }}
-                className="flex flex-col items-center text-center"
-              >
-                <div className="relative mb-5">
-                  <div className="size-12 rounded-xl bg-white border border-black/5 flex items-center justify-center">
-                    <step.icon className="size-5 text-black/70" />
-                  </div>
-                  <div className="absolute -top-2 -right-2 size-6 bg-[#0059D0] rounded-full flex items-center justify-center text-[10px] font-semibold text-white">
-                    {index + 1}
-                  </div>
-                </div>
-                <h3 className="text-[15px] font-semibold text-black tracking-tight mb-1.5">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-black/60 leading-relaxed max-w-[200px] text-balance">
-                  {step.description}
-                </p>
-              </motion.div>
-            ))}
+        <div className="lg:col-span-5 bg-white p-10 text-center shadow-[0_20px_60px_-30px_rgba(0,0,0,0.25)]">
+          <div className="flex justify-center mb-6">
+            <Logo size={40} to={null} showWordmark={false} />
+          </div>
+          <p className="font-display text-sm font-bold mb-3">Siap berhenti panik deadline?</p>
+          <p className="font-serif text-black/70 leading-relaxed mb-8">
+            Gratis untuk mahasiswa ITERA. Bisa dipakai di web maupun aplikasi Android.
+          </p>
+          <div className="flex flex-col items-center gap-5">
+            <Link
+              to={authStatus === "authed" ? "/dashboard" : "/login"}
+              className="inline-flex items-center justify-center h-12 px-7 bg-[#0059D0] text-white font-display text-xs font-medium uppercase tracking-wider hover:bg-[#0043A5] transition-colors"
+            >
+              {authStatus === "authed" ? "Buka Dashboard" : "Masuk dengan Google"}
+            </Link>
+            <Link
+              to="/app"
+              className="font-display text-xs uppercase tracking-wider text-black/60 underline underline-offset-4 hover:text-[#0059D0] transition-colors"
+            >
+              Unduh aplikasi Android &rarr;
+            </Link>
           </div>
         </div>
       </div>

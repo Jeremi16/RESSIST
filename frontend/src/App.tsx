@@ -1,4 +1,4 @@
-import { Navigate, createBrowserRouter } from "react-router-dom";
+import { Navigate, ScrollRestoration, createBrowserRouter } from "react-router-dom";
 import { ProtectedRoute } from "@/src/components/ProtectedRoute";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ToastProvider } from "@/components/ui/toast-provider";
@@ -40,6 +40,8 @@ function Providers({ children }: { children: React.ReactNode }) {
       <ToastProvider>
         <div className="flex-1 flex flex-col min-h-full">{children}</div>
         <WhatsNewPopup />
+        {/* Pindah halaman = mulai dari atas; tombol Back tetap memulihkan posisi. */}
+        <ScrollRestoration />
       </ToastProvider>
     </AuthProvider>
   );

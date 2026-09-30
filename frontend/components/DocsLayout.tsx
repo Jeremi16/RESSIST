@@ -74,7 +74,7 @@ function SidebarNav({
       {groups.map((group, gi) => (
         <div key={gi}>
           {group.title && (
-            <p className="px-3 mb-2 text-xs font-semibold tracking-wide text-black/40">
+            <p className="px-3 mb-3 font-display text-[11px] font-medium uppercase tracking-wider text-black/50">
               {group.title}
             </p>
           )}
@@ -84,10 +84,10 @@ function SidebarNav({
                 ? activeAnchor === link.to.slice(1)
                 : activePath === link.to;
               const cls = cn(
-                "block rounded-lg px-3 py-2 text-sm transition-colors",
+                "block border-l-2 px-3 py-1.5 font-display text-[13px] transition-colors",
                 isActive
-                  ? "bg-[#0059D0]/10 text-[#0059D0] font-medium"
-                  : "text-black/60 hover:text-black hover:bg-black/5",
+                  ? "border-[#0059D0] text-[#0059D0] font-bold"
+                  : "border-transparent text-black/60 hover:text-[#0059D0]",
               );
               return (
                 <li key={link.to + link.label}>
@@ -147,8 +147,8 @@ export function DocsLayout({
   return (
     <div className="min-h-screen bg-white flex items-stretch">
       {/* Sidebar desktop — full-height, mentok atas */}
-      <aside className="hidden lg:flex w-64 shrink-0 border-r border-black/5 flex-col sticky top-0 h-screen">
-        <div className="flex h-16 items-center px-7 border-b border-black/5 shrink-0">
+      <aside className="hidden lg:flex w-64 shrink-0 border-r border-black/10 flex-col sticky top-0 h-screen">
+        <div className="flex h-20 items-center px-7 shrink-0">
           <Logo size={30} />
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-6">
@@ -159,7 +159,7 @@ export function DocsLayout({
           />
           <Link
             to="/"
-            className="block mt-8 px-3 text-xs text-black/40 hover:text-black transition-colors"
+            className="block mt-10 px-3 font-display text-[11px] uppercase tracking-wider text-black/50 underline underline-offset-4 hover:text-[#0059D0] transition-colors"
           >
             ← Kembali ke Beranda
           </Link>
@@ -169,14 +169,14 @@ export function DocsLayout({
       {/* Kolom kanan: topbar + konten */}
       <div className="flex-1 flex flex-col min-w-0">
       {/* Topbar */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b border-black/5">
-        <div className="flex h-16 items-center gap-2 px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm">
+        <div className="flex h-20 items-center gap-2 px-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label="Buka menu navigasi"
             aria-expanded={drawerOpen}
-            className="lg:hidden size-10 rounded-xl flex items-center justify-center text-black/60 hover:bg-black/5 transition-colors"
+            className="lg:hidden size-10 flex items-center justify-center text-black/60 hover:bg-black/5 transition-colors"
           >
             <Menu className="size-5" />
           </button>
@@ -187,22 +187,22 @@ export function DocsLayout({
 
           <div className="flex-1" />
 
-          <nav className="hidden sm:flex items-center gap-1 text-sm">
+          <nav className="hidden sm:flex items-center gap-6 mr-4 font-display text-[13px]">
             <Link
               to="/api-docs"
-              className="px-3 py-2 rounded-lg text-black/60 hover:text-black hover:bg-black/5 transition-colors"
+              className="text-black/70 hover:text-[#0059D0] transition-colors"
             >
               API
             </Link>
             <Link
               to="/change-log"
-              className="px-3 py-2 rounded-lg text-black/60 hover:text-black hover:bg-black/5 transition-colors"
+              className="text-black/70 hover:text-[#0059D0] transition-colors"
             >
               Changelog
             </Link>
             <Link
               to="/dashboard"
-              className="px-3 py-2 rounded-lg text-black/60 hover:text-black hover:bg-black/5 transition-colors"
+              className="text-black/70 hover:text-[#0059D0] transition-colors"
             >
               Dashboard
             </Link>
@@ -211,7 +211,7 @@ export function DocsLayout({
           {downloadHref && (
             <a
               href={downloadHref}
-              className="ml-1 inline-flex items-center gap-2 h-9 pl-4 pr-4 sm:pr-5 rounded-full bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors"
+              className="ml-1 inline-flex items-center gap-2 h-10 px-4 sm:px-5 bg-[#0059D0] text-white font-display text-xs font-medium uppercase tracking-wider hover:bg-[#0043A5] transition-colors"
             >
               <Download className="size-4" />
               <span className="hidden sm:inline">Get {versionLabel}</span>
@@ -223,7 +223,7 @@ export function DocsLayout({
 
         {/* Konten */}
         <main className="flex-1 min-w-0">
-          <div className="w-full mx-auto max-w-3xl px-5 sm:px-8 py-10 sm:py-14">
+          <div className="w-full mx-auto max-w-3xl px-6 sm:px-8 py-12 sm:py-20">
             {children}
           </div>
         </main>
@@ -247,17 +247,17 @@ export function DocsLayout({
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
-                className="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white shadow-xl lg:hidden flex flex-col"
+                className="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white lg:hidden flex flex-col"
                 role="dialog"
                 aria-label="Navigasi dokumentasi"
               >
-                <div className="flex h-16 items-center justify-between px-4 border-b border-black/5">
+                <div className="flex h-20 items-center justify-between px-4">
                   <Logo size={28} />
                   <button
                     type="button"
                     onClick={() => setDrawerOpen(false)}
                     aria-label="Tutup menu navigasi"
-                    className="size-10 rounded-xl flex items-center justify-center text-black/60 hover:bg-black/5 transition-colors"
+                    className="size-10 flex items-center justify-center text-black/60 hover:bg-black/5 transition-colors"
                   >
                     <X className="size-5" />
                   </button>
@@ -272,7 +272,7 @@ export function DocsLayout({
                   <Link
                     to="/"
                     onClick={() => setDrawerOpen(false)}
-                    className="block mt-8 px-3 text-xs text-black/40"
+                    className="block mt-10 px-3 font-display text-[11px] uppercase tracking-wider text-black/50 underline underline-offset-4"
                   >
                     ← Kembali ke Beranda
                   </Link>

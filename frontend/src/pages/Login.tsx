@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { AlertCircle, ArrowLeft, Shield, Mail, Info } from "lucide-react";
+import { AlertCircle, ArrowLeft, BookMarked, Clock, GraduationCap, Bell, CalendarDays, CircleCheck, ClipboardList, type LucideIcon } from "lucide-react";
 import { useToast } from "@/components/ui/toast-provider";
 import { apiFetch } from "@/src/lib/api-client";
 import { useAuthStatus } from "@/src/hooks/use-auth-status";
-import { Logo } from "@/components/Logo";
 
 function mapErrorToMessage(error: string): string {
   const errorMap: Record<string, string> = {
@@ -28,6 +27,48 @@ function mapErrorToMessage(error: string): string {
     return "Terjadi kesalahan saat login dengan Google. Silakan coba lagi.";
   }
   return errorMap[error] || error || "Terjadi kesalahan. Silakan coba lagi.";
+}
+
+type Tile = { icon?: LucideIcon; logo?: boolean; tone: "solid" | "soft" | "fade" | "ghost" };
+
+// Kolase ikon ala layar login mobile: grid 4x4 dimiringkan sebagai satu kesatuan
+// (bukan per kotak) agar rapi, tidak saling tumpuk, dan ukurannya konsisten.
+const TILES: Tile[] = [
+  { tone: "ghost" }, { icon: BookMarked, tone: "soft" }, { icon: Clock, tone: "solid" }, { icon: GraduationCap, tone: "soft" },
+  { icon: Bell, tone: "soft" }, { logo: true, tone: "soft" }, { icon: CalendarDays, tone: "soft" }, { tone: "solid" },
+  { icon: CircleCheck, tone: "fade" }, { icon: ClipboardList, tone: "soft" }, { tone: "ghost" }, { icon: Clock, tone: "soft" },
+  { tone: "ghost" }, { tone: "solid" }, { icon: GraduationCap, tone: "soft" }, { tone: "ghost" },
+];
+
+const toneClass: Record<Tile["tone"], string> = {
+  solid: "bg-[#0059D0] text-white",
+  soft: "bg-[#EEF4FD] text-black/70",
+  fade: "bg-gradient-to-b from-[#0059D0] to-[#0059D0]/25 text-white",
+  ghost: "bg-[#EEF4FD]/50",
+};
+
+function IconCollage() {
+  return (
+    <div aria-hidden className="absolute inset-0 overflow-hidden flex items-center justify-center">
+      <div className="grid grid-cols-4 gap-4 lg:gap-6 w-[150%] sm:w-[120%] lg:w-[min(130%,900px)] shrink-0 -rotate-12">
+        {TILES.map((t, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.45, delay: 0.03 * i, ease: "easeOut" }}
+            className={`aspect-square rounded-[28%] flex items-center justify-center ${toneClass[t.tone]}`}
+          >
+            {t.logo ? (
+              <img src="/logo-mark.png" alt="" className="w-[58%] rotate-12" />
+            ) : t.icon ? (
+              <t.icon className="w-[30%] h-[30%] rotate-12" strokeWidth={1.75} />
+            ) : null}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function LoginContent() {
@@ -124,66 +165,49 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-black/5">
-        <div className="mx-auto max-w-[1280px] px-6 lg:px-8 h-16 flex items-center">
-          <Link to="/" className="flex items-center gap-1.5 text-sm font-medium text-black/60 hover:text-black transition-colors">
-            <ArrowLeft className="size-4" />
-            Kembali
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white flex flex-col lg:flex-row">
+      <div className="relative h-[46vh] lg:h-auto lg:flex-1 lg:order-2 bg-white overflow-hidden">
+        <IconCollage />
+        <Link to="/" className="lg:hidden absolute top-5 left-5 z-10 flex items-center gap-1 bg-white/90 backdrop-blur px-3 py-2 rounded-full font-display text-[13px] text-black/70">
+          <ArrowLeft className="size-4" />
+          Kembali
+        </Link>
+      </div>
 
-      <main className="flex-1 flex items-center justify-center p-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center mb-5">
-              <Logo size={48} to={null} showWordmark={false} />
-            </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-[#0059D0] mb-2">Selamat Datang</h1>
-            <p className="text-sm text-black/60">Masuk ke Ressist dengan akun Google ITERA Anda</p>
-          </div>
+      <main className="relative flex-1 lg:max-w-[520px] flex items-center justify-center px-6 py-10 lg:px-16">
+        <Link to="/" className="absolute top-6 left-6 lg:left-16 hidden lg:flex items-center gap-1 font-display text-[13px] text-black/60 hover:text-[#0059D0] transition-colors">
+          <ArrowLeft className="size-4" />
+          Kembali
+        </Link>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }} className="w-full max-w-sm text-center lg:text-left">
+          <img src="/logo-mark.png" alt="Ressist" className="hidden lg:block size-12 mb-8" />
+          <h1 className="font-display text-4xl font-bold tracking-tight leading-tight mb-4">
+            Selamat Datang<br />di Ressist
+          </h1>
+          <p className="font-serif text-black/60 leading-relaxed mb-10">
+            Asisten tugas &amp; jadwal kuliah mahasiswa ITERA — masuk dengan akun Google kampusmu.
+          </p>
 
           {error && (
-            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 bg-white border border-black/5 rounded-2xl flex items-start gap-3">
-              <AlertCircle className="size-5 text-red-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-black/70 leading-relaxed">{error}</p>
-            </motion.div>
+            <div className="mb-6 p-4 bg-[#F5F5F5] rounded-2xl flex items-start gap-3 text-left">
+              <AlertCircle className="size-5 text-red-600 shrink-0 mt-0.5" />
+              <p className="font-serif text-sm text-black/80 leading-relaxed">{error}</p>
+            </div>
           )}
 
-          <div className="bg-white rounded-2xl border border-black/5 p-6 sm:p-8">
-            <button onClick={handleGoogleLogin} disabled={authStatus === "checking"} className="w-full h-11 bg-white border border-black/10 rounded-full text-sm font-medium text-black hover:bg-black/[0.04] hover:border-black/15 transition-colors flex items-center justify-center gap-3 mb-6 disabled:opacity-60">
-              {authStatus === "checking" ? (
-                "Memeriksa sesi…"
-              ) : (
-                <>
-                  <svg className="size-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                  Lanjutkan dengan Google
-                </>
-              )}
-            </button>
-
-            <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-black/5" /></div>
-              <div className="relative flex justify-center"><span className="bg-white px-3 text-xs font-medium tracking-wide text-black/30">Khusus</span></div>
-            </div>
-
-            <div className="bg-[#60A8F8]/10 border border-black/5 rounded-2xl p-4 flex items-start gap-3">
-              <Shield className="size-5 text-black/40 shrink-0 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-semibold text-black mb-1">Akses Terbatas</h3>
-                <p className="text-sm text-black/60 leading-relaxed">Hanya email mahasiswa ITERA dengan domain <strong className="text-black font-medium">@student.itera.ac.id</strong> yang dapat mengakses sistem ini.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 text-center space-y-3">
-            <div className="flex items-center justify-center gap-4 text-xs text-black/30">
-              <span className="flex items-center gap-1.5"><Mail className="size-3.5" /> nama@student.itera.ac.id</span>
-              <span className="flex items-center gap-1.5"><Info className="size-3.5" /> Staff & Mahasiswa</span>
-            </div>
-            <p className="text-xs text-black/30">Belum punya akses? Hubungi administrator ITERA.</p>
-          </div>
+          <button onClick={handleGoogleLogin} disabled={authStatus === "checking"} className="w-full h-14 rounded-full bg-[#0059D0] text-white font-display text-sm font-medium hover:bg-[#0043A5] transition-colors flex items-center justify-center gap-3 disabled:opacity-60">
+            {authStatus === "checking" ? (
+              <>
+                <span className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Memeriksa sesi…
+              </>
+            ) : (
+              <>
+                <span className="font-bold">G</span>
+                Lanjutkan dengan Google
+              </>
+            )}
+          </button>
         </motion.div>
       </main>
     </div>

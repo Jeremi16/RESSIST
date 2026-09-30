@@ -65,10 +65,10 @@ export default function Bantuan() {
     <DocsLayout sidebar={SIDEBAR}>
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-black mb-3">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-black mb-3">
             Pusat Bantuan
           </h1>
-          <p className="text-sm sm:text-base text-black/60 leading-relaxed">
+          <p className="font-serif text-sm sm:text-base text-black/60 leading-relaxed">
             Temukan jawaban untuk pertanyaan yang paling sering diajukan.
           </p>
         </div>
@@ -80,16 +80,16 @@ export default function Bantuan() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Cari topik bantuan..."
-            className="w-full h-12 bg-white border border-black/5 rounded-2xl pl-11 pr-4 text-sm text-black placeholder:text-black/30 focus:outline-none focus:border-black/10 transition-colors"
+            className="w-full h-12 bg-white border border-black/5 rounded-none pl-11 pr-4 text-sm text-black placeholder:text-black/30 focus:outline-none focus:border-black/10 transition-colors"
           />
         </div>
 
         <section id="kategori" className="scroll-mt-24 space-y-4">
-          <h2 className="text-xl font-semibold tracking-tight text-black">
+          <h2 className="font-display text-xl font-bold tracking-tight text-black">
             Kategori Bantuan
           </h2>
           {filtered.length === 0 ? (
-            <p className="text-sm text-black/50 bg-black/[0.03] rounded-2xl px-5 py-6 text-center">
+            <p className="font-serif text-sm text-black/50 bg-black/[0.03] rounded-none px-5 py-6 text-center">
               Tidak ada kategori yang cocok dengan “{query.trim()}”.
             </p>
           ) : (
@@ -103,15 +103,15 @@ export default function Bantuan() {
                 >
                   <Link
                     to={cat.to}
-                    className="p-6 rounded-2xl bg-white border border-black/5 space-y-2 block hover:border-[#0059D0]/30 hover:shadow-sm transition-all group"
+                    className="p-6 rounded-none bg-white border border-black/5 space-y-2 block hover:border-black/30 hover:border-black/30 transition-all group"
                   >
-                    <cat.icon className="size-6 text-[#0059D0]" />
-                    <h3 className="text-sm font-semibold text-black flex items-center gap-1.5">
+                    <cat.icon className="size-6 text-black" />
+                    <h3 className="font-display text-sm font-semibold text-black flex items-center gap-1.5">
                       {cat.title}
                       <ArrowRight className="size-3.5 text-black/20 transition-transform group-hover:translate-x-0.5 group-hover:text-[#0059D0]" />
                     </h3>
                     <p className="text-xs text-black/40">{cat.desc}</p>
-                    <p className="text-xs font-medium text-[#0059D0]">
+                    <p className="text-xs font-medium text-black">
                       {cat.count}
                     </p>
                   </Link>
@@ -123,14 +123,14 @@ export default function Bantuan() {
 
         <section
           id="support"
-          className="scroll-mt-24 flex items-start gap-3 bg-[#60A8F8]/10 rounded-2xl px-5 py-4"
+          className="scroll-mt-24 flex items-start gap-3 bg-[#F5F5F5] rounded-none px-5 py-4"
         >
-          <LifeBuoy className="size-5 text-[#0059D0] shrink-0 mt-0.5" />
-          <p className="text-sm text-black/60 leading-relaxed">
+          <LifeBuoy className="size-5 text-black shrink-0 mt-0.5" />
+          <p className="font-serif text-sm text-black/60 leading-relaxed">
             Tidak ketemu jawabanmu? Hubungi tim kami lewat{" "}
             <Link
               to="/contact"
-              className="text-[#0059D0] font-medium hover:underline"
+              className="text-black font-medium hover:underline"
             >
               halaman kontak
             </Link>

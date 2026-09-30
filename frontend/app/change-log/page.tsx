@@ -395,14 +395,14 @@ function ReleaseSection({ entry }: { entry: ReleaseEntry }) {
       animate={{ opacity: 1, y: 0 }}
       className="scroll-mt-24 relative pl-12 sm:pl-14"
     >
-      <div className="absolute left-0 top-0 size-8 sm:size-9 rounded-xl bg-[#0059D0] text-white flex items-center justify-center">
+      <div className="absolute left-0 top-0 size-8 sm:size-9 rounded-none bg-[#0059D0] text-white flex items-center justify-center">
         <Rocket className="size-4" />
       </div>
 
-      <div className="bg-white rounded-2xl border border-black/5 p-5 sm:p-6">
+      <div className="bg-white rounded-none border border-black/5 p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
           <div>
-            <h3 className="text-base sm:text-lg font-semibold text-black tracking-tight mb-1.5">
+            <h3 className="font-display text-base sm:text-lg font-semibold text-black tracking-tight mb-1.5">
               {entry.title}
             </h3>
             <div className="flex flex-wrap items-center gap-3 text-sm text-black/40">
@@ -419,14 +419,14 @@ function ReleaseSection({ entry }: { entry: ReleaseEntry }) {
           <a
             href={entry.filePath}
             download={entry.fileName}
-            className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors"
+            className="inline-flex items-center gap-2 h-10 px-5 rounded-none bg-[#0059D0] text-white text-sm font-medium hover:bg-[#0043A5] transition-colors"
           >
             <Download className="size-4" />
             Download ({entry.size})
           </a>
         </div>
 
-        <p className="text-sm text-black/60 leading-relaxed mb-5">
+        <p className="font-serif text-sm text-black/60 leading-relaxed mb-5">
           {entry.description}
         </p>
 
@@ -437,9 +437,9 @@ function ReleaseSection({ entry }: { entry: ReleaseEntry }) {
           {entry.highlights.map((item) => (
             <li
               key={item}
-              className="flex items-start gap-2 text-sm text-black/70 bg-[#60A8F8]/10 px-3 py-2.5 rounded-xl"
+              className="flex items-start gap-2 text-sm text-black/70 bg-[#F5F5F5] px-3 py-2.5 rounded-none"
             >
-              <Check className="size-4 text-[#0059D0] shrink-0 mt-0.5" />
+              <Check className="size-4 text-black shrink-0 mt-0.5" />
               <span className="leading-snug">{item}</span>
             </li>
           ))}
@@ -458,10 +458,10 @@ export default function ChangeLog() {
     >
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-black mb-3">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-black mb-3">
             Changelog
           </h1>
-          <p className="text-sm sm:text-base text-black/60 leading-relaxed">
+          <p className="font-serif text-sm sm:text-base text-black/60 leading-relaxed">
             Ikuti perkembangan aplikasi Android Ressist dari rilis ke rilis.
           </p>
         </div>
@@ -470,7 +470,7 @@ export default function ChangeLog() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#0059D0] rounded-2xl p-6 sm:p-8 text-white"
+          className="bg-black rounded-none p-6 sm:p-8 text-white"
         >
           <div className="flex items-center gap-2 mb-3">
             <span className="px-2.5 py-1 rounded-full bg-white text-black text-xs font-medium">
@@ -478,10 +478,10 @@ export default function ChangeLog() {
             </span>
             <span className="text-white/60 text-sm">{LATEST.version}</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mb-2">
+          <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight mb-2">
             {LATEST.title}
           </h2>
-          <p className="text-white/60 text-sm leading-relaxed max-w-2xl">
+          <p className="font-serif text-white/60 text-sm leading-relaxed max-w-2xl">
             Sesi tidak lagi hilang saat sinyal tidak stabil atau server sibuk,
             login tetap terjaga saat sinkron latar belakang, dan web tidak
             lagi tiba-tiba kembali ke login setelah pemakaian aktif.
@@ -493,12 +493,12 @@ export default function ChangeLog() {
         ))}
 
         {/* Penutup */}
-        <section className="bg-[#60A8F8]/10 rounded-2xl px-5 py-4">
-          <p className="text-sm text-black/60 leading-relaxed">
+        <section className="bg-[#F5F5F5] rounded-none px-5 py-4">
+          <p className="font-serif text-sm text-black/60 leading-relaxed">
             Belum install aplikasinya? Lihat{" "}
             <Link
               to="/app"
-              className="text-[#0059D0] font-medium hover:underline"
+              className="text-black font-medium hover:underline"
             >
               halaman download
             </Link>{" "}

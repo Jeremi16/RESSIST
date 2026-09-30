@@ -65,7 +65,7 @@ export default function FaqAndroid() {
       a: (
         <>
           Di{" "}
-          <Link to="/app" className="text-[#0059D0] font-medium hover:underline">
+          <Link to="/app" className="text-black font-medium hover:underline">
             halaman download
           </Link>
           . Versi terbaru saat ini {version} (sekitar {apkSize}, Android 8.0
@@ -111,10 +111,10 @@ export default function FaqAndroid() {
     >
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-black mb-3">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-black mb-3">
             FAQ Aplikasi Android
           </h1>
-          <p className="text-sm sm:text-base text-black/60 leading-relaxed">
+          <p className="font-serif text-sm sm:text-base text-black/60 leading-relaxed">
             Seputar download, install, dan update aplikasi Android Ressist.
           </p>
         </div>

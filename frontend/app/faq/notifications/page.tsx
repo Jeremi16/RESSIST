@@ -34,7 +34,7 @@ const ITEMS: FaqItem[] = [
         terbatas. Untuk perubahan nomor, silakan hubungi tim kami lewat{" "}
         <Link
           to="/contact"
-          className="text-[#0059D0] font-medium hover:underline"
+          className="text-black font-medium hover:underline"
         >
           halaman kontak
         </Link>
@@ -53,10 +53,10 @@ export default function FaqNotifications() {
     <DocsLayout sidebar={SIDEBAR}>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-black mb-3">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-black mb-3">
             FAQ Notifikasi
           </h1>
-          <p className="text-sm sm:text-base text-black/60 leading-relaxed">
+          <p className="font-serif text-sm sm:text-base text-black/60 leading-relaxed">
             Seputar pengingat Telegram, WhatsApp, dan Morning Briefing.
           </p>
         </div>

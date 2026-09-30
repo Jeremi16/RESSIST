@@ -18,6 +18,8 @@ module.exports = {
     },
     extend: {
       fontFamily: {
+        display: ["Outfit", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["\"Source Serif 4\"", "ui-serif", "Georgia", "serif"],
         sans: ["var(--font-main)", "ui-sans-serif", "system-ui", "sans-serif"],
         heading: [
           "var(--font-heading)",

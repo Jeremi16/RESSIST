@@ -185,18 +185,18 @@ export default function AppDownload() {
       sidebar={SIDEBAR}
     >
       <div className="space-y-8">
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-black">
+        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-black">
           Download
         </h1>
 
         {/* Banner peringatan */}
-        <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 flex gap-3">
+        <div className="bg-[#F5F5F5] border border-black/10 border-l-2 border-l-red-600 rounded-none px-5 py-4 flex gap-3">
           <TriangleAlert className="size-5 text-red-600 shrink-0 mt-0.5" />
           <div className="space-y-1.5 text-sm leading-relaxed">
-            <p className="font-semibold text-red-900">
+            <p className="font-serif font-semibold text-red-900">
               Hanya tersedia di Android
             </p>
-            <p className="text-red-800/80">
+            <p className="font-serif text-red-800/80">
               <strong className="text-red-900">Ressist</strong> hanya tersedia
               untuk Android. Aplikasi non-Android bernama{" "}
               <strong className="text-red-900">Ressist</strong> tidak
@@ -210,7 +210,7 @@ export default function AppDownload() {
           id="stabil"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="scroll-mt-24 bg-[#0059D0]/5 border border-[#0059D0]/15 rounded-2xl p-5 sm:p-7"
+          className="scroll-mt-24 bg-[#F5F5F5] border border-black/10 rounded-none p-5 sm:p-7"
         >
           <div className="flex flex-col md:flex-row md:items-center gap-6">
             <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -219,24 +219,24 @@ export default function AppDownload() {
                 alt="Logo Ressist"
                 width={56}
                 height={56}
-                className="size-14 rounded-2xl object-contain shrink-0 bg-white border border-black/5"
+                className="size-14 rounded-none object-contain shrink-0 bg-white border border-black/5"
               />
               <div className="min-w-0">
-                <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-black">
+                <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-black">
                   Stabil
                 </h2>
-                <p className="text-sm text-black/50">
+                <p className="font-serif text-sm text-black/50">
                   Direkomendasikan untuk kebanyakan pengguna
                 </p>
               </div>
             </div>
             <div className="space-y-2 text-sm md:text-right shrink-0">
-              <p className="flex md:justify-end items-center gap-2 text-black/60">
+              <p className="font-serif flex md:justify-end items-center gap-2 text-black/60">
                 <Tag className="size-4 text-black/30" />
                 Latest release:{" "}
                 <strong className="text-black">{version}</strong>
               </p>
-              <p className="flex md:justify-end items-center gap-2 text-black/60">
+              <p className="font-serif flex md:justify-end items-center gap-2 text-black/60">
                 <CalendarDays className="size-4 text-black/30" />
                 Released: <strong className="text-black">{apkReleased}</strong>
               </p>
@@ -244,7 +244,7 @@ export default function AppDownload() {
             <a
               href={apkPath}
               download={apkName}
-              className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-xl bg-[#0059D0] text-white text-sm font-medium hover:bg-[#60A8F8] transition-colors shrink-0"
+              className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-none bg-[#0059D0] text-white text-sm font-medium hover:bg-[#0043A5] transition-colors shrink-0"
             >
               <Download className="size-4" />
               Ressist Stabil {version}
@@ -257,7 +257,7 @@ export default function AppDownload() {
 
         {/* Changelog */}
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold tracking-tight text-black">
+          <h2 className="font-display text-xl font-bold tracking-tight text-black">
             Changelog{" "}
             <span className="text-base font-medium text-black/40">
               {version}
@@ -267,18 +267,18 @@ export default function AppDownload() {
             {CHANGELOG.map((item) => (
               <li
                 key={item}
-                className="flex items-start gap-2.5 text-sm text-black/70 bg-black/[0.03] px-4 py-3 rounded-xl leading-relaxed"
+                className="flex items-start gap-2.5 text-sm text-black/70 bg-black/[0.03] px-4 py-3 rounded-none leading-relaxed"
               >
-                <Check className="size-4 text-[#0059D0] shrink-0 mt-0.5" />
+                <Check className="size-4 text-black shrink-0 mt-0.5" />
                 {item}
               </li>
             ))}
           </ul>
-          <p className="text-sm text-black/50">
+          <p className="font-serif text-sm text-black/50">
             Riwayat lengkap perubahan aplikasi di{" "}
             <Link
               to="/change-log"
-              className="text-[#0059D0] font-medium hover:underline"
+              className="text-black font-medium hover:underline"
             >
               halaman changelog
             </Link>
@@ -288,24 +288,24 @@ export default function AppDownload() {
 
         {/* Detail file */}
         <section id="detail" className="scroll-mt-24 space-y-4">
-          <h2 className="text-xl font-semibold tracking-tight text-black">
+          <h2 className="font-display text-xl font-bold tracking-tight text-black">
             Detail file
           </h2>
           <div className="grid gap-3 text-sm sm:grid-cols-2">
-            <div className="bg-black/[0.03] rounded-xl px-4 py-3">
+            <div className="bg-black/[0.03] rounded-none px-4 py-3">
               <p className="text-black/40 text-xs font-medium mb-1">
                 Nama file
               </p>
-              <p className="text-black font-medium break-all">{apkName}</p>
+              <p className="font-serif text-black font-medium break-all">{apkName}</p>
             </div>
-            <div className="bg-black/[0.03] rounded-xl px-4 py-3">
+            <div className="bg-black/[0.03] rounded-none px-4 py-3">
               <p className="text-black/40 text-xs font-medium mb-1">Versi</p>
-              <p className="text-black font-medium">
+              <p className="font-serif text-black font-medium">
                 {version} • {apkSize}
               </p>
             </div>
           </div>
-          <div className="bg-black/[0.03] rounded-xl px-4 py-3">
+          <div className="bg-black/[0.03] rounded-none px-4 py-3">
             <p className="text-black/40 text-xs font-medium mb-1">
               SHA-256 (verifikasi keaslian file)
             </p>
@@ -316,7 +316,7 @@ export default function AppDownload() {
               <button
                 type="button"
                 onClick={copySha}
-                className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-[#0059D0] hover:underline"
+                className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-black hover:underline"
               >
                 {copied ? (
                   <>
@@ -337,7 +337,7 @@ export default function AppDownload() {
               href={releasePage}
               target="_blank"
               rel="noreferrer"
-              className="text-[#0059D0] font-medium hover:underline"
+              className="text-black font-medium hover:underline"
             >
               halaman rilis
             </a>
@@ -348,10 +348,10 @@ export default function AppDownload() {
         {/* Cara install */}
         <section id="install" className="scroll-mt-24 space-y-4">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight text-black mb-1.5">
+            <h2 className="font-display text-xl font-bold tracking-tight text-black mb-1.5">
               Cara install
             </h2>
-            <p className="text-sm text-black/60 leading-relaxed">
+            <p className="font-serif text-sm text-black/60 leading-relaxed">
               Karena aplikasi belum tersedia di Play Store, Android akan
               meminta izin tambahan sekali saja.
             </p>
@@ -363,25 +363,25 @@ export default function AppDownload() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white rounded-2xl border border-black/5 p-5"
+                className="bg-white rounded-none border border-black/5 p-5"
               >
-                <span className="size-8 rounded-xl bg-[#0059D0] text-white text-sm font-semibold flex items-center justify-center mb-3">
+                <span className="size-8 rounded-none bg-[#0059D0] text-white text-sm font-semibold flex items-center justify-center mb-3">
                   {item.step}
                 </span>
-                <h3 className="text-sm font-semibold text-black mb-1.5">
+                <h3 className="font-display text-sm font-semibold text-black mb-1.5">
                   {item.title}
                 </h3>
-                <p className="text-sm text-black/60 leading-relaxed">
+                <p className="font-serif text-sm text-black/60 leading-relaxed">
                   {item.description}
                 </p>
               </motion.li>
             ))}
           </ol>
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 text-sm leading-relaxed text-amber-900">
-            <p className="font-semibold mb-1">
+          <div className="bg-amber-50 border border-amber-200 rounded-none px-5 py-4 text-sm leading-relaxed text-amber-900">
+            <p className="font-serif font-semibold mb-1">
               Kalau Play Protect muncul saat install
             </p>
-            <p className="text-amber-800/90">
+            <p className="font-serif text-amber-800/90">
               Peringatan kuning “Unknown app” itu wajar untuk aplikasi sideload:
               ketuk <strong>More details / Selengkapnya</strong> lalu{" "}
               <strong>Install anyway / Tetap install</strong>. Update berikutnya
@@ -396,22 +396,22 @@ export default function AppDownload() {
 
         {/* Kenapa install */}
         <section className="space-y-4">
-          <h2 className="text-xl font-semibold tracking-tight text-black">
+          <h2 className="font-display text-xl font-bold tracking-tight text-black">
             Kenapa install aplikasinya?
           </h2>
           <div className="grid gap-3 sm:grid-cols-3">
             {HIGHLIGHTS.map((item) => (
               <div
                 key={item.title}
-                className="bg-white rounded-2xl border border-black/5 p-5"
+                className="bg-white rounded-none border border-black/5 p-5"
               >
-                <div className="size-10 rounded-xl bg-[#0059D0]/10 text-[#0059D0] flex items-center justify-center mb-3">
+                <div className="size-10 rounded-none bg-[#F5F5F5] text-black flex items-center justify-center mb-3">
                   {item.icon}
                 </div>
-                <h3 className="text-sm font-semibold text-black mb-1.5">
+                <h3 className="font-display text-sm font-semibold text-black mb-1.5">
                   {item.title}
                 </h3>
-                <p className="text-sm text-black/60 leading-relaxed">
+                <p className="font-serif text-sm text-black/60 leading-relaxed">
                   {item.description}
                 </p>
               </div>
@@ -421,31 +421,31 @@ export default function AppDownload() {
 
         {/* FAQ */}
         <section id="faq" className="scroll-mt-24 space-y-4">
-          <h2 className="text-xl font-semibold tracking-tight text-black">
+          <h2 className="font-display text-xl font-bold tracking-tight text-black">
             Frequently Asked Questions
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <Link
               to="/faq/android"
-              className="group bg-white rounded-2xl border border-black/5 p-5 block hover:border-[#0059D0]/30 hover:shadow-sm transition-all"
+              className="group bg-white rounded-none border border-black/5 p-5 block hover:border-black/30 hover:border-black/30 transition-all"
             >
-              <h3 className="text-sm font-semibold text-black flex items-center gap-1.5 mb-1.5">
+              <h3 className="font-display text-sm font-semibold text-black flex items-center gap-1.5 mb-1.5">
                 Aplikasi Android
                 <ArrowRight className="size-3.5 text-black/20 transition-transform group-hover:translate-x-0.5 group-hover:text-[#0059D0]" />
               </h3>
-              <p className="text-sm text-black/60 leading-relaxed">
+              <p className="font-serif text-sm text-black/60 leading-relaxed">
                 Aman APK, HP didukung, update, dan gagal install.
               </p>
             </Link>
             <Link
               to="/faq/general"
-              className="group bg-white rounded-2xl border border-black/5 p-5 block hover:border-[#0059D0]/30 hover:shadow-sm transition-all"
+              className="group bg-white rounded-none border border-black/5 p-5 block hover:border-black/30 hover:border-black/30 transition-all"
             >
-              <h3 className="text-sm font-semibold text-black flex items-center gap-1.5 mb-1.5">
+              <h3 className="font-display text-sm font-semibold text-black flex items-center gap-1.5 mb-1.5">
                 Umum
                 <ArrowRight className="size-3.5 text-black/20 transition-transform group-hover:translate-x-0.5 group-hover:text-[#0059D0]" />
               </h3>
-              <p className="text-sm text-black/60 leading-relaxed">
+              <p className="font-serif text-sm text-black/60 leading-relaxed">
                 Biaya, akun, keamanan data, dan versi Web.
               </p>
             </Link>
@@ -453,20 +453,20 @@ export default function AppDownload() {
         </section>
 
         {/* Penutup */}
-        <section className="flex items-start gap-3 bg-[#60A8F8]/10 rounded-2xl px-5 py-4">
-          <Globe className="size-5 text-[#0059D0] shrink-0 mt-0.5" />
-          <p className="text-sm text-black/60 leading-relaxed">
+        <section className="flex items-start gap-3 bg-[#F5F5F5] rounded-none px-5 py-4">
+          <Globe className="size-5 text-black shrink-0 mt-0.5" />
+          <p className="font-serif text-sm text-black/60 leading-relaxed">
             Lebih suka tanpa install?{" "}
             <Link
               to="/dashboard"
-              className="text-[#0059D0] font-medium hover:underline inline-flex items-center gap-1"
+              className="text-black font-medium hover:underline inline-flex items-center gap-1"
             >
               Buka dashboard Web <ArrowRight className="size-3.5" />
             </Link>{" "}
             — butuh langkah awal? Baca{" "}
             <Link
               to="/guide"
-              className="text-[#0059D0] font-medium hover:underline"
+              className="text-black font-medium hover:underline"
             >
               panduan memulai
             </Link>
