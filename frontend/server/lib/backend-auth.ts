@@ -143,7 +143,8 @@ async function refreshAccessToken(
       if (!response.ok) {
         // Transient (429 rate-limit / 5xx): JANGAN anggap sesi mati.
         console.error(`[refreshAccessToken] Transient failure: status ${response.status}`);
-        return { unauthorized: false, status: response.status };
+        // 5xx backend dipetakan ke 502 agar beda dari error BFF sendiri (500).
+        return { unauthorized: false, status: response.status >= 500 ? 502 : response.status };
       }
 
       const payload = (await response.json()) as { access_token?: string };

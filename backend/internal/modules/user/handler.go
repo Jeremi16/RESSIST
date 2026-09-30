@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"log"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -245,6 +246,7 @@ func (h *Handler) handleUserError(c *gin.Context, err error) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
+	log.Printf("[user] fetch user failed: %v", err)
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch user"})
 }
 

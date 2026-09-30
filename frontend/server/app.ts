@@ -20,6 +20,12 @@ import { getAppBaseUrl, getBackendBaseUrl, getCookieDomain, isProduction } from 
 
 export const app = new Hono().basePath("/api");
 
+// Exception tak tertangkap: log agar terlihat di runtime logs, balas JSON.
+app.onError((err, c) => {
+  console.error(`[bff] unhandled ${c.req.method} ${c.req.path}:`, err);
+  return c.json({ error: "Internal server error" }, 500);
+});
+
 // ---------- helper: proxy generik ----------
 async function proxy(
   c: Context,
@@ -35,6 +41,9 @@ async function proxy(
     // masih valid (terasa "tiba-tiba logout").
     const sess = verifySession(c);
     if (sess) createSession(c, sess);
+  }
+  if (result.status >= 500) {
+    console.error(`[bff] ${path} -> ${result.status}`, JSON.stringify(result.body)?.slice(0, 300));
   }
   return c.json(result.body, result.status as 200);
 }
