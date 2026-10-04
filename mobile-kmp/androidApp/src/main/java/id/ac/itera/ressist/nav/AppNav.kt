@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -47,6 +48,7 @@ import id.ac.itera.ressist.ui.pengingat.PengingatScreen
 import id.ac.itera.ressist.ui.profil.ProfilScreen
 import id.ac.itera.ressist.ui.sinkronisasi.SinkronisasiScreen
 import id.ac.itera.ressist.ui.tugas.TugasScreen
+import id.ac.itera.ressist.ui.update.UpdateDialog
 import id.ac.itera.ressist.ui.update.UpdateViewModel
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
@@ -153,8 +155,10 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
     }
     RequestNotificationPermission()
     // Auto-check pembaruan ala Mihon (tiap cold start, dibatasi 1x/24 jam
-    // di UpdateViewModel). Notifikasi sistem hanya jika ada versi baru.
+    // di UpdateViewModel). Popup saat aplikasi dibuka + notifikasi sistem
+    // bila ada versi baru. "Nanti" hormati skippedCode 24 jam (lihat ViewModel).
     val appContext = LocalContext.current
+    val updateState by updateViewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         val release = updateViewModel.autoCheck()
         if (release != null) {
@@ -211,5 +215,19 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
                 )
             }
         }
+    }
+    // Popup versi baru saat aplikasi dibuka (satu-satunya dialog update global;
+    // TentangScreen hanya memicu checkManual, tidak menampilkan dialog sendiri
+    // agar tidak ganda — keduanya berbagi instance UpdateViewModel yang sama).
+    updateState.release?.let { release ->
+        UpdateDialog(
+            release = release,
+            downloading = updateState.downloading,
+            progress = updateState.progress,
+            downloadDone = updateState.downloadDone,
+            onUpdate = { updateViewModel.startDownload(release) },
+            onLater = { updateViewModel.skip(release) },
+            onDismiss = updateViewModel::dismiss,
+        )
     }
 }

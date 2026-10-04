@@ -33,7 +33,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.ac.itera.ressist.BuildConfig
 import id.ac.itera.ressist.ui.common.RessistHeader
 import id.ac.itera.ressist.ui.common.RessistIcons
-import id.ac.itera.ressist.ui.update.UpdateDialog
 import id.ac.itera.ressist.ui.update.UpdateViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -41,8 +40,9 @@ private const val WEB_CHANGELOG_URL = "https://ressist.web.id/change-log"
 
 /**
  * Halaman Tentang ala Mihon About: logo tengah, lalu daftar baris teks
- * (Versi / Cek Pembaruan / Yang Baru). Logika update-checker tetap sama
- * ([UpdateViewModel] + [UpdateDialog]), hanya tampilannya yang berubah.
+ * (Versi / Cek Pembaruan / Yang Baru). Tombol Cek Pembaruan memicu
+ * [UpdateViewModel.checkManual]; dialog versi baru ditampilkan global di
+ * MainScaffold (AppNav) agar muncul saat aplikasi dibuka.
  */
 @Composable
 fun TentangScreen(
@@ -107,17 +107,9 @@ fun TentangScreen(
             SnackbarHost(snackbar)
         }
     }
-    updateState.release?.let { release ->
-        UpdateDialog(
-            release = release,
-            downloading = updateState.downloading,
-            progress = updateState.progress,
-            downloadDone = updateState.downloadDone,
-            onUpdate = { updateViewModel.startDownload(release) },
-            onLater = { updateViewModel.skip(release) },
-            onDismiss = updateViewModel::dismiss,
-        )
-    }
+    // Catatan: dialog versi baru kini global di MainScaffold (AppNav) agar muncul
+    // saat aplikasi dibuka, bukan hanya dari halaman ini. State release yang sama
+    // diobserve di sana; halaman ini hanya memicu checkManual + snackbar.
 }
 
 /** Baris teks polos ala Mihon (tanpa card/ikon). */

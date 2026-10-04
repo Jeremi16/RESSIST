@@ -7,7 +7,7 @@ plugins {
 import java.util.Properties
 
 android {
-    // v0.4.0 rilis sideload: versionCode 16 (skema +1 dari v0.3.9 code 15).
+    // v0.4.1 rilis sideload: versionCode 17 (skema +1 dari v0.4.0 code 16).
     // Konsekuensi: pemilik KMP 0.2.3/code 5 lama (bila masih ada) wajib
     // uninstall manual karena Android menolak code yang sama/turun.
     namespace = "id.ac.itera.ressist"
@@ -17,8 +17,8 @@ android {
         applicationId = "id.ac.itera.ressist"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "0.4.0"
+        versionCode = 17
+        versionName = "0.4.1"
 
         // NOTE: project.findProperty does NOT read local.properties, so load it
         // manually. Order: -P flag > local.properties > fallback.
@@ -117,3 +117,17 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 }
+
+// Logo root sebagai single source of truth: tiap build sinkronkan
+// <repo>/logo.png -> drawable/logo_mark.png + drawable/ic_launcher_foreground.png.
+// Skip lembut (isIgnoreExitValue) bila python/Pillow tidak ada: drawable
+// yang sudah ter-commit tetap dipakai, build tidak gagal.
+val syncLogo by tasks.registering(Exec::class) {
+    description = "Sync logo.png root -> drawable (lihat ops/sync-logo.py)."
+    workingDir = rootProject.projectDir
+    // Windows: python.org installer hanya menyediakan `python`; Unix: `python3`.
+    val pythonExe = if (System.getProperty("os.name").lowercase().contains("win")) "python" else "python3"
+    commandLine(pythonExe, "../ops/sync-logo.py")
+    isIgnoreExitValue = true
+}
+tasks.named("preBuild") { dependsOn(syncLogo) }
