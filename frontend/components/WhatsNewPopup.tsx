@@ -10,17 +10,17 @@ interface WhatsNewPopupProps { isOpen?: boolean; onClose?: () => void; showTrigg
 // WAJIB sinkron dengan RELEASES[0] di frontend/app/change-log/page.tsx
 // (single source of truth rilis APK Android). Rilis baru = update versi +
 // highlights di bawah mengikuti entry terbaru di change-log.
-const WHATS_NEW_VERSION = "v0.4.0";
+const WHATS_NEW_VERSION = "v0.4.1";
 const WHATS_NEW_STORAGE_KEY = `whats-new-${WHATS_NEW_VERSION}-seen`;
-const APK_SIZE = "3.44 MB";
-const APK_RELEASED = "29 September 2026";
+const APK_SIZE = "3.13 MB";
+const APK_RELEASED = "4 Oktober 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 
 const NEW_FEATURES = [
+  { icon: RefreshCw, title: "Popup Pembaruan Otomatis", description: "Setiap ada versi baru, aplikasi langsung menampilkan popup saat dibuka. Bisa pilih Update Sekarang atau Nanti." },
   { icon: LayoutTemplate, title: "Tampilan Login Baru", description: "Halaman login didesain ulang dengan kolase ikon, judul besar, dan tombol Google yang lebih mantap." },
   { icon: CheckCircle2, title: "Login & Logout Lancar", description: "Keluar langsung kembali ke halaman login, dan dialog \"Anda login kembali\" tidak lagi berulang." },
   { icon: WifiOff, title: "Mode Offline", description: "Tugas, kelas, dan kalender tetap tampil walau tanpa internet." },
-  { icon: RefreshCw, title: "Update dari Aplikasi", description: "Cukup tekan update di Lainnya → Tentang, tidak perlu unduh manual lagi." },
   { icon: Feather, title: "Ringan & Timpa Langsung", description: `Hanya sekitar ${APK_SIZE}. Update langsung timpa versi lama, tidak perlu uninstall.` },
 ];
 
@@ -68,7 +68,7 @@ export function WhatsNewPopup({ isOpen: controlledIsOpen, onClose, showTrigger =
                 <div className="px-8 pt-10 pb-8 border-b border-black/10">
                   <p className="font-display text-[11px] font-medium uppercase tracking-wider text-[#0059D0] mb-4">Yang baru &middot; Android</p>
                   <h2 className="font-display text-4xl font-bold tracking-tight leading-none mb-4">Ressist {WHATS_NEW_VERSION}</h2>
-                  <p className="font-serif text-black/70 leading-relaxed">Tampilan login baru, login &amp; logout yang lebih lancar, dan aplikasi tetap bisa dipakai tanpa internet.</p>
+                  <p className="font-serif text-black/70 leading-relaxed">Popup pembaruan otomatis saat aplikasi dibuka, tampilan login baru, dan login &amp; logout yang lebih lancar.</p>
                 </div>
 
                 <ul className="px-8 divide-y divide-black/10">

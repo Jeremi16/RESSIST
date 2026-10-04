@@ -24,14 +24,14 @@ import { docsSidebar } from "@/components/docs-sidebar";
 // Fallback saat GitHub API tak terjangkau / rate-limit. WAJIB sinkron dengan
 // mobile-kmp/androidApp/build.gradle.kts (versionCode/versionName) dan nama
 // file rilis RESSIST-MOBILE: ressist-X.Y.Z-codeN-release.apk.
-const FALLBACK_VERSION = "v0.4.0";
-const FALLBACK_NAME = "ressist-0.4.0-code16-release.apk";
-const FALLBACK_SIZE = "3.44 MB";
-const FALLBACK_RELEASED = "September 2026";
-// SHA asli APK v0.3.7 (dari SHA256SUMS.txt rilis). Rilis berikutnya: ganti
-// lewat commit susulan "chore(web)" setelah CI rilis.
+const FALLBACK_VERSION = "v0.4.1";
+const FALLBACK_NAME = "ressist-0.4.1-code17-release.apk";
+const FALLBACK_SIZE = "3.13 MB";
+const FALLBACK_RELEASED = "4 Oktober 2026";
+// SHA asli APK dari SHA256SUMS.txt rilis RESSIST-MOBILE. Tiap rilis baru:
+// ambil dari asset SHA256SUMS.txt lalu sinkronkan ke sini.
 const FALLBACK_SHA256 =
-  "c8f1d3d1dd95baf778e0678cb3aaeba845a39bf90e23f024de8f5799406108aa";
+  "84cbf968eb9023ed2f026738f6e32485d3ac1f17a3d81e1ddbbf87aa4046a9e0";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
 const RELEASES_REPO = "Jeremi16/RESSIST-MOBILE";
 const LATEST_API = `https://api.github.com/repos/${RELEASES_REPO}/releases/latest`;
@@ -68,9 +68,9 @@ const SIDEBAR = docsSidebar([
 ]);
 
 const CHANGELOG = [
-  "Sesi anti-logout: tetap login saat sinyal tidak stabil atau server sibuk.",
-  "Sinkron latar belakang tidak lagi memutus sesi.",
-  "Halaman download otomatis ikut rilis GitHub terbaru + panduan Play Protect.",
+  "Popup versi baru otomatis setiap aplikasi dibuka — tidak perlu cek manual.",
+  "Tombol Update Sekarang mengunduh dan memasang langsung dari dalam aplikasi.",
+  "Logo aplikasi mengikuti file logo utama repo: lebih tajam, ukuran lebih kecil.",
 ];
 
 const INSTALL_STEPS = [

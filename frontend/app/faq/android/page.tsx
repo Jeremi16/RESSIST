@@ -14,8 +14,8 @@ type LiveRelease = {
 const RELEASES_REPO = "Jeremi16/RESSIST-MOBILE";
 const LATEST_API = `https://api.github.com/repos/${RELEASES_REPO}/releases/latest`;
 
-const FALLBACK_VERSION = "v0.3.2";
-const FALLBACK_SIZE = "3.5 MB";
+const FALLBACK_VERSION = "v0.4.1";
+const FALLBACK_SIZE = "3.13 MB";
 
 function formatSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return FALLBACK_SIZE;
@@ -95,7 +95,7 @@ export default function FaqAndroid() {
       id: "gagal",
       nav: "Gagal install",
       q: "Gagal install / muncul peringatan?",
-      a: 'Pastikan "Install unknown apps" diizinkan untuk browsermu/HP, ruang penyimpanan cukup, dan file terdownload penuh (cek ukurannya ~3.5 MB). Jika masih gagal, coba install lewat file manager (Files) langsung ke file APK, atau gunakan "Install anyway" setelah "More details". Lihat juga jawaban "Aman dari luar Play Store?" di atas.',
+      a: 'Pastikan "Install unknown apps" diizinkan untuk browsermu/HP, ruang penyimpanan cukup, dan file terdownload penuh (cek ukurannya ~3.1 MB). Jika masih gagal, coba install lewat file manager (Files) langsung ke file APK, atau gunakan "Install anyway" setelah "More details". Lihat juga jawaban "Aman dari luar Play Store?" di atas.',
     },
   ];
 

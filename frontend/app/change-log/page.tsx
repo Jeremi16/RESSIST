@@ -14,12 +14,18 @@ import {
 } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 
-const APK_VERSION = "v0.4.0";
-const APK_NAME = "ressist-0.4.0-code16-release.apk";
+const APK_VERSION = "v0.4.1";
+const APK_NAME = "ressist-0.4.1-code17-release.apk";
 const APK_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${APK_VERSION}/${APK_NAME}`;
-const APK_SIZE = "3.44 MB";
-const APK_RELEASED = "29 September 2026";
+const APK_SIZE = "3.13 MB";
+const APK_RELEASED = "4 Oktober 2026";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
+
+const V040_VERSION = "v0.4.0";
+const V040_NAME = "ressist-0.4.0-code16-release.apk";
+const V040_PATH = `https://github.com/Jeremi16/RESSIST-MOBILE/releases/download/${V040_VERSION}/${V040_NAME}`;
+const V040_SIZE = "3.44 MB";
+const V040_RELEASED = "29 September 2026";
 
 const V039_VERSION = "v0.3.9";
 const V039_NAME = "ressist-0.3.9-code15-release.apk";
@@ -121,18 +127,34 @@ type ReleaseEntry = {
 // cukup tambah 1 objek di sini; sidebar + section ikut otomatis.
 const RELEASES: ReleaseEntry[] = [
   {
-    id: "v0-4-0",
+    id: "v0-4-1",
     version: APK_VERSION,
     fileName: APK_NAME,
     filePath: APK_PATH,
     size: APK_SIZE,
     released: APK_RELEASED,
+    title: "Popup Pembaruan Otomatis",
+    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Setiap ada versi baru, aplikasi langsung menampilkan popup saat dibuka — tidak perlu cek manual ke Lainnya → Tentang. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
+    highlights: [
+      "Popup versi baru muncul otomatis setiap aplikasi dibuka (maksimal 1x sehari, bisa pilih Nanti).",
+      "Tombol Update Sekarang mengunduh dan memasang langsung dari dalam aplikasi.",
+      "Logo aplikasi kini mengikuti file logo utama repo (lebih tajam, ukuran unduhan lebih kecil).",
+      `Ringan — hanya sekitar ${APK_SIZE}.`,
+    ],
+  },
+  {
+    id: "v0-4-0",
+    version: V040_VERSION,
+    fileName: V040_NAME,
+    filePath: V040_PATH,
+    size: V040_SIZE,
+    released: V040_RELEASED,
     title: "Tampilan Login Baru",
-    description: `Versi terbaru aplikasi Android (${APK_MIN_ANDROID}). Halaman login tampil baru dengan kolase ikon dan tombol Google yang lebih besar. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
+    description: `Versi aplikasi Android (${APK_MIN_ANDROID}). Halaman login tampil baru dengan kolase ikon dan tombol Google yang lebih besar. Update langsung dari aplikasi atau timpa versi lama, tidak perlu uninstall.`,
     highlights: [
       "Halaman login didesain ulang: kolase ikon Ressist, judul besar, dan tombol pill hitam.",
       "Indikator loading kini tampil langsung di tombol Google saat proses masuk.",
-      `Ringan — hanya sekitar ${APK_SIZE}.`,
+      `Ringan — hanya sekitar ${V040_SIZE}.`,
     ],
   },
   {
