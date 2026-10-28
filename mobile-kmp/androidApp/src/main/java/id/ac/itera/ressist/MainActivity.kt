@@ -20,6 +20,7 @@ import id.ac.itera.ressist.data.ThemeMode
 import id.ac.itera.ressist.data.ThemePrefs
 import id.ac.itera.ressist.nav.AppNav
 import id.ac.itera.ressist.reminders.NotificationHelper
+import id.ac.itera.ressist.ui.common.ServerStatusGate
 import id.ac.itera.ressist.ui.theme.RessistTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.compose.koinInject
@@ -67,7 +68,9 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background,
                 ) {
                     val taskId by openTaskId.collectAsStateWithLifecycle()
-                    AppNav(openTaskId = taskId, onTaskOpened = { openTaskId.value = null })
+                    ServerStatusGate {
+                        AppNav(openTaskId = taskId, onTaskOpened = { openTaskId.value = null })
+                    }
                 }
             }
         }

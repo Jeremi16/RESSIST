@@ -6,6 +6,7 @@ import id.ac.itera.ressist.api.AuthedHttpClient
 import id.ac.itera.ressist.api.CalendarApi
 import id.ac.itera.ressist.api.CourseApi
 import id.ac.itera.ressist.api.ReleaseApi
+import id.ac.itera.ressist.api.ServerStatusMonitor
 import id.ac.itera.ressist.api.TokenRefresher
 import id.ac.itera.ressist.api.UserApi
 import id.ac.itera.ressist.api.createHttpClient
@@ -34,6 +35,7 @@ fun sharedModule(
     enableLogging: Boolean = false,
 ) = module {
     single { createHttpClient(engine, enableLogging) }
+    single(createdAtStart = true) { ServerStatusMonitor(get(), baseUrl) }
     single { AuthApi(get(), baseUrl) }
     single<SessionStorage> { InMemorySessionStorage() }
     single { TokenRefresher(get(), get()) }

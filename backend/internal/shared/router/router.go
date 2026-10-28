@@ -60,9 +60,16 @@ func New(
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+	r.Use(middleware.Maintenance())
 
 	r.GET("/livez", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
-	r.GET("/healthz", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
+	r.GET("/healthz", func(c *gin.Context) {
+		if middleware.MaintenanceActive() {
+			c.JSON(http.StatusOK, gin.H{"status": "maintenance", "message": middleware.MaintenanceMessage()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
 	r.GET("/readyz", func(c *gin.Context) {
 		sqlDB, err := db.DB()
 		if err != nil {
