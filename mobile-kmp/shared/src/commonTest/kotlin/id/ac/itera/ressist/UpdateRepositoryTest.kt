@@ -7,6 +7,7 @@ import id.ac.itera.ressist.api.dto.GithubReleaseDto
 import id.ac.itera.ressist.data.repository.UpdateRepository
 import id.ac.itera.ressist.data.repository.UpdateResult
 import id.ac.itera.ressist.data.repository.isNewSemVer
+import id.ac.itera.ressist.data.repository.sha256FromSums
 import id.ac.itera.ressist.data.repository.versionCodeFromAssetName
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -63,10 +64,61 @@ class UpdateRepositoryTest {
     }
 
     @Test
-    fun decide_noCodeName_fallsBackToSemVer() {
+    fun decide_noCodeName_notOffered() {
+        // Tanpa codeN tidak ada versionCode yang bisa dipercaya.
         val dto = releaseDto(tag = "v0.2.3", assetName = "ressist-0.2.3-release.apk")
-        assertTrue(UpdateRepository.decide(dto, 4, "0.2.2") is UpdateResult.Available)
-        assertTrue(UpdateRepository.decide(dto, 99, "0.2.3") is UpdateResult.UpToDate)
+        assertTrue(UpdateRepository.decide(dto, 4, "0.2.2") is UpdateResult.UpToDate)
+    }
+
+    @Test
+    fun decide_multipleApks_picksHighestCode() {
+        val dto = releaseDto().copy(
+            assets = listOf(
+                GithubAssetDto("ressist-0.2.3-code5-release.apk", "a", 1),
+                GithubAssetDto("ressist-0.2.4-code6-release.apk", "b", 2),
+            ),
+        )
+        val result = UpdateRepository.decide(dto, 4, "0.2.2")
+        assertTrue(result is UpdateResult.Available)
+        assertEquals(6, result.release.versionCode)
+    }
+
+    @Test
+    fun semVer_preReleaseSuffixIgnored() {
+        assertFalse(isNewSemVer("1.2.4", "v1.2.3-rc1"))
+        assertTrue(isNewSemVer("1.2.3-dev", "v1.2.4"))
+    }
+
+    @Test
+    fun sha256Sums_parsed() {
+        val hash = "84CBF968" + "0".repeat(56)
+        val sums = "$hash  ressist-0.4.1-code17-release.apk\n${"a".repeat(64)} *other.apk\n"
+        assertEquals(hash.lowercase(), sha256FromSums(sums, "ressist-0.4.1-code17-release.apk"))
+        assertEquals("a".repeat(64), sha256FromSums(sums, "other.apk"))
+        assertNull(sha256FromSums(sums, "missing.apk"))
+        assertNull(sha256FromSums("garbage line", "missing.apk"))
+    }
+
+    @Test
+    fun check_fetchesSha256Sums() = runTest {
+        val hash = "b".repeat(64)
+        val release = """{"tag_name":"v0.2.3","body":"- X","html_url":"h",
+          "assets":[{"name":"ressist-0.2.3-code5-release.apk","browser_download_url":"https://x/a.apk","size":100},
+          {"name":"SHA256SUMS.txt","browser_download_url":"https://x/SHA256SUMS.txt","size":90}]}"""
+        val engine = MockEngine { req ->
+            if (req.url.toString().endsWith("SHA256SUMS.txt")) {
+                respond(
+                    "$hash  ressist-0.2.3-code5-release.apk\n",
+                    HttpStatusCode.OK,
+                    headersOf(HttpHeaders.ContentType, "text/plain"),
+                )
+            } else {
+                respond(release, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            }
+        }
+        val result = UpdateRepository(ReleaseApi(createHttpClient(engine))).check(4, "0.2.2")
+        assertTrue(result is UpdateResult.Available)
+        assertEquals(hash, result.release.sha256)
     }
 
     @Test

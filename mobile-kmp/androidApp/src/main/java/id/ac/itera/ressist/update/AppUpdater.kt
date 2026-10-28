@@ -10,7 +10,10 @@ import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.FileProvider
+import id.ac.itera.ressist.data.repository.AppRelease
 import java.io.File
+import java.io.IOException
+import java.security.MessageDigest
 
 /**
  * Download + install APK sideload (tiru Mihon PackageInstallerInstaller).
@@ -111,31 +114,38 @@ class AppUpdater(private val context: Context) {
         }
     }
 
-    /** Buka prompt install untuk file yang sudah terdownload (session dulu, Legacy bila gagal). */
-    fun promptInstall(fileName: String) {
-        val file = localFile(fileName)
+    /**
+     * Materialisasi unduhan ke file lalu verifikasi ukuran + SHA-256 terhadap
+     * metadata rilis. Lempar [IntegrityException] (dan hapus file) bila tidak
+     * cocok. Blocking I/O: panggil dari Dispatchers.IO.
+     */
+    fun stageVerified(downloadId: Long, release: AppRelease): File {
+        val file = stageDownloadToFile(downloadId)
+            ?: throw IOException("File unduhan tidak ditemukan.")
+        if (release.assetSize > 0 && file.length() != release.assetSize) {
+            discard(downloadId, file)
+            throw IntegrityException("Ukuran file tidak cocok. Unduh ulang.")
+        }
+        release.sha256?.let { expected ->
+            if (!sha256Of(file).equals(expected, ignoreCase = true)) {
+                discard(downloadId, file)
+                throw IntegrityException("Checksum APK tidak cocok. Update dibatalkan demi keamanan.")
+            }
+        }
+        return file
+    }
+
+    /** Install file terverifikasi: session dulu, fallback Legacy. Session copy = blocking I/O. */
+    fun install(file: File) {
         if (installViaSession(file)) return
         promptInstallLegacy(file)
     }
 
-    fun promptInstallByDownloadId(downloadId: Long) {
-        // Coba materialisasi ke file dulu agar bisa masuk session API.
-        val staged = stageDownloadToFile(downloadId)
-        if (staged != null && installViaSession(staged)) return
-        // Fallback: ACTION_VIEW langsung ke uri DownloadManager.
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val uri = dm.getUriForDownloadedFile(downloadId) ?: return
-        if (staged != null) {
-            promptInstallLegacy(staged)
-        } else {
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "application/vnd.android.package-archive")
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                },
-            )
-        }
+    fun cancelDownload(downloadId: Long) {
+        runCatching { downloadManager().remove(downloadId) }
     }
+
+    class IntegrityException(message: String) : Exception(message)
 
     // ---------- internal ----------
 
@@ -150,10 +160,31 @@ class AppUpdater(private val context: Context) {
         return PendingIntent.getBroadcast(context, sessionId, intent, flags).intentSender
     }
 
+    private fun downloadManager() =
+        context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+
+    private fun discard(downloadId: Long, file: File) {
+        file.delete()
+        cancelDownload(downloadId)
+    }
+
+    private fun sha256Of(file: File): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buf = ByteArray(64 * 1024)
+            while (true) {
+                val n = input.read(buf)
+                if (n < 0) break
+                md.update(buf, 0, n)
+            }
+        }
+        return md.digest().joinToString("") { "%02x".format(it) }
+    }
+
     /** Salin isi unduhan DownloadManager ke file updates/ agar bisa di-session-install. */
     private fun stageDownloadToFile(downloadId: Long): File? {
         return try {
-            val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val dm = downloadManager()
             val uri = dm.getUriForDownloadedFile(downloadId) ?: return null
             // Bila uri sudah file:// langsung pakai.
             if (uri.scheme == "file") {

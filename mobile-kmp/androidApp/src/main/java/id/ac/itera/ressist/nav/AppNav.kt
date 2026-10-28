@@ -156,7 +156,7 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
     RequestNotificationPermission()
     // Auto-check pembaruan ala Mihon (tiap cold start, dibatasi 1x/24 jam
     // di UpdateViewModel). Popup saat aplikasi dibuka + notifikasi sistem
-    // bila ada versi baru. "Nanti" hormati skippedCode 24 jam (lihat ViewModel).
+    // bila ada versi baru. "Nanti" menunda versi itu 24 jam (lihat ViewModel).
     val appContext = LocalContext.current
     val updateState by updateViewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {

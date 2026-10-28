@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -16,49 +16,11 @@ import {
   TriangleAlert,
   Zap,
 } from "lucide-react";
-import {
-  DocsLayout,
-} from "@/components/DocsLayout";
+import { DocsLayout } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
+import { formatDate, formatSize, useLatestRelease } from "@/lib/latest-release";
 
-// Fallback saat GitHub API tak terjangkau / rate-limit. WAJIB sinkron dengan
-// mobile-kmp/androidApp/build.gradle.kts (versionCode/versionName) dan nama
-// file rilis RESSIST-MOBILE: ressist-X.Y.Z-codeN-release.apk.
-const FALLBACK_VERSION = "v0.4.1";
-const FALLBACK_NAME = "ressist-0.4.1-code17-release.apk";
-const FALLBACK_SIZE = "3.13 MB";
-const FALLBACK_RELEASED = "4 Oktober 2026";
-// SHA asli APK dari SHA256SUMS.txt rilis RESSIST-MOBILE. Tiap rilis baru:
-// ambil dari asset SHA256SUMS.txt lalu sinkronkan ke sini.
-const FALLBACK_SHA256 =
-  "84cbf968eb9023ed2f026738f6e32485d3ac1f17a3d81e1ddbbf87aa4046a9e0";
 const APK_MIN_ANDROID = "Android 8.0 atau lebih tinggi";
-const RELEASES_REPO = "Jeremi16/RESSIST-MOBILE";
-const LATEST_API = `https://api.github.com/repos/${RELEASES_REPO}/releases/latest`;
-
-type LiveRelease = {
-  version: string;
-  name: string;
-  url: string;
-  size: string;
-  released: string;
-  htmlUrl: string;
-};
-
-function formatSize(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes <= 0) return FALLBACK_SIZE;
-  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return FALLBACK_RELEASED;
-  return d.toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 const SIDEBAR = docsSidebar([
   { label: "Rilis Stabil", to: "#stabil" },
@@ -123,54 +85,20 @@ const HIGHLIGHTS = [
 
 export default function AppDownload() {
   const [copied, setCopied] = useState(false);
-  // Data live dari GitHub Release (sumber yang sama dengan update-checker HP).
-  // Fallback ke konstanta di atas bila offline / rate-limit (60 req/jam tanpa token).
-  const [live, setLive] = useState<LiveRelease | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(LATEST_API, {
-          headers: { Accept: "application/vnd.github+json" },
-        });
-        if (!res.ok) return;
-        const json = await res.json();
-        const assets: Array<{ name?: string; browser_download_url?: string; size?: number }> =
-          json.assets ?? [];
-        const apk = assets.find((a) => a.name?.toLowerCase().endsWith(".apk"));
-        if (!apk?.browser_download_url || !apk?.name) return;
-        if (!cancelled) {
-          setLive({
-            version: json.tag_name ?? FALLBACK_VERSION,
-            name: apk.name,
-            url: apk.browser_download_url,
-            size: formatSize(apk.size ?? 0),
-            released: formatDate(json.published_at ?? ""),
-            htmlUrl: json.html_url ?? `https://github.com/${RELEASES_REPO}/releases/latest`,
-          });
-        }
-      } catch {
-        // offline / diblokir — biarkan fallback
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const version = live?.version ?? FALLBACK_VERSION;
-  const apkName = live?.name ?? FALLBACK_NAME;
-  const apkPath =
-    live?.url ??
-    `https://github.com/${RELEASES_REPO}/releases/download/${FALLBACK_VERSION}/${FALLBACK_NAME}`;
-  const apkSize = live?.size ?? FALLBACK_SIZE;
-  const apkReleased = live?.released ?? FALLBACK_RELEASED;
-  const releasePage = live?.htmlUrl ?? `https://github.com/${RELEASES_REPO}/releases/latest`;
+  // Data live dari GitHub Release (sumber yang sama dengan update-checker HP),
+  // di-cache sessionStorage; fallback ke konstanta di lib bila offline / rate-limit.
+  const release = useLatestRelease();
+  const version = release.version;
+  const apkName = release.name;
+  const apkPath = release.url;
+  const apkSize = formatSize(release.sizeBytes);
+  const apkReleased = formatDate(release.releasedIso);
+  const releasePage = release.htmlUrl;
+  const sha256 = release.sha256;
 
   const copySha = async () => {
     try {
-      await navigator.clipboard.writeText(FALLBACK_SHA256);
+      await navigator.clipboard.writeText(sha256 ?? "");
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -179,11 +107,7 @@ export default function AppDownload() {
   };
 
   return (
-    <DocsLayout
-      versionLabel={version}
-      downloadHref="#stabil"
-      sidebar={SIDEBAR}
-    >
+    <DocsLayout versionLabel={version} downloadHref="#stabil" sidebar={SIDEBAR}>
       <div className="space-y-8">
         <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-black">
           Download
@@ -296,7 +220,9 @@ export default function AppDownload() {
               <p className="text-black/40 text-xs font-medium mb-1">
                 Nama file
               </p>
-              <p className="font-serif text-black font-medium break-all">{apkName}</p>
+              <p className="font-serif text-black font-medium break-all">
+                {apkName}
+              </p>
             </div>
             <div className="bg-black/[0.03] rounded-none px-4 py-3">
               <p className="text-black/40 text-xs font-medium mb-1">Versi</p>
@@ -305,33 +231,36 @@ export default function AppDownload() {
               </p>
             </div>
           </div>
-          <div className="bg-black/[0.03] rounded-none px-4 py-3">
-            <p className="text-black/40 text-xs font-medium mb-1">
-              SHA-256 (verifikasi keaslian file)
-            </p>
-            <div className="flex items-start gap-2">
-              <code className="text-black/70 text-xs leading-relaxed break-all flex-1">
-                {FALLBACK_SHA256}
-              </code>
-              <button
-                type="button"
-                onClick={copySha}
-                className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-black hover:underline"
-              >
-                {copied ? (
-                  <>
-                    <Check className="size-3.5" /> Tersalin
-                  </>
-                ) : (
-                  <>
-                    <Copy className="size-3.5" /> Salin
-                  </>
-                )}
-              </button>
+          {sha256 && (
+            <div className="bg-black/[0.03] rounded-none px-4 py-3">
+              <p className="text-black/40 text-xs font-medium mb-1">
+                SHA-256 (verifikasi keaslian file)
+              </p>
+              <div className="flex items-start gap-2">
+                <code className="text-black/70 text-xs leading-relaxed break-all flex-1">
+                  {sha256}
+                </code>
+                <button
+                  type="button"
+                  onClick={copySha}
+                  className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-black hover:underline"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="size-3.5" /> Tersalin
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-3.5" /> Salin
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
           <p className="text-xs text-black/50 leading-relaxed">
-            SHA di atas untuk v0.3.1. Untuk {version}, cocokkan dengan file{" "}
+            {sha256 ? "SHA di atas untuk file " + apkName + ". " : ""}
+            Cocokkan SHA-256 {version} dengan file{" "}
             <code className="text-black/70">SHA256SUMS.txt</code> di{" "}
             <a
               href={releasePage}
@@ -352,8 +281,8 @@ export default function AppDownload() {
               Cara install
             </h2>
             <p className="font-serif text-sm text-black/60 leading-relaxed">
-              Karena aplikasi belum tersedia di Play Store, Android akan
-              meminta izin tambahan sekali saja.
+              Karena aplikasi belum tersedia di Play Store, Android akan meminta
+              izin tambahan sekali saja.
             </p>
           </div>
           <ol className="grid gap-3 sm:grid-cols-2">

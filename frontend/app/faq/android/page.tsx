@@ -1,61 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { DocsLayout } from "@/components/DocsLayout";
 import { docsSidebar } from "@/components/docs-sidebar";
 import { FaqList, type FaqItem } from "@/components/FaqList";
-
-type LiveRelease = {
-  version: string;
-  size: string;
-};
-
-const RELEASES_REPO = "Jeremi16/RESSIST-MOBILE";
-const LATEST_API = `https://api.github.com/repos/${RELEASES_REPO}/releases/latest`;
-
-const FALLBACK_VERSION = "v0.4.1";
-const FALLBACK_SIZE = "3.13 MB";
-
-function formatSize(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes <= 0) return FALLBACK_SIZE;
-  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-}
+import { formatSize, useLatestRelease } from "@/lib/latest-release";
 
 export default function FaqAndroid() {
   // Data live dari GitHub Release (sumber yang sama dengan update-checker HP).
-  const [live, setLive] = useState<LiveRelease | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(LATEST_API, {
-          headers: { Accept: "application/vnd.github+json" },
-        });
-        if (!res.ok) return;
-        const json = await res.json();
-        const assets: Array<{ name?: string; browser_download_url?: string; size?: number }> =
-          json.assets ?? [];
-        const apk = assets.find((a) => a.name?.toLowerCase().endsWith(".apk"));
-        if (!apk?.browser_download_url || !apk?.name) return;
-        if (!cancelled) {
-          setLive({
-            version: json.tag_name ?? FALLBACK_VERSION,
-            size: formatSize(apk.size ?? 0),
-          });
-        }
-      } catch {
-        // offline / diblokir — biarkan fallback
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const version = live?.version ?? FALLBACK_VERSION;
-  const apkSize = live?.size ?? FALLBACK_SIZE;
+  const release = useLatestRelease();
+  const version = release.version;
+  const apkSize = formatSize(release.sizeBytes);
 
   const ITEMS: FaqItem[] = [
     {
@@ -68,8 +23,8 @@ export default function FaqAndroid() {
           <Link to="/app" className="text-black font-medium hover:underline">
             halaman download
           </Link>
-          . Versi terbaru saat ini {version} (sekitar {apkSize}, Android 8.0
-          ke atas).
+          . Versi terbaru saat ini {version} (sekitar {apkSize}, Android 8.0 ke
+          atas).
         </>
       ),
     },
@@ -95,7 +50,7 @@ export default function FaqAndroid() {
       id: "gagal",
       nav: "Gagal install",
       q: "Gagal install / muncul peringatan?",
-      a: 'Pastikan "Install unknown apps" diizinkan untuk browsermu/HP, ruang penyimpanan cukup, dan file terdownload penuh (cek ukurannya ~3.1 MB). Jika masih gagal, coba install lewat file manager (Files) langsung ke file APK, atau gunakan "Install anyway" setelah "More details". Lihat juga jawaban "Aman dari luar Play Store?" di atas.',
+      a: `Pastikan "Install unknown apps" diizinkan untuk browsermu/HP, ruang penyimpanan cukup, dan file terdownload penuh (cek ukurannya ${apkSize}). Jika masih gagal, coba install lewat file manager (Files) langsung ke file APK, atau gunakan "Install anyway" setelah "More details". Lihat juga jawaban "Aman dari luar Play Store?" di atas.`,
     },
   ];
 

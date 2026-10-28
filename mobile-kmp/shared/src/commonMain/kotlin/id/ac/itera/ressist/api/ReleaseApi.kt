@@ -22,4 +22,9 @@ class ReleaseApi(
         header("Accept", "application/vnd.github+json")
         header("X-Request-ID", randomUuid())
     }.bodyOrThrow()
+
+    /** Isi teks asset rilis (mis. SHA256SUMS.txt); redirect GitHub diikuti otomatis. */
+    suspend fun text(url: String): String = client.get(url) {
+        header("X-Request-ID", randomUuid())
+    }.bodyOrThrow()
 }
