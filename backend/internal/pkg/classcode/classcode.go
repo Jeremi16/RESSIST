@@ -12,7 +12,14 @@ import (
 var (
 	bracketCodeRe = regexp.MustCompile(`\[([A-Za-z0-9]{1,8})\]`)
 	parenCodeRe   = regexp.MustCompile(`\(([A-Za-z0-9]{1,8})\)`)
+	// UTS/UAS dari LMS bukan tugas yang dikumpulkan; jangan tampil sebagai tugas.
+	examTitleRe = regexp.MustCompile(`(?i)\b(uts|uas)\b|ujian\s+(tengah|akhir)\s+semester|mid\s*-?\s*(term|semester)\s+exam|final\s+exam`)
 )
+
+// IsExamTitle reports whether an event title is an exam (UTS/UAS), not an assignment.
+func IsExamTitle(title string) bool {
+	return examTitleRe.MatchString(title)
+}
 
 func ParseArray(jsonStr string) []string {
 	codes := make([]string, 0)
@@ -266,6 +273,9 @@ func FilterWithCourseClass(events []models.Event, mutedCoursesJSON string, selec
 	}
 	filtered := make([]models.Event, 0, len(events))
 	for _, event := range events {
+		if IsExamTitle(event.Title) {
+			continue
+		}
 		courseName := ""
 		if event.Course != nil {
 			courseName = *event.Course

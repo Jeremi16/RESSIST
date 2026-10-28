@@ -8,9 +8,14 @@ import (
 	"strings"
 	"time"
 
+	"regexp"
+
 	"github.com/jeremi16/ressist-bot/internal/client"
 	"github.com/robfig/cron/v3"
 )
+
+// examTitleRe sama dengan classcode.IsExamTitle di ressist-api.
+var examTitleRe = regexp.MustCompile(`(?i)\b(uts|uas)\b|ujian\s+(tengah|akhir)\s+semester|mid\s*-?\s*(term|semester)\s+exam|final\s+exam`)
 
 // Scheduler sends periodic notifications via the SendFunc (telegram).
 // All data comes from ressist-api over HTTP. No DB here.
@@ -141,6 +146,10 @@ func (s *Scheduler) sendReminders(hoursBefore int) {
 		}
 		// Respect user's chosen reminder_hours (e.g. [24,6]). Skip if this bucket not selected.
 		if !isReminderHourSelected(a.ReminderHours, hoursBefore) {
+			continue
+		}
+		// UTS/UAS bukan tugas
+		if examTitleRe.MatchString(a.Title) {
 			continue
 		}
 		// Respect per-user filters (muted courses / class code / keyword)
