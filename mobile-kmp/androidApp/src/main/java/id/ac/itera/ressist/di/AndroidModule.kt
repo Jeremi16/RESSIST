@@ -17,6 +17,7 @@ import id.ac.itera.ressist.ui.kelas.KelasViewModel
 import id.ac.itera.ressist.ui.login.LoginViewModel
 import id.ac.itera.ressist.ui.pengingat.PengingatViewModel
 import id.ac.itera.ressist.ui.overview.OverviewViewModel
+import id.ac.itera.ressist.ui.tugas.TaskDetailViewModel
 import id.ac.itera.ressist.ui.tugas.TugasViewModel
 import id.ac.itera.ressist.ui.kalender.KalenderViewModel
 import id.ac.itera.ressist.ui.lms.LmsViewModel
@@ -45,6 +46,7 @@ val androidModule = module {
     viewModel { LoginViewModel(get(), get(), get()) }
     viewModel { OverviewViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { TugasViewModel(get(), get(), get(), get(), get()) }
+    viewModel { TaskDetailViewModel(get(), get()) }
     viewModel { KalenderViewModel(get(), get()) }
     viewModel { LmsViewModel(get(), get(), get()) }
     viewModel { KelasViewModel(get(), get(), get()) }

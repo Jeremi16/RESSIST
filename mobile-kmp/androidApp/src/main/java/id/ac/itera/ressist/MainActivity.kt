@@ -1,5 +1,6 @@
 package id.ac.itera.ressist
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -18,12 +19,30 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.ac.itera.ressist.data.ThemeMode
 import id.ac.itera.ressist.data.ThemePrefs
 import id.ac.itera.ressist.nav.AppNav
+import id.ac.itera.ressist.reminders.NotificationHelper
 import id.ac.itera.ressist.ui.theme.RessistTheme
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
+    // ID tugas dari tap notifikasi pengingat; dikosongkan setelah detail dibuka.
+    private val openTaskId = MutableStateFlow<String?>(null)
+
+    private fun consumeIntent(intent: Intent?) {
+        intent?.getStringExtra(NotificationHelper.EXTRA_OPEN_TASK)?.let { openTaskId.value = it }
+        intent?.removeExtra(NotificationHelper.EXTRA_OPEN_TASK)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        consumeIntent(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Jangan buka ulang detail saat activity dibuat ulang (rotasi dll).
+        if (savedInstanceState == null) consumeIntent(intent)
         setContent {
             RessistTheme {
                 // Edge-to-edge ala Mihon: bar transparan, gaya ikon dari
@@ -47,7 +66,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    AppNav()
+                    val taskId by openTaskId.collectAsStateWithLifecycle()
+                    AppNav(openTaskId = taskId, onTaskOpened = { openTaskId.value = null })
                 }
             }
         }

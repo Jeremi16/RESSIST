@@ -31,10 +31,11 @@ class ReminderScheduler(
         const val EXTRA_TITLE = "title"
         const val EXTRA_TEXT = "text"
         const val EXTRA_CODE = "code"
+        const val EXTRA_ASSIGNMENT_ID = "assignment_id"
+        const val BRIEFING_ID = "morning-briefing"
         private const val PREFS = "ressist_alarms"
         private const val KEY_CODES = "codes"
         private const val MAX_TASKS = 100
-        private const val BRIEFING_ID = "morning-briefing"
         private val JAKARTA: ZoneId = ZoneId.of("Asia/Jakarta")
     }
 
@@ -70,7 +71,8 @@ class ReminderScheduler(
                 .setAction(ACTION_REMIND)
                 .putExtra(EXTRA_TITLE, title)
                 .putExtra(EXTRA_TEXT, text)
-                .putExtra(EXTRA_CODE, code),
+                .putExtra(EXTRA_CODE, code)
+                .putExtra(EXTRA_ASSIGNMENT_ID, assignmentId),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()

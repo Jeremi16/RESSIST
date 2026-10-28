@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import id.ac.itera.ressist.domain.model.Assignment
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -76,7 +77,11 @@ import org.koin.androidx.compose.koinViewModel
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TugasScreen(modifier: Modifier = Modifier, viewModel: TugasViewModel = koinViewModel()) {
+fun TugasScreen(
+    modifier: Modifier = Modifier,
+    onOpenTask: (Assignment) -> Unit = {},
+    viewModel: TugasViewModel = koinViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val message = state.notice ?: state.error
@@ -283,6 +288,7 @@ fun TugasScreen(modifier: Modifier = Modifier, viewModel: TugasViewModel = koinV
                                     task = task,
                                     completing = state.completingId == task.id,
                                     onComplete = { viewModel.complete(task) },
+                                    onClick = { onOpenTask(task) },
                                 )
                             }
                             item { Spacer(Modifier.height(16.dp)) }

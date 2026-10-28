@@ -47,6 +47,7 @@ import id.ac.itera.ressist.ui.pengaturan.TampilanScreen
 import id.ac.itera.ressist.ui.pengingat.PengingatScreen
 import id.ac.itera.ressist.ui.profil.ProfilScreen
 import id.ac.itera.ressist.ui.sinkronisasi.SinkronisasiScreen
+import id.ac.itera.ressist.ui.tugas.TaskDetailScreen
 import id.ac.itera.ressist.ui.tugas.TugasScreen
 import id.ac.itera.ressist.ui.update.UpdateDialog
 import id.ac.itera.ressist.ui.update.UpdateViewModel
@@ -81,7 +82,11 @@ private fun RequestNotificationPermission() {
 }
 
 @Composable
-fun AppNav(authManager: AuthManager = koinInject()) {
+fun AppNav(
+    openTaskId: String? = null,
+    onTaskOpened: () -> Unit = {},
+    authManager: AuthManager = koinInject(),
+) {
     val nav = rememberNavController()
     var start by rememberSaveable { mutableStateOf<String?>(null) }
     // Cold start: stored session + valid /v1/auth/me → straight to main.
@@ -118,13 +123,19 @@ fun AppNav(authManager: AuthManager = koinInject()) {
                 }
             })
         }
-        composable(Routes.MAIN) { MainScaffold() }
+        composable(Routes.MAIN) { MainScaffold(openTaskId = openTaskId, onTaskOpened = onTaskOpened) }
     }
 }
 
 @Composable
-private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
+private fun MainScaffold(
+    openTaskId: String?,
+    onTaskOpened: () -> Unit,
+    updateViewModel: UpdateViewModel = koinViewModel(),
+) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    // Detail tugas (tab Tugas), dibuka dari kartu atau tap notifikasi pengingat.
+    var taskDetailId by rememberSaveable { mutableStateOf<String?>(null) }
     // Sub-navigasi internal:
     // - Tampilan penuh kalender dibuka dari kartu Overview.
     // - Detail Tampilan/Kelas/Profil/Sinkronisasi/Tentang dibuka dari tab Lainnya.
@@ -137,18 +148,27 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
         tab = i
         showCalendar = false
         lainnyaDetail = null
+        taskDetailId = null
         tabHistory = (tabHistory + i).takeLast(20)
+    }
+    LaunchedEffect(openTaskId) {
+        val id = openTaskId ?: return@LaunchedEffect
+        selectTab(1)
+        taskDetailId = id
+        onTaskOpened()
     }
     // Urutan: sub-halaman dulu (kalender/detail Lainnya), lalu riwayat tab.
     // BackHandler anak (mis. mode cari Tugas) diproses lebih dulu oleh Compose.
-    BackHandler(enabled = showCalendar || lainnyaDetail != null || tabHistory.size > 1) {
+    BackHandler(enabled = taskDetailId != null || showCalendar || lainnyaDetail != null || tabHistory.size > 1) {
         when {
+            taskDetailId != null -> taskDetailId = null
             showCalendar -> showCalendar = false
             lainnyaDetail != null -> lainnyaDetail = null
             tabHistory.size > 1 -> {
                 tabHistory = tabHistory.dropLast(1)
                 tab = tabHistory.last()
                 showCalendar = false
+                taskDetailId = null
                 lainnyaDetail = null
             }
         }
@@ -192,7 +212,10 @@ private fun MainScaffold(updateViewModel: UpdateViewModel = koinViewModel()) {
                     onOpenCalendar = { showCalendar = true },
                 )
             }
-            1 -> TugasScreen(modifier)
+            1 -> when (val id = taskDetailId) {
+                null -> TugasScreen(modifier, onOpenTask = { taskDetailId = it.id })
+                else -> TaskDetailScreen(id, onBack = { taskDetailId = null }, modifier = modifier)
+            }
             2 -> LmsScreen(modifier)
             3 -> PengingatScreen(modifier = modifier)
             else -> when (lainnyaDetail) {

@@ -10,6 +10,7 @@ class ReminderReceiver : BroadcastReceiver() {
         val title = intent.getStringExtra(ReminderScheduler.EXTRA_TITLE) ?: "Pengingat tugas"
         val text = intent.getStringExtra(ReminderScheduler.EXTRA_TEXT) ?: "Ada deadline mendekat"
         val id = intent.getIntExtra(ReminderScheduler.EXTRA_CODE, 0)
-        NotificationHelper.notify(context.applicationContext, id, title, text)
+        val assignmentId = intent.getStringExtra(ReminderScheduler.EXTRA_ASSIGNMENT_ID)
+        NotificationHelper.notify(context.applicationContext, id, title, text, assignmentId)
     }
 }

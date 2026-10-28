@@ -331,11 +331,17 @@ fun TaskCardFrontend(
     completing: Boolean,
     onComplete: () -> Unit,
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
     val now = Clock.System.now()
     val overdue = !task.completed && task.deadline < now
     val uriHandler = LocalUriHandler.current
-    RessistCard(modifier) {
+    val clickModifier = if (onClick != null) {
+        Modifier.clip(RoundedCornerShape(16.dp)).clickable(onClick = onClick)
+    } else {
+        Modifier
+    }
+    RessistCard(modifier.then(clickModifier)) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {

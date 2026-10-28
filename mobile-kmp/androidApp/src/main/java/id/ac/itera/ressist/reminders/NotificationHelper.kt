@@ -19,6 +19,7 @@ object NotificationHelper {
     const val UPDATE_CHANNEL_ID = "ressist_updates"
     const val UPDATE_NOTIFICATION_ID = 9001
     const val SYNC_NEW_TASKS_ID = 907_002
+    const val EXTRA_OPEN_TASK = "open_task_id"
 
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -33,7 +34,11 @@ object NotificationHelper {
         )
     }
 
-    fun notify(context: Context, id: Int, title: String, text: String) {
+    /**
+     * Notifikasi pengingat. Tap → buka aplikasi; bila [assignmentId] tugas
+     * nyata (bukan briefing), langsung ke halaman Detail Tugas.
+     */
+    fun notify(context: Context, id: Int, title: String, text: String, assignmentId: String? = null) {
         ensureChannel(context)
         if (Build.VERSION.SDK_INT >= 33 &&
             ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -41,6 +46,17 @@ object NotificationHelper {
         ) {
             return
         }
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+            if (assignmentId != null && assignmentId != ReminderScheduler.BRIEFING_ID) {
+                putExtra(EXTRA_OPEN_TASK, assignmentId)
+            }
+        }
+        val pending = PendingIntent.getActivity(
+            context, id, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
         NotificationManagerCompat.from(context).notify(
             id,
             NotificationCompat.Builder(context, CHANNEL_ID)
@@ -49,6 +65,7 @@ object NotificationHelper {
                 .setContentText(text)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(text))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pending)
                 .setAutoCancel(true)
                 .build(),
         )
