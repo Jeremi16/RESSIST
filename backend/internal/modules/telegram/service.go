@@ -110,8 +110,8 @@ func (b *Bot) SendAssignmentNotification(userID string, assignmentTitle string, 
 			"Ayo segera dikerjakan! 💪\n\n"+
 			"🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
 		urgencyEmoji,
-		courseName,
-		assignmentTitle,
+		escapeMarkdown(courseName),
+		escapeMarkdown(assignmentTitle),
 		dueDate.Format("Monday, 2 Jan 2006 15:04 WIB"),
 		sisa,
 	)

@@ -8,16 +8,19 @@ import (
 )
 
 type User struct {
-	ID                     string `gorm:"primaryKey;size:36"`
-	Email                  string `gorm:"uniqueIndex;not null"`
-	Name                   string
-	AvatarURL              string  `gorm:"column:avatar_url"`
-	GoogleID               string  `gorm:"column:google_id;uniqueIndex"`
-	EmailVerified          bool    `gorm:"column:email_verified"`
-	WhatsAppNumber         *string `gorm:"column:whatsapp_number"`
-	WhatsAppEnabled        bool    `gorm:"column:whatsapp_enabled;default:true"`
-	TelegramUsername       *string
-	TelegramChatID         *string    `gorm:"column:telegram_chat_id"`
+	ID               string `gorm:"primaryKey;size:36"`
+	Email            string `gorm:"uniqueIndex;not null"`
+	Name             string
+	AvatarURL        string  `gorm:"column:avatar_url"`
+	GoogleID         string  `gorm:"column:google_id;uniqueIndex"`
+	EmailVerified    bool    `gorm:"column:email_verified"`
+	WhatsAppNumber   *string `gorm:"column:whatsapp_number"`
+	WhatsAppEnabled  bool    `gorm:"column:whatsapp_enabled;default:true"`
+	TelegramUsername *string
+	// Unique per user: two rows must never share a chat id, otherwise
+	// resolving a chat back to a user is ambiguous. Partial index so the many
+	// NULL rows (unbound users) do not collide.
+	TelegramChatID         *string    `gorm:"column:telegram_chat_id;uniqueIndex:idx_users_telegram_chat_id,where:telegram_chat_id IS NOT NULL"`
 	TelegramEnabled        bool       `gorm:"column:telegram_enabled;default:true"`
 	TelegramVerifyCode     *string    `gorm:"column:telegram_verify_code;index"`
 	TelegramVerifyExpires  *time.Time `gorm:"column:telegram_verify_expires"`

@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/jeremi16/ressist-api/internal/models"
@@ -53,6 +54,15 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 		return nil, fmt.Errorf("migrate refresh_tokens.session_started_at: %w", err)
 	}
 	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_session_started_at ON refresh_tokens (session_started_at)`).Error
+
+	// Unique parsial pada telegram_chat_id. Dibuat dengan aman: bila masih ada
+	// duplikat, index TIDAK dibuat dan operator diberi peringatan eksplisit
+	// (lihat SECURITY-MIGRATIONS.md) — bukan menggagalkan startup, karena
+	// aplikasi tetap berfungsi dan GetUserByTelegram sudah menolak binding
+	// ambigu dengan 409.
+	if err := db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_telegram_chat_id ON users (telegram_chat_id) WHERE telegram_chat_id IS NOT NULL`).Error; err != nil {
+		log.Printf("[db] WARNING: could not create idx_users_telegram_chat_id (duplicate telegram_chat_id rows likely exist; see SECURITY-MIGRATIONS.md): %v", err)
+	}
 
 	return db, nil
 }

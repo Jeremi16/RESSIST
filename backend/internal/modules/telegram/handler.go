@@ -118,7 +118,7 @@ func buildTestReminderMessage(title, course string, due time.Time) string {
 	}
 	return fmt.Sprintf(
 		"%s *Pengingat Tugas*\n\n📚 *Kelas:* %s\n📝 *Tugas:* %s\n⏰ *Deadline:* %s WIB\n⏳ *Sisa Waktu:* %s\n\nAyo segera dikerjakan! 💪\n\n🌐 *Detail:* [ressist.web.id](https://ressist.web.id)",
-		emoji, course, title, due.Format("Monday, 2 Jan 2006 15:04 WIB"), reminderDayLabel(due, d, hours),
+		emoji, escapeMarkdown(course), escapeMarkdown(title), due.Format("Monday, 2 Jan 2006 15:04 WIB"), reminderDayLabel(due, d, hours),
 	)
 }
 
@@ -182,7 +182,7 @@ func buildMorningBriefingMessage(userName string, assignments []models.Event) st
 	wib := time.FixedZone("WIB", 7*3600)
 	now := time.Now().In(wib)
 
-	message := fmt.Sprintf("☀️ *Selamat Pagi, %s!*\n\n", userName)
+	message := fmt.Sprintf("☀️ *Selamat Pagi, %s!*\n\n", escapeMarkdown(userName))
 	message += fmt.Sprintf("📅 %s\n\n", now.Format("Monday, 2 January 2006"))
 	message += "📚 *Tugas yang Belum Dikerjakan:*\n\n"
 
@@ -195,8 +195,8 @@ func buildMorningBriefingMessage(userName string, assignments []models.Event) st
 				course = *a.Course
 			}
 			deadlineWIB := a.Deadline.In(wib)
-			message += fmt.Sprintf("%d. *%s*\n", i+1, a.Title)
-			message += fmt.Sprintf("   📖 %s\n", course)
+			message += fmt.Sprintf("%d. *%s*\n", i+1, escapeMarkdown(a.Title))
+			message += fmt.Sprintf("   📖 %s\n", escapeMarkdown(course))
 			message += fmt.Sprintf("   ⏰ %s\n\n", deadlineWIB.Format("Monday, 2 Jan 15:04"))
 		}
 	}

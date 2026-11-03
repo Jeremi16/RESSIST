@@ -42,32 +42,20 @@ func New(cfg *config.Config, db *gorm.DB) (*Module, error) {
 	}, nil
 }
 
-// Start launches bot and scheduler in background. Returns immediately.
-// Both respect ctx cancellation.
+// Start launches the reminder scheduler in the background. Returns immediately
+// and respects ctx cancellation.
 //
-// DEPRECATED: do NOT call from ressist-api. Polling must run only in the
+// Polling (getUpdates) is NOT started here and must never be: it belongs to the
 // standalone ressist-bot service (replicas=1), otherwise Telegram returns
-// "Conflict: terminated by other getUpdates request". Kept for reference.
+// "Conflict: terminated by other getUpdates request". Only the scheduler —
+// which is a plain cron over our own DB — is safe to run in-process.
 func (m *Module) Start(ctx context.Context) error {
-	if m.Bot != nil {
-		go func() {
-			_ = m.Bot.Start(ctx)
-		}()
-	}
 	if m.Scheduler != nil {
 		go func() {
 			_ = m.Scheduler.Start(ctx)
 		}()
 	}
 	return nil
-}
-
-// StartBot starts the bot polling (blocking).
-func (m *Module) StartBot(ctx context.Context) error {
-	if m.Bot == nil {
-		return nil
-	}
-	return m.Bot.Start(ctx)
 }
 
 // StartScheduler starts the cron scheduler (blocking).

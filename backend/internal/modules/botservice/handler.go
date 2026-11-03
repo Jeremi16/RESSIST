@@ -1,8 +1,11 @@
 package botservice
 
 import (
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -29,17 +32,27 @@ func (h *Handler) GetUserByTelegram(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "chatID is required"})
 		return
 	}
-	var user models.User
+	var users []models.User
 	if err := h.db.WithContext(c.Request.Context()).
 		Where("telegram_chat_id = ?", chatID).
-		First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-			return
-		}
+		Limit(2).
+		Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
 		return
 	}
+	// More than one row claiming the same chat means the binding is ambiguous;
+	// picking one arbitrarily would deliver another user's reminders to
+	// whoever happens to sort first.
+	if len(users) > 1 {
+		log.Printf("[botservice] ambiguous telegram chat binding detected")
+		c.JSON(http.StatusConflict, gin.H{"error": "ambiguous chat binding"})
+		return
+	}
+	if len(users) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+	user := users[0]
 	c.JSON(http.StatusOK, gin.H{
 		"id":                user.ID,
 		"name":              user.Name,
@@ -86,6 +99,90 @@ type verifyTelegramRequest struct {
 	TelegramUsername *string `json:"telegram_username"`
 }
 
+// telegramAttemptWindow is how long a failed verification is remembered, and
+// how long a chat is locked out once it exceeds maxTelegramAttempts.
+const (
+	maxTelegramAttempts   = 5
+	telegramAttemptWindow = 10 * time.Minute
+)
+
+// verifyAttemptLimiter tracks failed code redemptions per chat id.
+type verifyAttemptLimiter struct {
+	mu      sync.Mutex
+	entries map[string]*attemptEntry
+}
+
+type attemptEntry struct {
+	count     int
+	firstSeen time.Time
+	lockedFor time.Time
+}
+
+var telegramAttempts = &verifyAttemptLimiter{entries: make(map[string]*attemptEntry)}
+
+// allow reports whether this chat id may attempt a redemption now.
+func (l *verifyAttemptLimiter) allow(chatID string, now time.Time) (bool, time.Duration) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	entry, ok := l.entries[chatID]
+	if !ok {
+		return true, 0
+	}
+	if now.Sub(entry.firstSeen) > telegramAttemptWindow {
+		delete(l.entries, chatID)
+		return true, 0
+	}
+	if now.Before(entry.lockedFor) {
+		return false, entry.lockedFor.Sub(now)
+	}
+	return true, 0
+}
+
+// fail records a failed attempt and returns the lockout duration once the
+// threshold is reached (0 otherwise).
+func (l *verifyAttemptLimiter) fail(chatID string, now time.Time) time.Duration {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	// Opportunistic cleanup so the map cannot grow without bound.
+	if len(l.entries) > 4096 {
+		for k, v := range l.entries {
+			if now.Sub(v.firstSeen) > telegramAttemptWindow {
+				delete(l.entries, k)
+			}
+		}
+	}
+
+	entry, ok := l.entries[chatID]
+	if !ok || now.Sub(entry.firstSeen) > telegramAttemptWindow {
+		l.entries[chatID] = &attemptEntry{count: 1, firstSeen: now}
+		return 0
+	}
+	entry.count++
+	if entry.count >= maxTelegramAttempts {
+		entry.lockedFor = now.Add(telegramAttemptWindow)
+		entry.count = 0
+		entry.firstSeen = now
+		return telegramAttemptWindow
+	}
+	return 0
+}
+
+func (l *verifyAttemptLimiter) reset(chatID string) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	delete(l.entries, chatID)
+}
+
+// recordFailedAttempt logs the failure and locks the chat out after too many.
+func (h *Handler) recordFailedAttempt(c *gin.Context, chatID string) {
+	now := time.Now()
+	if lock := telegramAttempts.fail(chatID, now); lock > 0 {
+		log.Printf("[botservice] telegram verify locked out after %d failed attempts", maxTelegramAttempts)
+	}
+}
+
 // VerifyTelegram links a telegram chat to a user via verify code.
 // POST /internal/telegram/verify
 // Logic moved here from the old in-process bot so ressist-bot stays stateless.
@@ -102,11 +199,44 @@ func (h *Handler) VerifyTelegram(c *gin.Context) {
 		return
 	}
 
+	if ok, wait := telegramAttempts.allow(req.ChatID, time.Now()); !ok {
+		seconds := int(wait.Seconds())
+		if seconds < 1 {
+			seconds = 1
+		}
+		c.Header("Retry-After", strconv.Itoa(seconds))
+		c.JSON(http.StatusTooManyRequests, gin.H{
+			"error":               "too many failed attempts",
+			"retry_after_seconds": seconds,
+		})
+		return
+	}
+
 	var user models.User
 	if err := h.db.WithContext(c.Request.Context()).
 		Where("telegram_verify_code = ? AND telegram_verify_expires > ?", req.Code, time.Now()).
 		First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
+			// A wrong guess must cost something, otherwise the code space can
+			// be swept silently. Attribute the failure to the user who owns an
+			// active code so the counter has somewhere to live.
+			h.recordFailedAttempt(c, req.ChatID)
+			c.JSON(http.StatusNotFound, gin.H{"error": "invalid or expired code"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+		return
+	}
+
+	// A wrong guess must cost something, otherwise the 8-character code space
+	// can be swept silently. The failure cannot be attributed to a user row
+	// (we do not know whose code was guessed), so the counter is keyed by the
+	// chat id that is doing the guessing.
+	if err := h.db.WithContext(c.Request.Context()).
+		Where("telegram_verify_code = ? AND telegram_verify_expires > ?", req.Code, time.Now()).
+		First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			h.recordFailedAttempt(c, req.ChatID)
 			c.JSON(http.StatusNotFound, gin.H{"error": "invalid or expired code"})
 			return
 		}
@@ -129,6 +259,7 @@ func (h *Handler) VerifyTelegram(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to link telegram"})
 		return
 	}
+	telegramAttempts.reset(req.ChatID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

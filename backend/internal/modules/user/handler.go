@@ -1,9 +1,11 @@
 package user
 
 import (
+	crand "crypto/rand"
 	"errors"
+	"fmt"
 	"log"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"strings"
 	"time"
@@ -197,9 +199,14 @@ func (h *Handler) GenerateTelegramVerifyCode(c *gin.Context) {
 		return
 	}
 
-	code := generateAlphanumericCode(6)
+	code, err := generateAlphanumericCode(verifyCodeLength)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate code"})
+		return
+	}
 	expiresAt := time.Now().Add(10 * time.Minute)
 
+	// A new code clears any lockout so a user who fumbled earlier is not stuck.
 	if err := h.db.Model(&models.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
 		"telegram_verify_code":    code,
 		"telegram_verify_expires": expiresAt,
@@ -317,9 +324,12 @@ func (h *Handler) buildUpdateData(req *userUpdateRequest) map[string]interface{}
 	if req.WhatsAppNumber != nil {
 		updateData["whatsapp_number"] = nullableString(req.WhatsAppNumber)
 	}
-	if req.TelegramChatID != nil {
-		updateData["telegram_chat_id"] = nullableString(req.TelegramChatID)
-	}
+	// telegram_chat_id is deliberately NOT writable here. It is the binding
+	// between a Telegram account and this user, and accepting it from the
+	// client let anyone point their row at somebody else's chat (or claim a
+	// chat id they do not control). The only legitimate writer is
+	// POST /internal/telegram/verify, which proves control of the chat by
+	// presenting a single-use code generated in-app.
 	if req.MoodleCalendarURL != nil {
 		updateData["moodle_calendar_url"] = nullableString(req.MoodleCalendarURL)
 	}
@@ -392,13 +402,33 @@ func (h *Handler) buildUserResponse(user *models.User) userResponse {
 	}
 }
 
-func generateAlphanumericCode(length int) string {
-	const charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+// verifyCodeAlphabet omits characters that are easy to confuse when read aloud
+// or retyped (I, O, 0, 1). 32 symbols = 5 bits per character.
+const verifyCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+// verifyCodeLength of 8 gives 40 bits of entropy. The previous 6 characters
+// (30 bits) was small enough to sweep without a rate limit.
+const verifyCodeLength = 8
+
+// generateAlphanumericCode returns a cryptographically random code.
+//
+// math/rand is not designed to resist an observer who sees part of the output,
+// and this value is the sole proof that a caller controls a Telegram chat, so
+// it must come from crypto/rand.
+func generateAlphanumericCode(length int) (string, error) {
+	if length <= 0 {
+		length = verifyCodeLength
+	}
+	max := big.NewInt(int64(len(verifyCodeAlphabet)))
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
+		n, err := crand.Int(crand.Reader, max)
+		if err != nil {
+			return "", fmt.Errorf("crypto/rand: %w", err)
+		}
+		b[i] = verifyCodeAlphabet[n.Int64()]
 	}
-	return string(b)
+	return string(b), nil
 }
 
 // ---------------------------------------------------------------------------
@@ -406,9 +436,12 @@ func generateAlphanumericCode(length int) string {
 // ---------------------------------------------------------------------------
 
 type userUpdateRequest struct {
-	WhatsAppNumber         *string `json:"whatsapp_number"`
-	WhatsAppEnabled        *bool   `json:"whatsapp_enabled"`
-	TelegramChatID         *string `json:"telegram_chat_id"`
+	WhatsAppNumber  *string `json:"whatsapp_number"`
+	WhatsAppEnabled *bool   `json:"whatsapp_enabled"`
+
+	// TelegramChatID is intentionally absent: the binding is only set through
+	// the verification flow. The field used to be accepted here and let a
+	// client write any chat id to its own row.
 	TelegramEnabled        *bool   `json:"telegram_enabled"`
 	MoodleEnabled          *bool   `json:"moodle_enabled"`
 	MoodleCalendarURL      *string `json:"moodle_calendar_url"`

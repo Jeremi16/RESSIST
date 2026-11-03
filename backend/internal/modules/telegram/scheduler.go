@@ -118,7 +118,7 @@ func (s *Scheduler) buildMorningBriefingMessage(user models.User, assignments []
 	wib := time.FixedZone("WIB", 7*3600)
 	now := time.Now().In(wib)
 
-	message := fmt.Sprintf("☀️ *Selamat Pagi, %s!*\n\n", user.Name)
+	message := fmt.Sprintf("☀️ *Selamat Pagi, %s!*\n\n", escapeMarkdown(user.Name))
 	message += fmt.Sprintf("📅 %s\n\n", now.Format("Monday, 2 January 2006"))
 	message += "📚 *Tugas yang Belum Dikerjakan:*\n\n"
 
@@ -131,8 +131,8 @@ func (s *Scheduler) buildMorningBriefingMessage(user models.User, assignments []
 				course = *a.Course
 			}
 			deadlineWIB := a.Deadline.In(wib)
-			message += fmt.Sprintf("%d. *%s*\n", i+1, a.Title)
-			message += fmt.Sprintf("   📖 %s\n", course)
+			message += fmt.Sprintf("%d. *%s*\n", i+1, escapeMarkdown(a.Title))
+			message += fmt.Sprintf("   📖 %s\n", escapeMarkdown(course))
 			message += fmt.Sprintf("   ⏰ %s\n\n", deadlineWIB.Format("Monday, 2 Jan 15:04"))
 		}
 	}
