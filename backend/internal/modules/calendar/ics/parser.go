@@ -37,6 +37,11 @@ func ParseMoodleICS(raw string) []MoodleCalendarEvent {
 	return parseMoodleICS(raw)
 }
 
+// maxICSLineBytes caps a single unfolded logical line. RFC 5545 does not
+// bound line length, and naive concatenation lets a crafted calendar make the
+// parser do quadratic work and allocate without limit.
+const maxICSLineBytes = 1 << 20 // 1 MiB
+
 // parseMoodleICS parses Moodle ICS calendar data into calendar events.
 func parseMoodleICS(raw string) []MoodleCalendarEvent {
 	content := normalizeLineEndings(raw)
@@ -52,10 +57,27 @@ func parseMoodleICS(raw string) []MoodleCalendarEvent {
 			continue
 		}
 
-		// Handle line folding (lines starting with space are continuations)
-		for i+1 < len(lines) && strings.HasPrefix(lines[i+1], " ") {
-			line += strings.TrimPrefix(lines[i+1], " ")
-			i++
+		// Handle line folding (lines starting with space are continuations).
+		// Build once into a Builder: `line += ...` in the loop reallocates
+		// and recopies the whole prefix on every continuation, which is
+		// quadratic in the number of folded lines.
+		if i+1 < len(lines) && strings.HasPrefix(lines[i+1], " ") {
+			var sb strings.Builder
+			sb.Grow(len(line) + 64)
+			sb.WriteString(line)
+			for i+1 < len(lines) && strings.HasPrefix(lines[i+1], " ") {
+				if sb.Len() >= maxICSLineBytes {
+					// Stop unfolding this logical line; the remainder is
+					// dropped rather than buffered without bound.
+					break
+				}
+				sb.WriteString(strings.TrimPrefix(lines[i+1], " "))
+				i++
+			}
+			line = sb.String()
+			if len(line) > maxICSLineBytes {
+				line = line[:maxICSLineBytes]
+			}
 		}
 
 		switch {
@@ -87,12 +109,22 @@ func ParseICSEventLine(line string, event *MoodleCalendarEvent) {
 // parseICSEventLine parses a single ICS line and updates the event.
 func parseICSEventLine(line string, event *MoodleCalendarEvent) {
 	switch {
-	case strings.HasPrefix(line, "UID:"):
-		event.UID = strings.TrimSpace(strings.TrimPrefix(line, "UID:"))
-	case strings.HasPrefix(line, "SUMMARY:"):
-		event.Title = cleanMoodleTitle(unescapeICS(strings.TrimPrefix(line, "SUMMARY:")))
-	case strings.HasPrefix(line, "CATEGORIES:"):
-		event.Course = unescapeICS(strings.TrimPrefix(line, "CATEGORIES:"))
+	case strings.HasPrefix(line, "UID"):
+		if value, ok := icsPropertyValue(line, "UID"); ok {
+			event.UID = value
+		}
+	case strings.HasPrefix(line, "SUMMARY"):
+		// Moodle and Google both emit parameterised forms such as
+		// "SUMMARY;LANGUAGE=en:UTS Kalkulus". Matching only "SUMMARY:" left
+		// Title empty, and an event with an empty Title is dropped entirely
+		// at the END:VEVENT check above.
+		if value, ok := icsPropertyValue(line, "SUMMARY"); ok {
+			event.Title = cleanMoodleTitle(unescapeICS(value))
+		}
+	case strings.HasPrefix(line, "CATEGORIES"):
+		if value, ok := icsPropertyValue(line, "CATEGORIES"); ok {
+			event.Course = unescapeICS(value)
+		}
 	case strings.HasPrefix(line, "DESCRIPTION"):
 		if value, ok := icsPropertyValue(line, "DESCRIPTION"); ok {
 			event.Description = unescapeICS(value)

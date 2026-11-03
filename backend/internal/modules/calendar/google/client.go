@@ -16,6 +16,7 @@ import (
 	"github.com/jeremi16/ressist-api/internal/config"
 	"github.com/jeremi16/ressist-api/internal/models"
 	"github.com/jeremi16/ressist-api/internal/pkg/text"
+	"github.com/jeremi16/ressist-api/internal/pkg/urlutil"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"gorm.io/gorm"
@@ -256,6 +257,11 @@ func (c *Client) FetchAssignmentsFromCoursesWithStats(ctx context.Context, acces
 						url.PathEscape(work.CourseID),
 						url.PathEscape(work.ID),
 					)
+				}
+				// Defence in depth: only store http(s) URLs in a column that
+				// clients render as an anchor.
+				if _, err := urlutil.ValidateOutboundHTTPURL(workURL, false); err != nil {
+					workURL = ""
 				}
 				local = append(local, AssignmentRecord{
 					Title:       text.DefaultString(work.Title, "Untitled Assignment"),

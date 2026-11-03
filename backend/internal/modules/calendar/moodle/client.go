@@ -23,6 +23,9 @@ import (
 
 const upcomingWindowDays = 60
 
+// maxCalendarBytes caps how much of a Moodle ICS export we will read.
+const maxCalendarBytes = 8 << 20 // 8 MiB
+
 // privateCIDRs lists address ranges that must never be reachable through a
 // user-supplied URL. Loopback, RFC1918, link-local (which includes the
 // 169.254.169.254 cloud metadata endpoint), IPv6 loopback, unique-local, and
@@ -169,9 +172,14 @@ func (c *Client) FetchMoodleCalendar(ctx context.Context, calendarURL string) (s
 		return "", fmt.Errorf("moodle fetch failed: status=%d body=%s", resp.StatusCode, string(body))
 	}
 
-	data, err := io.ReadAll(resp.Body)
+	// Cap the read: an ICS export is small, and an unbounded io.ReadAll lets
+	// the upstream dictate how much memory this process spends.
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxCalendarBytes+1))
 	if err != nil {
 		return "", err
+	}
+	if len(data) > maxCalendarBytes {
+		return "", fmt.Errorf("moodle calendar exceeds %d bytes", maxCalendarBytes)
 	}
 	return string(data), nil
 }
@@ -197,6 +205,14 @@ func (c *Client) ParseMoodleEvents(rawICS string, user *models.User) []Assignmen
 		eventURL := strings.TrimSpace(event.URL)
 		if eventURL == "" {
 			eventURL = ExtractMoodleURLFromDescription(event.Description)
+		}
+		// Defence in depth: events.url is rendered as an anchor in every
+		// client. Clients sanitise it today, but storing a non-http(s) scheme
+		// means any future client inherits the problem. Store NULL instead.
+		if eventURL != "" {
+			if _, err := urlutil.ValidateOutboundHTTPURL(eventURL, false); err != nil {
+				eventURL = ""
+			}
 		}
 		assignments = append(assignments, AssignmentRecord{
 			Title:       text.DefaultString(event.Title, "Untitled Assignment"),

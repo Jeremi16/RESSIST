@@ -21,6 +21,20 @@ import (
 	"gorm.io/gorm"
 )
 
+// maxRequestBodyBytes caps inbound request bodies. No endpoint in this API
+// accepts a large payload, so 1 MiB is generous. Bodies larger than this
+// produce a bind error and a 400 rather than unbounded allocation.
+const maxRequestBodyBytes = 1 << 20 // 1 MiB
+
+func maxBodyBytes(limit int64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.Body != nil {
+			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, limit)
+		}
+		c.Next()
+	}
+}
+
 func New(
 	cfg *config.Config,
 	db *gorm.DB,
@@ -38,6 +52,9 @@ func New(
 	}
 	r := gin.New()
 	r.Use(middleware.RequestID())
+	// Cap request bodies before anything parses them. Without this every
+	// ShouldBindJSON reads an unbounded body into memory.
+	r.Use(maxBodyBytes(maxRequestBodyBytes))
 	r.Use(middleware.TimeoutContext(cfg.RequestTimeoutSeconds))
 	r.Use(middleware.JSONAccessLogger())
 	r.Use(gin.Recovery())
