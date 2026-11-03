@@ -159,6 +159,13 @@ func New(
 	assignmentGroup.GET("", middleware.BotOrAPIKeyOrJWT(tokenParser, apiKeyValidator, cfg.BotServiceToken), apiKeyRateLimit, assignmentModule.Handler.GetAssignments)
 	assignmentGroup.POST("/complete", middleware.BotOrAccessToken(tokenParser, cfg.BotServiceToken), assignmentModule.Handler.CompleteAssignment)
 
+	// Cheap terminal 404. Keeping this explicit means unmatched requests do
+	// not fall through to a full handler chain, and the metrics middleware
+	// labels them "unmatched" instead of by raw path.
+	r.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found", "request_id": middleware.GetRequestID(c)})
+	})
+
 	return r
 }
 

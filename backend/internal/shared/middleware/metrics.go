@@ -46,9 +46,14 @@ func HTTPMetrics() gin.HandlerFunc {
 		start := time.Now()
 		c.Next()
 
+		// Only the route template is a bounded label value. When Gin cannot
+		// match a route (404, redirect, middleware abort), c.FullPath() is ""
+		// and the raw URL would put attacker-controlled text into the label
+		// set — one new time series per unique path, forever. Collapse those
+		// into a single bucket instead.
 		path := c.FullPath()
 		if path == "" {
-			path = c.Request.URL.Path
+			path = "unmatched"
 		}
 
 		statusCode := c.Writer.Status()
