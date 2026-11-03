@@ -302,6 +302,32 @@ export default function Dashboard() {
             variant: "info",
           });
         }
+      } else if (response.status === 429) {
+        // Dua sumber 429: cooldown sinkronisasi (forceRefresh) atau limiter
+        // per-IP/per-user. Keduanya kondisi terminal — mengulang request tidak
+        // akan berhasil sampai jendelanya lewat, jadi jangan retry.
+        // retry_after_seconds adalah sumber kebenaran; header Retry-After
+        // dipakai sebagai cadangan.
+        const retryAfter =
+          Number((data as any)?.retry_after_seconds) ||
+          Number(response.headers.get("Retry-After")) ||
+          0;
+        const waitText =
+          retryAfter <= 0
+            ? "beberapa saat"
+            : retryAfter >= 60
+              ? `${Math.ceil(retryAfter / 60)} menit`
+              : `${retryAfter} detik`;
+        const isCooldown =
+          (data as any)?.error === "refresh cooldown active" || !!forceRefresh;
+        showToast({
+          title: isCooldown ? "Sinkronisasi Ditunda" : "Terlalu Banyak Permintaan",
+          description: isCooldown
+            ? `Sinkronisasi terakhir baru saja berjalan. Coba lagi dalam ${waitText}.`
+            : `Permintaan terlalu sering. Coba lagi dalam ${waitText}.`,
+          variant: "info",
+        });
+        if (!isCooldown) setPreviewError("Terlalu banyak permintaan, coba lagi nanti");
       } else if (forceRefresh) {
         const msg = (data as any)?.error || "Gagal sinkronisasi dengan LMS";
         showToast({ title: "Sinkronisasi Gagal", description: msg, variant: "error" });
@@ -488,6 +514,19 @@ export default function Dashboard() {
       const data = await response.json();
       if (response.ok) {
         setPreviewEvents(data.events);
+      } else if (response.status === 429) {
+        // Endpoint test berbagi budget cooldown dengan sync penuh.
+        const retryAfter =
+          Number(data?.retry_after_seconds) ||
+          Number(response.headers.get("Retry-After")) ||
+          0;
+        const waitText =
+          retryAfter <= 0
+            ? "beberapa saat"
+            : retryAfter >= 60
+              ? `${Math.ceil(retryAfter / 60)} menit`
+              : `${retryAfter} detik`;
+        setPreviewError(`Terlalu sering mengetes. Coba lagi dalam ${waitText}.`);
       } else {
         setPreviewError(data.error || "Gagal mengetes koneksi");
       }

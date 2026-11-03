@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import id.ac.itera.ressist.api.CalendarApi
+import id.ac.itera.ressist.api.RateLimitedException
 import id.ac.itera.ressist.api.RessistApiException
 import id.ac.itera.ressist.api.SessionExpiredException
 import id.ac.itera.ressist.api.UnauthorizedException
@@ -20,6 +21,8 @@ import org.koin.core.component.inject
  * GET /v1/calendar/preview?force=true bila sync gagal → rebuild alarm →
  * catat lastSuccess/lastFail → notif tugas baru (dedup via SyncPrefs).
  * No-op silenc saat logout (SessionExpired) agar tidak retry loop.
+ * No-op silenc saat cooldown aktif (429) karena sync & preview berbagi satu
+ * budget di backend — retry tidak akan berhasil sampai jendela cooldown lewat.
  */
 class SyncWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params), KoinComponent {
@@ -61,6 +64,15 @@ class SyncWorker(context: Context, params: WorkerParameters) :
             runCatching { prefs.setLastSuccess(now) }
             return Result.success()
         }
+        if (err is RateLimitedException) {
+            // Cooldown sinkronisasi aktif (429). Backend memakai SATU budget
+            // untuk /v1/auth/sync, /v1/calendar/preview?force=true, dan
+            // /v1/calendar/test — jadi fallback di bawah pasti juga kena 429.
+            // Ini kondisi terminal: retry hanya membuang request + baterai
+            // + wake lock, dan memperpanjang cooldown berikutnya.
+            // Data cache masih valid, alarm lokal tidak perlu diubah.
+            return Result.success()
+        }
 
         // 2. Fallback: preview force (juga memicu SyncProviders di backend).
         val fallback = runCatching { calendar.preview(force = true) }
@@ -71,6 +83,10 @@ class SyncWorker(context: Context, params: WorkerParameters) :
         }
         val fallbackErr = fallback.exceptionOrNull()
         if (fallbackErr is SessionExpiredException || fallbackErr is UnauthorizedException) {
+            return Result.success()
+        }
+        if (fallbackErr is RateLimitedException) {
+            // Sama seperti di atas: cooldown, bukan gangguan jaringan.
             return Result.success()
         }
 
