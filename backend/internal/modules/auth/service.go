@@ -31,6 +31,33 @@ var (
 	ErrUserIdentityConflict  = errors.New("google account conflicts with existing user")
 )
 
+// Revocation reasons. These decide whether the reuse-grace window applies:
+// grace exists to absorb the benign concurrent-refresh race, where two
+// requests present the same token and one loses. A token revoked because the
+// user logged out, or because reuse was already detected, must never be
+// honoured — otherwise an attacker holding a stolen token gets a fresh session
+// simply by racing the legitimate client.
+const (
+	// RevokeReasonRotated is set when a token is superseded by its rotation.
+	// This is the only reason eligible for grace.
+	RevokeReasonRotated = "rotated"
+	// RevokeReasonLogout is set on explicit logout.
+	RevokeReasonLogout = "logout"
+	// RevokeReasonReuse is set on the whole chain when reuse is detected.
+	RevokeReasonReuse = "reuse"
+	// RevokeReasonExpired is set when a token aged out.
+	RevokeReasonExpired = "expired"
+)
+
+// graceEligible reports whether a revoked token may still be honoured.
+//
+// Rows written before RevokedReason existed have an empty reason. They are
+// treated as NOT eligible: we cannot prove they were benign rotations, and the
+// safe failure mode is a re-login, not a session minted for a revoked token.
+func graceEligible(token *models.RefreshToken) bool {
+	return token.RevokedReason == RevokeReasonRotated
+}
+
 // reuseGrace adalah toleransi pemakaian ulang refresh token yang baru
 // saja dirotasi. BFF (khususnya di serverless seperti Vercel) dan mobile
 // (UI + SyncWorker) menembak beberapa request paralel dengan token lama
@@ -415,7 +442,9 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 		return nil, err
 	}
 	if existing.RevokedAt != nil {
-		if now.Sub(*existing.RevokedAt) < s.reuseGrace() {
+		// Grace only for tokens revoked by rotation. A logout or a prior
+		// reuse detection must never be papered over by the grace window.
+		if graceEligible(&existing) && now.Sub(*existing.RevokedAt) < s.reuseGrace() {
 			var user models.User
 			err := s.db.WithContext(ctx).Where("id = ?", existing.UserID).First(&user).Error
 			if err == nil {
@@ -432,14 +461,14 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 				return nil, err
 			}
 		}
-		_ = s.RevokeAllUserRefreshTokens(ctx, existing.UserID)
+		_ = s.RevokeAllUserRefreshTokens(ctx, existing.UserID, RevokeReasonReuse)
 		return nil, ErrRefreshTokenReuse
 	}
 	if existing.ExpiresAt.Before(now) {
 		_ = s.db.WithContext(ctx).
 			Model(&models.RefreshToken{}).
 			Where("id = ? AND revoked_at IS NULL", existing.ID).
-			Update("revoked_at", &now).Error
+			Updates(map[string]interface{}{"revoked_at": &now, "revoked_reason": RevokeReasonExpired}).Error
 		return nil, ErrExpiredRefreshToken
 	}
 	// Absolute max lifetime: even with sliding rotation, force re-login.
@@ -448,7 +477,7 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 			_ = s.db.WithContext(ctx).
 				Model(&models.RefreshToken{}).
 				Where("id = ? AND revoked_at IS NULL", existing.ID).
-				Update("revoked_at", &now).Error
+				Updates(map[string]interface{}{"revoked_at": &now, "revoked_reason": RevokeReasonExpired}).Error
 			return nil, ErrExpiredRefreshToken
 		}
 	}
@@ -474,7 +503,7 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		revokeResult := tx.Model(&models.RefreshToken{}).
 			Where("id = ? AND revoked_at IS NULL", existing.ID).
-			Update("revoked_at", &now)
+			Updates(map[string]interface{}{"revoked_at": &now, "revoked_reason": RevokeReasonRotated})
 		if revokeResult.Error != nil {
 			return revokeResult.Error
 		}
@@ -499,7 +528,7 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 				// Jangan RevokeAll; kembalikan error server (5xx).
 				return nil, rerr
 			}
-			if current.RevokedAt != nil && now.Sub(*current.RevokedAt) < s.reuseGrace() {
+			if graceEligible(&current) && current.RevokedAt != nil && now.Sub(*current.RevokedAt) < s.reuseGrace() {
 				graceClient := normalizeClient(current.Client)
 				comp, compExp, cerr := s.mintFreshToken(ctx, &user, graceClient, sessionStartOf(&current), userAgent, ipAddress, now)
 				if cerr != nil {
@@ -507,28 +536,30 @@ func (s *Service) rotate(ctx context.Context, rawToken string, userAgent string,
 				}
 				return &RotateResult{User: &user, NewRefresh: comp, Client: graceClient, Rotated: false, RefreshExpiresAt: compExp}, nil
 			}
-			_ = s.RevokeAllUserRefreshTokens(ctx, user.ID)
+			_ = s.RevokeAllUserRefreshTokens(ctx, user.ID, RevokeReasonReuse)
 		}
 		return nil, err
 	}
 	return &RotateResult{User: &user, NewRefresh: newRaw, Client: client, Rotated: true, RefreshExpiresAt: newRecord.ExpiresAt}, nil
 }
 
-func (s *Service) RevokeAllUserRefreshTokens(ctx context.Context, userID string) error {
+func (s *Service) RevokeAllUserRefreshTokens(ctx context.Context, userID string, reason string) error {
 	now := time.Now().UTC()
 	return s.db.WithContext(ctx).
 		Model(&models.RefreshToken{}).
 		Where("user_id = ? AND revoked_at IS NULL", userID).
-		Update("revoked_at", &now).Error
+		Updates(map[string]interface{}{"revoked_at": &now, "revoked_reason": reason}).Error
 }
 
 func (s *Service) RevokeRefreshToken(ctx context.Context, rawToken string) error {
 	hash := hashToken(rawToken)
 	now := time.Now().UTC()
+	// Logout: explicitly NOT eligible for reuse grace, so a stolen token
+	// cannot be revived by presenting it right after the user signs out.
 	return s.db.WithContext(ctx).
 		Model(&models.RefreshToken{}).
 		Where("token_hash = ? AND revoked_at IS NULL", hash).
-		Update("revoked_at", &now).Error
+		Updates(map[string]interface{}{"revoked_at": &now, "revoked_reason": RevokeReasonLogout}).Error
 }
 
 func (s *Service) GetUserByID(ctx context.Context, userID string) (*models.User, error) {

@@ -13,6 +13,12 @@ type RefreshToken struct {
 	TokenHash string     `gorm:"uniqueIndex;not null"`
 	ExpiresAt time.Time  `gorm:"index;not null"`
 	RevokedAt *time.Time `gorm:"index"`
+	// RevokedReason explains why the row was revoked, which determines whether
+	// the reuse-grace window may apply. Only "rotated" (the benign
+	// concurrent-refresh race) earns grace; "logout", "reuse" and "expired"
+	// never do. Empty for rows written before this column existed, which are
+	// treated as non-grace to stay on the safe side.
+	RevokedReason string `gorm:"column:revoked_reason;size:16;index"`
 	// Client distinguishes web (cookie/BFF) vs mobile (native/KMP).
 	// Values: "web" (default) or "mobile". Used to apply per-client TTL on rotation.
 	Client    string `gorm:"size:16;not null;default:web;index"`

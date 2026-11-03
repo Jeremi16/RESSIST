@@ -81,6 +81,10 @@ services:
       EVENT_RETENTION_ENABLED: ${EVENT_RETENTION_ENABLED:-true}
       EVENT_RETENTION_DAYS: ${EVENT_RETENTION_DAYS:-90}
       EVENT_RETENTION_CRON: ${EVENT_RETENTION_CRON:-30 3 * * *}
+      # Grace untuk race pemakaian ulang refresh token yang baru dirotasi
+      # (BFF multi-instance / tab paralel). Bukan grace untuk token yang
+      # sudah di-revoke karena logout atau terdeteksi dicuri.
+      REFRESH_REUSE_GRACE_SECONDS: ${REFRESH_REUSE_GRACE_SECONDS:-30}
     ports:
       - "${API_PORT:-8080}:8080"
     healthcheck:

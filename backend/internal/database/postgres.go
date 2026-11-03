@@ -55,6 +55,18 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 	}
 	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_session_started_at ON refresh_tokens (session_started_at)`).Error
 
+	// Kolom yang ditambahkan oleh hardening run-1. Semuanya idempotent dan
+	// wajib ada sebelum kode baru menulis ke tabelnya, sehingga harus jalan
+	// juga saat AUTO_MIGRATE=false (produksi).
+	//
+	// revoked_reason: membedakan rotasi (boleh grace) dari logout/reuse
+	// (tidak boleh). Baris lama bernilai NULL dan diperlakukan sebagai
+	// non-grace — aman, hanya memaksa login ulang.
+	if err := db.Exec(`ALTER TABLE IF EXISTS refresh_tokens ADD COLUMN IF NOT EXISTS revoked_reason varchar(16)`).Error; err != nil {
+		return nil, fmt.Errorf("migrate refresh_tokens.revoked_reason: %w", err)
+	}
+	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_revoked_reason ON refresh_tokens (revoked_reason)`).Error
+
 	// Unique parsial pada telegram_chat_id. Dibuat dengan aman: bila masih ada
 	// duplikat, index TIDAK dibuat dan operator diberi peringatan eksplisit
 	// (lihat SECURITY-MIGRATIONS.md) — bukan menggagalkan startup, karena

@@ -43,7 +43,9 @@ type Config struct {
 	RefreshTokenAbsoluteMaxDays int
 	// RefreshReuseGraceSeconds adalah toleransi pemakaian ulang refresh token
 	// yang baru saja dirotasi (race antar BFF instance / tab paralel).
-	// Default 300s. Naik dari 120s agar serverless multi-instance aman.
+	// Default 30s. Grace hanya berlaku untuk rotasi; token yang sudah
+	// di-revoke karena logout atau terdeteksi dicuri TIDAK mendapat grace
+	// (lihat auth/service.go revoked_reason).
 	RefreshReuseGraceSeconds int
 
 	FrontendURL         string
