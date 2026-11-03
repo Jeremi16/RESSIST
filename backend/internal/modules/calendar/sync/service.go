@@ -11,6 +11,7 @@ import (
 	"github.com/jeremi16/ressist-api/internal/pkg/synckey"
 	"github.com/jeremi16/ressist-api/internal/pkg/text"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // AssignmentRecord represents a single assignment from an LMS provider.
@@ -124,10 +125,29 @@ func (s *SyncService) persist(
 				originalCourse = "Unknown Course"
 			}
 
-			// Find or create course for global dictionary
+			// Find or create course for global dictionary.
+			// FirstOrCreate does SELECT-then-INSERT, so two concurrent syncs
+			// for different users both miss and both INSERT, and the loser
+			// gets a unique-violation that aborts the whole transaction.
+			// Resolve with an ON CONFLICT DO NOTHING insert plus a re-read.
 			var course models.Course
-			if err := tx.Where("name = ?", originalCourse).FirstOrCreate(&course, models.Course{Name: originalCourse}).Error; err != nil {
-				return err
+			courseErr := tx.Where("name = ?", originalCourse).First(&course).Error
+			if errors.Is(courseErr, gorm.ErrRecordNotFound) {
+				candidate := models.Course{Name: originalCourse}
+				res := tx.Clauses(clause.OnConflict{
+					Columns:   []clause.Column{{Name: "name"}},
+					DoNothing: true,
+				}).Create(&candidate)
+				if res.Error != nil {
+					return res.Error
+				}
+				if res.RowsAffected > 0 {
+					course = candidate
+				} else if err := tx.Where("name = ?", originalCourse).First(&course).Error; err != nil {
+					return err
+				}
+			} else if courseErr != nil {
+				return courseErr
 			}
 			courseIDValue := text.NullableStringPointer(course.ID)
 
@@ -377,12 +397,17 @@ func (s *SyncService) markStaleAsCompleted(
 	keys []string,
 	now time.Time,
 ) error {
+	// Empty keys means the upstream fetch returned nothing (or failed
+	// partially). Treating that as "everything is stale" would mark every
+	// pending assignment completed. Skipping is the safe interpretation:
+	// absence of data is not evidence of absence.
+	if len(keys) == 0 {
+		return nil
+	}
 	query := tx.Model(&models.Event{}).
 		Where("user_id = ? AND source = ?", userID, provider).
-		Where("(status = ? OR status IS NULL OR status = '') AND (completed IS NULL OR completed = ?)", "pending", false)
-	if len(keys) > 0 {
-		query = query.Where("sync_key NOT IN ?", keys)
-	}
+		Where("(status = ? OR status IS NULL OR status = '') AND (completed IS NULL OR completed = ?)", "pending", false).
+		Where("sync_key NOT IN ?", keys)
 	return query.Updates(map[string]interface{}{
 		"completed":         true,
 		"completed_at":      now,
@@ -399,12 +424,16 @@ func (s *SyncService) markStaleAsMissed(
 	keys []string,
 	now time.Time,
 ) error {
+	// See markStaleAsCompleted: empty keys must never mean "mark everything
+	// missed". A transient upstream failure would otherwise wipe the whole
+	// pending list for this user.
+	if len(keys) == 0 {
+		return nil
+	}
 	query := tx.Model(&models.Event{}).
 		Where("user_id = ? AND source = ?", userID, provider).
-		Where("(status = ? OR status IS NULL OR status = '') AND (completed IS NULL OR completed = ?)", "pending", false)
-	if len(keys) > 0 {
-		query = query.Where("sync_key NOT IN ?", keys)
-	}
+		Where("(status = ? OR status IS NULL OR status = '') AND (completed IS NULL OR completed = ?)", "pending", false).
+		Where("sync_key NOT IN ?", keys)
 	return query.Updates(map[string]interface{}{
 		"status":            "missed",
 		"status_updated_at": now,
