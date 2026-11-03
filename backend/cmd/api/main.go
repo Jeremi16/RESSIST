@@ -13,6 +13,7 @@ import (
 	"github.com/jeremi16/ressist-api/internal/config"
 	"github.com/jeremi16/ressist-api/internal/database"
 	"github.com/jeremi16/ressist-api/internal/modules/lmssync"
+	"github.com/jeremi16/ressist-api/internal/modules/retention"
 	"github.com/jeremi16/ressist-api/internal/shared/router"
 )
 
@@ -53,6 +54,24 @@ func main() {
 		log.Printf("lmssync scheduler enabled (cron=%s)", cfg.LMSSyncCron)
 	} else {
 		log.Printf("lmssync scheduler disabled (LMS_SYNC_ENABLED=false)")
+	}
+
+	// Event retention: without this the events table only grows, which
+	// eventually makes every query bound ineffective.
+	if cfg.EventRetentionEnabled {
+		retentionSched := retention.NewScheduler(db, retention.Config{
+			Enabled:       true,
+			RetentionDays: cfg.EventRetentionDays,
+			Cron:          cfg.EventRetentionCron,
+		})
+		retentionCtx, retentionCancel := context.WithCancel(context.Background())
+		defer retentionCancel()
+		go func() {
+			if err := retentionSched.Start(retentionCtx); err != nil && err != context.Canceled {
+				log.Printf("retention scheduler stopped: %v", err)
+			}
+		}()
+		log.Printf("retention scheduler enabled (cron=%s, days=%d)", cfg.EventRetentionCron, cfg.EventRetentionDays)
 	}
 
 	requestTimeout := time.Duration(cfg.RequestTimeoutSeconds) * time.Second

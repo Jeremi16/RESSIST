@@ -99,6 +99,12 @@ type Config struct {
 	LMSSyncBatchSize  int
 	LMSSyncConcurrency int
 	LMSSyncTimeoutSeconds int
+
+	// EventRetention* prune old completed/missed events so the events table
+	// does not grow without bound.
+	EventRetentionEnabled bool
+	EventRetentionDays    int
+	EventRetentionCron    string
 }
 
 func Load() (*Config, error) {
@@ -171,6 +177,10 @@ func Load() (*Config, error) {
 		LMSSyncBatchSize:       getEnvAsInt("LMS_SYNC_BATCH_SIZE", 200),
 		LMSSyncConcurrency:     getEnvAsInt("LMS_SYNC_CONCURRENCY", 2),
 		LMSSyncTimeoutSeconds:  getEnvAsInt("LMS_SYNC_TIMEOUT_SECONDS", 90),
+
+		EventRetentionEnabled: getEnvAsBool("EVENT_RETENTION_ENABLED", true),
+		EventRetentionDays:    getEnvAsInt("EVENT_RETENTION_DAYS", 90),
+		EventRetentionCron:    getEnv("EVENT_RETENTION_CRON", "30 3 * * *"),
 	}
 
 	httpOrigins, customOrigins := SplitCorsOrigins(getEnvAsList("ALLOWED_ORIGINS", "http://localhost:3000"))

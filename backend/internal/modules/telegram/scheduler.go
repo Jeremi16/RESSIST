@@ -98,7 +98,7 @@ func (s *Scheduler) sendMorningBriefing() {
 		endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, now.Location())
 
 		var allAssignments []models.Event
-		s.bot.db.Where("user_id = ? AND ((status = ? OR status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", user.ID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
+		s.bot.db.Where("user_id = ? AND ((status = ? OR status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", user.ID, "pending", false, now, endOfNextDay).Order("deadline asc").Limit(maxBriefingAssignments).Find(&allAssignments)
 
 		// Filter assignments using pkg helper (per-matkul single, tampil semua fallback)
 		assignments := classcode.FilterWithCourseClass(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters, user.CourseClassFilters)
@@ -137,6 +137,7 @@ func (s *Scheduler) buildMorningBriefingMessage(user models.User, assignments []
 		}
 	}
 
+	message += briefingOverflowNote(len(assignments))
 	message += "Semangat belajarnya! 💪\n\n"
 	message += "🌐 *Cek detail di:* [ressist.web.id](https://ressist.web.id)"
 	return message

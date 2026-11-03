@@ -157,8 +157,12 @@ func (h *Handler) SendMorningBriefing(c *gin.Context) {
 	now := time.Now().In(wib)
 	endOfNextDay := time.Date(now.Year(), now.Month(), now.Day()+1, 23, 59, 59, 0, wib)
 
+	// Bound the pre-send query. This builds one message body from every
+	// pending event in the window; unbounded, a user with a large backlog
+	// produces a payload Telegram will reject (4096 char limit) after the
+	// whole set was materialised.
 	var allAssignments []models.Event
-	h.db.Where("user_id = ? AND ((status = ? OR status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", userID, "pending", false, now, endOfNextDay).Order("deadline asc").Find(&allAssignments)
+	h.db.WithContext(c.Request.Context()).Where("user_id = ? AND ((status = ? OR status IS NULL OR status = '') AND completed = ?) AND deadline BETWEEN ? AND ?", userID, "pending", false, now, endOfNextDay).Order("deadline asc").Limit(maxBriefingAssignments).Find(&allAssignments)
 
 	assignments := classcode.FilterWithCourseClass(allAssignments, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters, user.CourseClassFilters)
 
@@ -201,7 +205,17 @@ func buildMorningBriefingMessage(userName string, assignments []models.Event) st
 		}
 	}
 
+	message += briefingOverflowNote(len(assignments))
 	message += "Semangat belajarnya! 💪\n\n"
 	message += "🌐 *Cek detail di:* [ressist.web.id](https://ressist.web.id)"
 	return message
+}
+
+// briefingOverflowNote is appended when the query was truncated, so the user
+// knows the list is incomplete rather than believing they have no other tasks.
+func briefingOverflowNote(shown int) string {
+	if shown < maxBriefingAssignments {
+		return ""
+	}
+	return "\n\n_…dan tugas lainnya. Buka dashboard untuk daftar lengkap._"
 }

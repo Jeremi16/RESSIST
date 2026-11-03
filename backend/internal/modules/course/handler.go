@@ -2,6 +2,7 @@ package course
 
 import (
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -39,7 +40,7 @@ func (h *Handler) GetAllCourses(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := h.db.Where("id = ?", userID).First(&user).Error; err != nil {
+	if err := h.db.WithContext(c.Request.Context()).Where("id = ?", userID).First(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user data"})
 		return
 	}
@@ -51,24 +52,34 @@ func (h *Handler) GetAllCourses(c *gin.Context) {
 		normKeywordFilters[text.Normalize(course)] = keywords
 	}
 
-	// Get all events for this user.
-	var events []models.Event
-	if err := h.db.Where("user_id = ?", userID).Find(&events).Error; err != nil {
+	// Only the three columns this handler reads. Selecting whole Event rows
+	// pulled every column of the model (description, url, timestamps, ...)
+	// for every row the user had, just to derive a set of course names.
+	type courseRow struct {
+		Title  string  `gorm:"column:title"`
+		Course *string `gorm:"column:course"`
+	}
+	var rows []courseRow
+	if err := h.db.WithContext(c.Request.Context()).
+		Model(&models.Event{}).
+		Select("title", "course").
+		Where("user_id = ? AND course IS NOT NULL AND course <> ''", userID).
+		Find(&rows).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch events"})
 		return
 	}
 
 	// Filter events by keyword filters and collect unique courses.
 	courseMap := make(map[string]bool)
-	for _, event := range events {
-		if event.Course == nil || *event.Course == "" {
+	for _, row := range rows {
+		if row.Course == nil || *row.Course == "" {
 			continue
 		}
-		courseName := *event.Course
+		courseName := *row.Course
 		normCourse := text.Normalize(courseName)
 
 		if keywords, hasFilter := normKeywordFilters[normCourse]; hasFilter && len(keywords) > 0 {
-			titleLower := strings.ToLower(event.Title)
+			titleLower := strings.ToLower(row.Title)
 			matched := false
 			for _, keyword := range keywords {
 				if strings.Contains(titleLower, strings.ToLower(keyword)) {
@@ -84,18 +95,13 @@ func (h *Handler) GetAllCourses(c *gin.Context) {
 		}
 	}
 
-	// Convert map to sorted slice.
+	// Convert map to sorted slice. sort.Strings is O(n log n); the previous
+	// hand-written exchange sort was O(n^2).
 	courses := make([]string, 0, len(courseMap))
 	for courseName := range courseMap {
 		courses = append(courses, courseName)
 	}
-	for i := 0; i < len(courses); i++ {
-		for j := i + 1; j < len(courses); j++ {
-			if courses[i] > courses[j] {
-				courses[i], courses[j] = courses[j], courses[i]
-			}
-		}
-	}
+	sort.Strings(courses)
 
 	response := make([]CourseResponse, len(courses))
 	for i, courseName := range courses {

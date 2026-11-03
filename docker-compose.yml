@@ -48,6 +48,7 @@ services:
       LMS_SYNC_CRON: ${LMS_SYNC_CRON:-0 7 * * *}
       LMS_SYNC_BATCH_SIZE: ${LMS_SYNC_BATCH_SIZE:-200}
       LMS_SYNC_CONCURRENCY: ${LMS_SYNC_CONCURRENCY:-2}
+      LMS_SYNC_TIMEOUT_SECONDS: ${LMS_SYNC_TIMEOUT_SECONDS:-90}
       # WAJIB diisi bila api berada di belakang reverse proxy / Coolify /
       # Traefik / nginx. Kosong = tidak ada proxy yang dipercaya, sehingga
       # c.ClientIP() mengembalikan IP proxy dan SEMUA pengguna terlihat
@@ -76,6 +77,10 @@ services:
       # Legacy auth endpoints (login/callback/refresh). Per-IP, pre-auth.
       AUTH_RATE_LIMIT_PER_MINUTE: ${AUTH_RATE_LIMIT_PER_MINUTE:-30}
       AUTH_RATE_LIMIT_BURST: ${AUTH_RATE_LIMIT_BURST:-10}
+      # Retensi events: tanpa ini tabel events tumbuh tanpa batas.
+      EVENT_RETENTION_ENABLED: ${EVENT_RETENTION_ENABLED:-true}
+      EVENT_RETENTION_DAYS: ${EVENT_RETENTION_DAYS:-90}
+      EVENT_RETENTION_CRON: ${EVENT_RETENTION_CRON:-30 3 * * *}
     ports:
       - "${API_PORT:-8080}:8080"
     healthcheck:

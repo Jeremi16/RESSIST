@@ -16,6 +16,14 @@ type Handler struct {
 	db *gorm.DB
 }
 
+const (
+	// maxAssignments caps one page of the assignment list.
+	maxAssignments = 500
+	// assignmentRetentionDays bounds how far back completed history is read.
+	// Pending rows are always included regardless of age.
+	assignmentRetentionDays = 90
+)
+
 // NewHandler creates a new assignment Handler.
 func NewHandler(db *gorm.DB) *Handler {
 	return &Handler{db: db}
@@ -123,60 +131,55 @@ func (h *Handler) GetAssignments(c *gin.Context) {
 		CourseKeywordFilters string  `gorm:"column:course_keyword_filters"`
 		CourseClassFilters   string  `gorm:"column:course_class_filters"`
 	}
-	if err := h.db.Table("users").Select("class_code, muted_courses, course_keyword_filters, course_class_filters").Where("id = ?", userID).Scan(&user).Error; err != nil {
+	// WithContext so a client disconnect or the request deadline cancels the
+	// query instead of letting it run to completion for a gone caller.
+	ctx := c.Request.Context()
+	if err := h.db.WithContext(ctx).Table("users").Select("class_code, muted_courses, course_keyword_filters, course_class_filters").Where("id = ?", userID).Scan(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
 		return
 	}
 
-	if err := h.db.Raw(`
+	// Bound the result set. This used to select the user's entire history with
+	// no deadline filter and no LIMIT, materialising every row they had ever
+	// accumulated. Old rows add nothing to a "my tasks" view, so they are
+	// excluded unless still pending.
+	cutoff := time.Now().AddDate(0, 0, -assignmentRetentionDays)
+	if err := h.db.WithContext(ctx).Raw(`
 		SELECT id, title, title as full_title, course, course as original_course, 
 		       class_code, deadline, COALESCE(completed, false) as completed, 
 		       completed_at, COALESCE(status,'pending') as status, status_updated_at, source, description, url
 		FROM events
 		WHERE user_id = ?
+		  AND (deadline >= ? OR status = 'pending' OR status IS NULL OR status = '')
 		ORDER BY deadline ASC
-	`, userID).Scan(&assignments).Error; err != nil {
+		LIMIT ?
+	`, userID, cutoff, maxAssignments).Scan(&assignments).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch assignments"})
 		return
 	}
 
-	// Reuse central Filter logic via temporary models.Event slice to avoid duplication
+	// Reuse central Filter logic via temporary models.Event slice to avoid
+	// duplication. Carry the row ID through so we can map results back
+	// unambiguously: the previous approach re-matched on title+course+code,
+	// which mis-pairs whenever two rows share those values.
 	events := make([]models.Event, 0, len(assignments))
 	for _, a := range assignments {
 		events = append(events, models.Event{
+			ID:        a.ID,
 			Title:     a.Title,
 			Course:    a.Course,
 			ClassCode: a.ClassCode,
 		})
 	}
+	byID := make(map[string]declType, len(assignments))
+	for _, a := range assignments {
+		byID[a.ID] = a
+	}
 	filteredEvents := classcode.FilterWithCourseClass(events, user.MutedCourses, user.ClassCode, user.CourseKeywordFilters, user.CourseClassFilters)
-	// Map back to original assignments via ordered walk (Filter preserves order)
-	var filtered []declType
-	fi := 0
-	for idx, ev := range events {
-		if fi >= len(filteredEvents) {
-			break
-		}
-		fe := filteredEvents[fi]
-		courseEv := ""
-		if ev.Course != nil {
-			courseEv = *ev.Course
-		}
-		courseFe := ""
-		if fe.Course != nil {
-			courseFe = *fe.Course
-		}
-		codeEv := ""
-		if ev.ClassCode != nil {
-			codeEv = *ev.ClassCode
-		}
-		codeFe := ""
-		if fe.ClassCode != nil {
-			codeFe = *fe.ClassCode
-		}
-		if ev.Title == fe.Title && courseEv == courseFe && codeEv == codeFe {
-			filtered = append(filtered, assignments[idx])
-			fi++
+	filtered := make([]declType, 0, len(filteredEvents))
+	for _, fe := range filteredEvents {
+		if row, ok := byID[fe.ID]; ok {
+			filtered = append(filtered, row)
 		}
 	}
 	assignments = filtered
