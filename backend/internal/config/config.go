@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"log"
+	"net"
 	"net/url"
 	"os"
 	"strconv"
@@ -69,6 +71,28 @@ type Config struct {
 	ApiKeyMaxPerUser       int
 	ApiKeyRateLimitPerMinute int
 	ApiKeyRateLimitBurst     int
+	// TrustedProxies lists CIDRs whose X-Forwarded-For / X-Real-IP headers are
+	// believed. Empty means no proxy is trusted, so c.ClientIP() returns the
+	// TCP peer address. Leaving this unset behind a reverse proxy makes every
+	// client look like the proxy; setting it too broadly lets clients forge
+	// their own IP and dodge per-IP rate limits.
+	TrustedProxies []string
+
+	// PreAuthRateLimit* bound requests per client IP before any credential is
+	// verified, so unauthenticated floods cannot force a sha256 + DB lookup
+	// per request.
+	PreAuthRateLimitPerMinute int
+	PreAuthRateLimitBurst     int
+
+	// TelegramTestRateLimit* bound the dashboard "test notification" buttons,
+	// which spend a shared operator quota.
+	TelegramTestRateLimitPerMinute int
+	TelegramTestRateLimitBurst     int
+
+	// SyncRateLimit* bound per-user full LMS syncs. These fan out to every
+	// enrolled course upstream, so the cost is per-principal, not per-IP.
+	SyncRateLimitPerMinute int
+	SyncRateLimitBurst     int
 
 	LMSSyncEnabled    bool
 	LMSSyncCron       string
@@ -131,6 +155,16 @@ func Load() (*Config, error) {
 		ApiKeyMaxPerUser:         getEnvAsInt("API_KEY_MAX_PER_USER", 5),
 		ApiKeyRateLimitPerMinute: getEnvAsInt("API_KEY_RATE_LIMIT_PER_MINUTE", 60),
 		ApiKeyRateLimitBurst:     getEnvAsInt("API_KEY_RATE_LIMIT_BURST", 20),
+		TrustedProxies: getEnvAsList("TRUSTED_PROXIES", ""),
+
+		PreAuthRateLimitPerMinute: getEnvAsInt("PREAUTH_RATE_LIMIT_PER_MINUTE", 300),
+		PreAuthRateLimitBurst:     getEnvAsInt("PREAUTH_RATE_LIMIT_BURST", 120),
+
+		TelegramTestRateLimitPerMinute: getEnvAsInt("TELEGRAM_TEST_RATE_LIMIT_PER_MINUTE", 5),
+		TelegramTestRateLimitBurst:     getEnvAsInt("TELEGRAM_TEST_RATE_LIMIT_BURST", 2),
+
+		SyncRateLimitPerMinute: getEnvAsInt("SYNC_RATE_LIMIT_PER_MINUTE", 6),
+		SyncRateLimitBurst:     getEnvAsInt("SYNC_RATE_LIMIT_BURST", 3),
 
 		LMSSyncEnabled:         getEnvAsBool("LMS_SYNC_ENABLED", true),
 		LMSSyncCron:            getEnv("LMS_SYNC_CRON", "0 7 * * *"),
@@ -142,6 +176,15 @@ func Load() (*Config, error) {
 	httpOrigins, customOrigins := SplitCorsOrigins(getEnvAsList("ALLOWED_ORIGINS", "http://localhost:3000"))
 	cfg.AllowedOrigins = httpOrigins
 	cfg.AllowedCustomOrigins = customOrigins
+
+	// Fail fast: a typo in TRUSTED_PROXIES silently degrades to "trust
+	// nobody" (all clients look like the proxy) or, worse, gets loosened at
+	// the call site. Validate here where we can still return an error.
+	for _, entry := range cfg.TrustedProxies {
+		if _, _, err := net.ParseCIDR(entry); err != nil {
+			return nil, fmt.Errorf("invalid TRUSTED_PROXIES entry %q: %w", entry, err)
+		}
+	}
 
 	return cfg, nil
 }
