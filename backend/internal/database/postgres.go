@@ -2,16 +2,17 @@ package database
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/jeremi16/ressist-api/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
+// Open connects and tunes the pool without touching the schema or asserting
+// anything about it. Used by the migrate command, which must be able to open a
+// completely empty database.
+func Open(databaseURL string) (*gorm.DB, error) {
 	if databaseURL == "" {
 		return nil, fmt.Errorf("DATABASE_URL is required")
 	}
@@ -36,50 +37,42 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 	sqlDB.SetConnMaxLifetime(30 * time.Minute)
 	sqlDB.SetConnMaxIdleTime(10 * time.Minute)
 
+	return db, nil
+}
+
+// New opens the pool and enforces the schema contract.
+//
+// It no longer creates tables itself. Schema changes live in numbered
+// migrations (see migrate.go) for two reasons:
+//
+//   - When autoMigrate was false nothing created the schema at all, so a
+//     brand-new database came up with zero tables and the API failed on its
+//     first query. Production runs with AUTO_MIGRATE=false.
+//   - When autoMigrate was true it ran on every single boot, re-executing two
+//     UPDATE backfills over every row of events and users on each restart.
+//
+// autoMigrate=true now means "apply pending migrations at startup". That is
+// safe for several replicas because Migrate takes a Postgres advisory lock and
+// records each step in schema_migrations. autoMigrate=false means the release
+// job is responsible (`docker compose run --rm api migrate`), and startup fails
+// fast with an actionable message if that step was skipped.
+func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
+	db, err := Open(databaseURL)
+	if err != nil {
+		return nil, err
+	}
+
 	if autoMigrate {
-		if err := db.AutoMigrate(&models.User{}, &models.RefreshToken{}, &models.Event{}, &models.Course{}, &models.ApiKey{}); err != nil {
-			return nil, fmt.Errorf("auto migrate: %w", err)
+		if err := Migrate(db); err != nil {
+			return nil, fmt.Errorf("migrate: %w", err)
 		}
-		// Backfill status for existing rows: completed=true -> status=completed, else pending/missed stays pending
-		// Also ensure status column has default for old rows where status is empty
-		_ = db.Exec(`UPDATE events SET status = CASE WHEN completed = true THEN 'completed' ELSE 'pending' END WHERE status IS NULL OR status = ''`).Error
-		// Backfill empty reminder_hours ke default baru agar reminder 12/6/1 ikut jalan.
-		// User yang eksplisit memilih "[24]" tidak diubah (hargai pilihan).
-		_ = db.Exec(`UPDATE users SET reminder_hours = '[24,12,6,1]' WHERE reminder_hours IS NULL OR TRIM(reminder_hours) = '' OR TRIM(reminder_hours) = '[]'`).Error
 	}
 
-	// Selalu dijalankan (idempotent), termasuk production yang AUTO_MIGRATE=false:
-	// kolom ini wajib ada sebelum insert refresh token.
-	if err := db.Exec(`ALTER TABLE IF EXISTS refresh_tokens ADD COLUMN IF NOT EXISTS session_started_at timestamptz`).Error; err != nil {
-		return nil, fmt.Errorf("migrate refresh_tokens.session_started_at: %w", err)
-	}
-	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_session_started_at ON refresh_tokens (session_started_at)`).Error
-
-	// Kolom yang ditambahkan oleh hardening run-1. Semuanya idempotent dan
-	// wajib ada sebelum kode baru menulis ke tabelnya, sehingga harus jalan
-	// juga saat AUTO_MIGRATE=false (produksi).
-	//
-	// revoked_reason: membedakan rotasi (boleh grace) dari logout/reuse
-	// (tidak boleh). Baris lama bernilai NULL dan diperlakukan sebagai
-	// non-grace — aman, hanya memaksa login ulang.
-	if err := db.Exec(`ALTER TABLE IF EXISTS refresh_tokens ADD COLUMN IF NOT EXISTS revoked_reason varchar(16)`).Error; err != nil {
-		return nil, fmt.Errorf("migrate refresh_tokens.revoked_reason: %w", err)
-	}
-	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_revoked_reason ON refresh_tokens (revoked_reason)`).Error
-
-	// sync_claimed_until: klaim per-user lintas replika untuk cron sync.
-	if err := db.Exec(`ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS sync_claimed_until timestamptz`).Error; err != nil {
-		return nil, fmt.Errorf("migrate users.sync_claimed_until: %w", err)
-	}
-	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_users_sync_claimed_until ON users (sync_claimed_until)`).Error
-
-	// Unique parsial pada telegram_chat_id. Dibuat dengan aman: bila masih ada
-	// duplikat, index TIDAK dibuat dan operator diberi peringatan eksplisit
-	// (lihat SECURITY-MIGRATIONS.md) — bukan menggagalkan startup, karena
-	// aplikasi tetap berfungsi dan GetUserByTelegram sudah menolak binding
-	// ambigu dengan 409.
-	if err := db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_telegram_chat_id ON users (telegram_chat_id) WHERE telegram_chat_id IS NOT NULL`).Error; err != nil {
-		log.Printf("[db] WARNING: could not create idx_users_telegram_chat_id (duplicate telegram_chat_id rows likely exist; see SECURITY-MIGRATIONS.md): %v", err)
+	// Refuse to serve on a schema that is missing steps this binary needs.
+	// Without this check the failure surfaces later as "relation does not
+	// exist" on a random request instead of at startup.
+	if err := Verify(db); err != nil {
+		return nil, err
 	}
 
 	return db, nil

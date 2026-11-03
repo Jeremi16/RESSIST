@@ -68,7 +68,7 @@ Semua via `os.Getenv` + `godotenv` (`internal/config/config.go:62`). Daftar leng
 | `ENV` | `development` | `production` → `GIN_MODE=release`, `COOKIE_SECURE=true` |
 | `PORT` | `8080` | HTTP listen |
 | `DATABASE_URL` | `` | `postgresql://...?sslmode=disable` |
-| `AUTO_MIGRATE` | `env != production` | `true` → `AutoMigrate(User,RefreshToken,Event,Course,ApiKey)` |
+| `AUTO_MIGRATE` | `env != production` | `true` -> terapkan migrasi bernomor yang belum jalan saat start (`internal/database/migrate.go`). Compose produksi menyetel `false`; jalankan `docker compose run --rm api migrate`. |
 | `REQUEST_TIMEOUT_SECONDS` | `15` | Per-request `context.WithTimeout` (`shared/middleware/timeout.go`) |
 | `SHUTDOWN_TIMEOUT_SECONDS` | `20` | Graceful shutdown (`cmd/api/main.go`) |
 | `AUTH_RATE_LIMIT_PER_MINUTE` | `30` | IP bucket untuk `/auth/*` |

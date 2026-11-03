@@ -18,6 +18,24 @@ import (
 )
 
 func main() {
+	// Release-job subcommands. The image ships a single binary, so schema
+	// work is a mode of the API rather than a second container. `migrate`
+	// runs the numbered migrations and exits; it never starts the server.
+	//
+	// docker compose run --rm api migrate
+	// docker compose run --rm api migrate status
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "migrate":
+			if err := runMigrate(os.Args[2:]); err != nil {
+				log.Fatalf("migrate: %v", err)
+			}
+			return
+		default:
+			log.Fatalf("unknown command %q (supported: migrate)", os.Args[1])
+		}
+	}
+
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("load config: %v", err)

@@ -25,7 +25,7 @@
 | — | `RETENTION_DAYS=14` (`backup_to_neon.sh:17`) | Hapus file `>14` hari |
 | — | `WEBHOOK_URL` (optional) | Alert `backup_to_neon.sh:29-32` |
 
-`backend/internal/config/config.go:11` load `DATABASE_URL` via `os.Getenv` + `godotenv`; `internal/database/postgres.go:39` `AutoMigrate` jika `AUTO_MIGRATE=true` (`docker-compose.yml` set `true` untuk prod juga).
+`backend/internal/config/config.go:11` load `DATABASE_URL` via `os.Getenv` + `godotenv`; skema dikelola migrasi bernomor di `internal/database/migrate.go` (dijalankan oleh `docker compose run --rm api migrate`; `docker-compose.yml` menyetel `AUTO_MIGRATE=false`).
 
 ## Setup (ringkas, detail di `ops/backup/README.md:7-31`)
 
@@ -59,7 +59,7 @@ pg_restore --clean --if-exists --no-owner --no-privileges -d "$LOCAL_DB_URL" /va
 docker compose up -d db api
 ```
 
-> Tidak perlu manual migrate setelah restore — `AUTO_MIGRATE=true` di compose akan `AutoMigrate(User,RefreshToken,Event,Course,ApiKey)` (`internal/database/postgres.go:39`, `internal/database/README.md:26`). Jika `AUTO_MIGRATE=false`, jalankan migrasi manual sesuai `config.go:72`.
+> Setelah restore, jalankan `docker compose run --rm api migrate` untuk menerapkan migrasi yang belum ada di hasil restore. Perintah ini idempotent dan aman diulang. `api` menolak start bila tabel/kolom wajib belum ada, jadi langkah ini tidak bisa terlewat diam-diam.
 
 ### 3. Verification
 

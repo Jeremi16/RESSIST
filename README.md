@@ -201,7 +201,7 @@ Aturan penting:
 ### Backend + Bot — Coolify / Docker Compose
 
 *   Image otomatis via GHCR (`.github/workflows/docker.yml`): `ressist-api` + `ressist-bot`, tag `main`/`latest`/`sha-*`, build tiap push ke `main` yang menyentuh `backend/` atau `bot/`.
-*   `docker-compose.yml` production-ready: healthcheck `wget /livez`, `GIN_MODE=release`, `AUTO_MIGRATE=true`.
+*   `docker-compose.yml` production-ready: healthcheck `wget /livez`, `GIN_MODE=release`, `AUTO_MIGRATE=false` + langkah rilis `docker compose run --rm api migrate` (migrasi bernomor, idempotent).
 *   Coolify: set `ALLOWED_ORIGINS=https://<vercel-app>` dan sinkron `BOT_SERVICE_TOKEN` + `JWT_ACCESS_SECRET` di kedua service. Google Cloud Console redirect URI: `https://ressist-api.jsx.qzz.io/v1/auth/google/callback` (alias legacy `/auth/google/callback` masih aktif).
 *   Alternatif single-serve frontend di VPS: `SERVE_STATIC=1 bun run server/index.ts` (serve `dist/` + `/api/*` dalam 1 proses, lihat `frontend/nixpacks.toml`).
 

@@ -30,9 +30,16 @@ services:
       ENV: production
       PORT: "8080"
       DATABASE_URL: postgresql://${DB_USER:-ressist}:${DB_PASSWORD:?DB_PASSWORD wajib diisi}@db:5432/${DB_NAME:-ressist}?sslmode=disable
-      # Schema changes are applied by an operator/migration step, not by every
-      # replica on boot. Auto-migrating from N replicas races and can leave the
-      # schema half-applied.
+      # Skema TIDAK dibuat otomatis oleh setiap replika saat boot: itu berlomba
+      # antar-replika dan bisa meninggalkan skema setengah jadi. Migrasi
+      # bernomor dijalankan sekali oleh langkah rilis:
+      #
+      #   docker compose run --rm api migrate
+      #
+      # Perintah itu idempotent dan memakai advisory lock, jadi aman diulang
+      # dan aman dijalankan bersamaan. Bila langkah ini terlewat, api menolak
+      # start dengan pesan yang menyebut perintah di atas (bukan 500 acak saat
+      # request pertama).
       AUTO_MIGRATE: "false"
       GIN_MODE: release
       BOT_SERVICE_TOKEN: ${BOT_SERVICE_TOKEN:?set BOT_SERVICE_TOKEN in .env}

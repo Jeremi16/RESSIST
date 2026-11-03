@@ -1,30 +1,68 @@
 # SECURITY-MIGRATIONS — run-1 hardening
 
 Perubahan skema yang menyertai audit `run-1`. Semua DDL di bawah **idempotent**
-dan dijalankan otomatis oleh `internal/database/postgres.go` saat startup
-(termasuk ketika `AUTO_MIGRATE=false`), mengikuti pola yang sudah dipakai untuk
-`refresh_tokens.session_started_at`.
+dan dijalankan oleh runner migrasi bernomor di
+`internal/database/migrate.go`, bukan lagi oleh `AutoMigrate` pada setiap boot.
 
-Dokumen ini ada karena satu langkah **tidak bisa** diotomasi dengan aman:
+## Cara menjalankan
+
+```bash
+docker compose run --rm api migrate          # terapkan migrasi yang belum jalan
+docker compose run --rm api migrate status   # lihat apa yang sudah diterapkan
+```
+
+Perintah ini adalah **langkah rilis**: jalankan sekali sebelum `docker compose up`
+pertama kali, dan setiap kali ada migrasi baru. Aman diulang (idempotent) dan
+aman dijalankan bersamaan dari beberapa replika — runner memakai
+`pg_advisory_xact_lock` dan mencatat setiap langkah di tabel
+`schema_migrations`, jadi satu langkah hanya diterapkan sekali.
+
+Bila langkah ini terlewat, `api` **menolak start** dengan pesan yang menyebut
+perintah di atas. Ini disengaja: kegagalan skema muncul saat boot, bukan sebagai
+`500` acak pada request pengguna pertama.
+
+> Sebelumnya `AUTO_MIGRATE=false` berarti **tidak ada** yang membuat tabel:
+> database baru berakhir tanpa tabel sama sekali. `AUTO_MIGRATE=true` di sisi
+> lain menjalankan `AutoMigrate` pada **setiap** restart, termasuk dua `UPDATE`
+> backfill atas seluruh baris `events` dan `users`. Keduanya sudah tidak
+> berlaku.
+
+Dokumen ini juga memuat satu langkah yang **tidak bisa** diotomasi dengan aman:
 unique index `users.telegram_chat_id` gagal bila tabel masih berisi duplikat.
 Aplikasi tetap berjalan (endpoint resolusi sudah menolak binding ambigu dengan
-`409`), tetapi index pelindungnya belum aktif sampai langkah manual di bawah
-dijalankan.
+`409`), migrasi `0005` melaporkan peringatan dan dicoba lagi pada start
+berikutnya, sampai langkah manual di bawah dijalankan.
 
 ---
 
-## Yang berjalan otomatis
+## Katalog migrasi
 
-| Objek | Perubahan | Alasan |
+| Versi | Nama | Isi |
 |---|---|---|
-| `refresh_tokens.revoked_reason` | `varchar(16)` + index | Membedakan rotasi (boleh grace) dari logout/reuse (tidak boleh). Lihat WS-8.1. |
-| `users.sync_claimed_until` | `timestamptz` + index | Klaim per-user lintas replika untuk cron sync. Lihat WS-9. |
-| `idx_users_telegram_chat_id` | unique parsial | Mencegah dua user berbagi satu chat id. Lihat WS-6.2 — **dibuat hanya bila tidak ada duplikat**. |
+| `0001` | `baseline_schema` | Tabel dasar (`users`, `refresh_tokens`, `events`, `courses`, `api_keys`). No-op bila kelima tabel sudah ada — database produksi yang sudah berjalan tidak disentuh. |
+| `0002` | `refresh_tokens_session_started_at` | Kolom `session_started_at` + index. Batas umur absolut sesi. |
+| `0003` | `refresh_tokens_revoked_reason` | Kolom `revoked_reason` + index. Membedakan rotasi (boleh grace) dari logout/reuse (tidak boleh). Lihat WS-8.1. |
+| `0004` | `users_sync_claimed_until` | Kolom + index. Klaim per-user lintas replika untuk cron sync. Lihat WS-9. |
+| `0005` | `users_telegram_chat_id_unique` | Unique parsial pada `telegram_chat_id`. **Tolerant**: gagal bila masih ada duplikat, dicoba lagi nanti. Lihat WS-6.2. |
+| `0006` | `backfill_event_status_and_reminder_hours` | Backfill satu kali untuk `events.status` dan `users.reminder_hours`. Dulu dijalankan ulang setiap restart. |
 
-Log startup akan menampilkan peringatan bila index telegram gagal dibuat:
+Menambah migrasi baru: **append** entri berikutnya di `migrations()` dengan
+versi `len+1`. Jangan pernah mengubah atau menghapus entri lama — database yang
+sudah mencatat versi itu tidak akan menjalankannya lagi, sehingga perubahan pada
+entri lama tidak akan pernah sampai ke produksi.
+
+Setiap `Up` berjalan di dalam satu transaksi bersama pencatatan versinya, jadi
+satu langkah diterapkan penuh atau tidak sama sekali. Konsekuensinya: jangan
+pakai `CREATE INDEX CONCURRENTLY` di dalam migrasi (Postgres menolaknya di dalam
+transaksi). Untuk tabel besar, jalankan bentuk `CONCURRENTLY` secara manual
+lebih dulu — migrasinya lalu no-op karena memakai `IF NOT EXISTS`.
+
+Log startup menampilkan peringatan bila index telegram gagal dibuat:
 
 ```
-[db] WARNING: could not create idx_users_telegram_chat_id (duplicate telegram_chat_id rows likely exist; ...)
+[db] WARNING: migration 0005_users_telegram_chat_id_unique could not be applied
+and will be retried on next start (ERROR: could not create unique index ...);
+see SECURITY-MIGRATIONS.md
 ```
 
 ---
@@ -102,10 +140,11 @@ CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_users_telegram_chat_id
 
 ## Catatan untuk operator
 
-- **`AUTO_MIGRATE` di `docker-compose.yml` sekarang `"false"`.** Migrasi dari
-  N replika sekaligus bisa berlomba dan meninggalkan skema setengah jadi.
-  DDL yang wajib ada tetap dijalankan oleh kode (idempotent); perubahan skema
-  lain harus lewat langkah eksplisit.
+- **`AUTO_MIGRATE` di `docker-compose.yml` sekarang `"false"`.** Skema dibuat
+  oleh langkah rilis `docker compose run --rm api migrate`, bukan oleh setiap
+  replika saat boot. `AUTO_MIGRATE=true` kini berarti "terapkan migrasi yang
+  belum jalan saat start" (tetap aman untuk N replika karena ada advisory lock),
+  bukan lagi "jalankan `AutoMigrate` penuh setiap restart".
 - **`TRUSTED_PROXIES` kosong secara default.** Artinya `ClientIP()` = alamat
   TCP peer. Bila API berada di belakang Coolify/Traefik/nginx, set eksplisit
   CIDR-nya — kalau tidak, semua klien akan terlihat sebagai satu IP dan
@@ -152,22 +191,118 @@ Status yang sudah terverifikasi aman (tidak perlu tindakan):
 - `.gitignore:16` sudah memuat `.env`, jadi file tidak akan ikut ter-commit.
 
 Checklist rotasi — kerjakan berurutan, dan **jangan** menyalin nilai lama ke
-mana pun (termasuk ke dokumen ini atau ke chat):
+mana pun (termasuk ke dokumen ini atau ke chat).
 
-1. **`JWT_ACCESS_SECRET`** — rotasi ini otomatis me-logout **semua** sesi.
-   Jadwalkan di luar jam ujian, dan beri tahu pengguna lebih dulu.
-2. **`DATABASE_URL`** — ganti password role database, lalu update connection
+Urutannya disusun supaya setiap langkah bisa diverifikasi sendiri: kredensial
+yang dampaknya paling kecil lebih dulu, dan `JWT_ACCESS_SECRET` **paling
+akhir** karena merotasi itu memutus semua sesi aktif.
+
+1. **`GOOGLE_CLIENT_SECRET`** — buat secret baru di Google Cloud Console, deploy,
+   pastikan login Google masih berhasil, baru hapus yang lama. Dampak bila salah:
+   login gagal, sesi yang ada tetap jalan.
+2. **`TELEGRAM_BOT_TOKEN`** — revoke lewat `@BotFather` (`/revoke`), lalu update di
+   `backend/.env`, `bot/.env`, dan `.env` root **dalam satu window**. Dampak bila
+   salah: bot berhenti mengirim notifikasi (API tetap jalan).
+3. **`BOT_SERVICE_TOKEN`** — dipakai bersama oleh `api` dan `bot`; ganti di kedua
+   tempat sekaligus, kalau tidak bot mendapat `401` dari `api`. Dampak bila salah:
+   bot tidak bisa memanggil `api`.
+4. **`DATABASE_URL`** — ganti password role database, lalu update connection
    string. Pastikan `DB_PASSWORD` di `.env` root (dipakai `docker-compose.yml`)
-   ikut berubah, kalau tidak container `api` gagal connect.
-3. **`GOOGLE_CLIENT_SECRET`** — buat secret baru di Google Cloud Console,
-   lalu hapus yang lama setelah deploy berhasil.
-4. **`BOT_SERVICE_TOKEN`** — nilai ini dipakai bersama `bot/.env`; ganti di
-   kedua tempat dalam satu window deploy, kalau tidak bot mendapat `401`.
-5. **`TELEGRAM_BOT_TOKEN`** — revoke lewat `@BotFather` (`/revoke`), lalu
-   update di `backend/.env`, `bot/.env`, dan `.env` root.
+   ikut berubah, kalau tidak container `api` gagal connect. Dampak bila salah:
+   seluruh layanan mati — lakukan saat Anda bisa mengawasi.
+5. **`JWT_ACCESS_SECRET`** — rotasi ini me-logout **semua** sesi (web dan
+   Android). Jadwalkan di luar jam ujian dan beri tahu pengguna lebih dulu.
+   Setelah rotasi, pengguna login ulang sekali; tidak ada data yang hilang.
 6. **Pindahkan ke secret manager** (Coolify/Docker secrets). Setelah itu file
    `.env` plaintext di disk boleh dihapus.
 
 Catatan: `godotenv.Load()` hanya membaca `.env` bila ada, dan tidak menimpa
 environment yang sudah di-inject — jadi injeksi dari secret manager akan
 otomatis menang tanpa perubahan kode.
+
+---
+
+## Checklist deploy (urutan eksekusi)
+
+Dijalankan sekali saat pertama kali memasang build ini, lalu diulang pada setiap
+deploy yang membawa migrasi baru.
+
+### 1. Sebelum start: dedupe `telegram_chat_id`
+
+Jalankan langkah manual di atas **lebih dulu** bila database sudah berisi data.
+Kalau tidak, migrasi `0005` hanya akan memberi peringatan dan index pelindung
+tetap belum aktif (aplikasi tetap jalan, tetapi dua user bisa berbagi chat id
+sampai dirapikan).
+
+### 2. Set `TRUSTED_PROXIES`
+
+Wajib bila `api` berada di belakang Coolify/Traefik/nginx. Isi CIDR jaringan
+internal proxy, contoh:
+
+```
+TRUSTED_PROXIES=172.16.0.0/12,10.0.0.0/8
+```
+
+Bila dibiarkan kosong, semua pengguna terlihat sebagai satu IP dan rate-limit
+per-IP membagi satu kuota untuk seluruh pengguna — gejalanya `429` massal.
+Salah format membuat proses gagal start (disengaja).
+
+### 3. Terapkan migrasi
+
+```bash
+docker compose run --rm api migrate
+docker compose run --rm api migrate status   # opsional: lihat yang sudah jalan
+```
+
+### 4. Start layanan
+
+```bash
+docker compose up -d
+```
+
+### 5. Perbarui scrape Prometheus
+
+`/metrics` sekarang memerlukan header `X-Bot-Token`:
+
+```yaml
+scrape_configs:
+  - job_name: ressist-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8080"]
+    http_headers:
+      X-Bot-Token:
+        values: ["<BOT_SERVICE_TOKEN>"]
+```
+
+Tanpa header, scrape mendapat `401`. Bila `BOT_SERVICE_TOKEN` kosong, endpoint
+mengembalikan `503` (bukan terbuka).
+
+### 6. Smoke test
+
+```bash
+curl -fsS http://<host>/livez     # {"status":"ok"}
+curl -fsS http://<host>/readyz    # {"status":"ready"}  -> DB ping berhasil
+curl -s -o /dev/null -w '%{http_code}\n' http://<host>/metrics          # 401
+curl -s -H "X-Bot-Token: $BOT_SERVICE_TOKEN" http://<host>/metrics | head -1  # 200
+```
+
+Lalu periksa dari sisi pengguna: login web, buka dashboard (daftar tugas
+muncul), dan kirim satu pesan ke bot (balasan diterima). Terakhir cek log
+`api` tidak memuat `WARNING: migration` dan tidak ada container yang
+restart-loop.
+
+### 7. Bila container gagal start
+
+Tersangka pertama adalah `read_only: true` pada `api`/`bot`. Cari path yang
+ditulis dengan menambah `tmpfs` sementara:
+
+```yaml
+    tmpfs:
+      - /tmp
+```
+
+`backend/` dan `bot/` tidak memakai `os.Create`/`os.WriteFile`/`os.MkdirAll`,
+jadi kegagalan biasanya berasal dari library yang menulis cache — tambahkan
+`tmpfs` untuk path yang disebut di log, jangan matikan `read_only`.
+
