@@ -253,9 +253,17 @@ func (h *Handler) handleUserError(c *gin.Context, err error) {
 func (h *Handler) validateUpdateRequest(c *gin.Context, user *models.User, req *userUpdateRequest) error {
 	if req.MoodleCalendarURL != nil && (req.MoodleEnabled == nil || *req.MoodleEnabled != false) {
 		calendarURL := strings.TrimSpace(*req.MoodleCalendarURL)
-		if calendarURL != "" && !urlutil.IsLikelyMoodleCalendarURL(calendarURL) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid moodle calendar url"})
-			return errors.New("invalid moodle calendar url")
+		if calendarURL != "" {
+			// Shape check first so the user gets the friendlier message,
+			// then the scheme/userinfo check that actually gates the fetch.
+			if !urlutil.IsLikelyMoodleCalendarURL(calendarURL) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid moodle calendar url"})
+				return errors.New("invalid moodle calendar url")
+			}
+			if _, err := urlutil.ValidateOutboundHTTPURL(calendarURL, true); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid moodle calendar url"})
+				return err
+			}
 		}
 	}
 
