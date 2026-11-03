@@ -35,20 +35,37 @@ func (s *Service) SyncBatch(ctx context.Context) {
 		concurrency = 2
 	}
 
-	// Fetch users needing sync with SKIP LOCKED to dedup across replicas.
-	// Use per-provider timestamps: sync if any enabled provider is stale >24h.
+	// Claim users atomically, then do the work outside any transaction.
+	//
+	// The previous statement was a bare SELECT ... FOR UPDATE SKIP LOCKED. The
+	// row locks were released the moment that statement finished, but all the
+	// real work (HTTP calls to Google/Moodle) happens after it — so two
+	// replicas ticking at the same minute claimed the same users and did the
+	// work twice. A claim column holds no lock and still dedups across
+	// replicas: a claimed user is invisible until the claim expires.
+	//
+	// The claim is 15 minutes, comfortably longer than the 10-minute cron
+	// timeout, so a replica that dies mid-batch releases its users
+	// automatically on the next tick.
+	claimMinutes := 15
 	var users []models.User
 	err := s.db.WithContext(ctx).Raw(`
-			SELECT * FROM users
-			WHERE (moodle_enabled = true AND (moodle_last_synced_at IS NULL OR moodle_last_synced_at < NOW() - INTERVAL '24 hours'))
-			   OR (google_classroom_enabled = true AND (google_classroom_last_synced_at IS NULL OR google_classroom_last_synced_at < NOW() - INTERVAL '24 hours'))
-			   OR ((moodle_enabled = true OR google_classroom_enabled = true) AND lms_last_synced_at IS NULL
-			       AND moodle_last_synced_at IS NULL AND google_classroom_last_synced_at IS NULL)
-			ORDER BY COALESCE(LEAST(moodle_last_synced_at, google_classroom_last_synced_at), lms_last_synced_at) ASC NULLS FIRST
-			LIMIT ? FOR UPDATE SKIP LOCKED
-		`, batchSize).Scan(&users).Error
+			UPDATE users SET sync_claimed_until = NOW() + make_interval(mins => ?)
+			WHERE id IN (
+				SELECT id FROM users
+				WHERE (moodle_enabled = true OR google_classroom_enabled = true)
+				  AND (sync_claimed_until IS NULL OR sync_claimed_until < NOW())
+				  AND (
+				        (moodle_enabled = true AND (moodle_last_synced_at IS NULL OR moodle_last_synced_at < NOW() - INTERVAL '24 hours'))
+				     OR (google_classroom_enabled = true AND (google_classroom_last_synced_at IS NULL OR google_classroom_last_synced_at < NOW() - INTERVAL '24 hours'))
+				     OR (lms_last_synced_at IS NULL AND moodle_last_synced_at IS NULL AND google_classroom_last_synced_at IS NULL)
+				  )
+				ORDER BY COALESCE(LEAST(moodle_last_synced_at, google_classroom_last_synced_at), lms_last_synced_at) ASC NULLS FIRST
+				LIMIT ? FOR UPDATE SKIP LOCKED
+			)
+			RETURNING *`, claimMinutes, batchSize).Scan(&users).Error
 	if err != nil {
-		log.Printf("[lmssync] fetch batch failed: %v", err)
+		log.Printf("[lmssync] claim batch failed: %v", err)
 		return
 	}
 
@@ -76,6 +93,13 @@ func (s *Service) SyncBatch(ctx context.Context) {
 		go func(user models.User) {
 			defer wg.Done()
 			defer func() { <-sem }()
+			// Release the claim once this user's work is over, whether it
+			// succeeded or failed, so a failed user can be retried on the next
+			// tick instead of waiting out the full claim window.
+			defer func() {
+				s.db.Model(&models.User{}).Where("id = ?", user.ID).
+					Update("sync_claimed_until", nil)
+			}()
 			pctx, cancel := context.WithTimeout(ctx, time.Duration(timeoutSec)*time.Second)
 			defer cancel()
 

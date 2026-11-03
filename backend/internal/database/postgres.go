@@ -67,6 +67,12 @@ func New(databaseURL string, autoMigrate bool) (*gorm.DB, error) {
 	}
 	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_revoked_reason ON refresh_tokens (revoked_reason)`).Error
 
+	// sync_claimed_until: klaim per-user lintas replika untuk cron sync.
+	if err := db.Exec(`ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS sync_claimed_until timestamptz`).Error; err != nil {
+		return nil, fmt.Errorf("migrate users.sync_claimed_until: %w", err)
+	}
+	_ = db.Exec(`CREATE INDEX IF NOT EXISTS idx_users_sync_claimed_until ON users (sync_claimed_until)`).Error
+
 	// Unique parsial pada telegram_chat_id. Dibuat dengan aman: bila masih ada
 	// duplikat, index TIDAK dibuat dan operator diberi peringatan eksplisit
 	// (lihat SECURITY-MIGRATIONS.md) — bukan menggagalkan startup, karena

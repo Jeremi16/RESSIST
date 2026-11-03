@@ -41,8 +41,13 @@ type User struct {
 	LMSLastSyncedAt        *time.Time `gorm:"column:lms_last_synced_at"`
 	MoodleLastSyncedAt     *time.Time `gorm:"column:moodle_last_synced_at;index"`
 	GoogleLastSyncedAt     *time.Time `gorm:"column:google_classroom_last_synced_at;index"`
-	CreatedAt              time.Time
-	UpdatedAt              time.Time
+	// SyncClaimedUntil marks a user as being synced by one replica. A claimed
+	// user is skipped by other replicas until the claim expires. Needed because
+	// SELECT ... FOR UPDATE SKIP LOCKED releases its locks when the statement
+	// ends, while the actual sync work happens afterwards.
+	SyncClaimedUntil *time.Time `gorm:"column:sync_claimed_until;index"`
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 func (u *User) BeforeCreate(_ *gorm.DB) error {
