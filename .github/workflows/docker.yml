@@ -7,6 +7,14 @@ on:
       - "backend/**"
       - "bot/**"
       - ".github/workflows/docker.yml"
+  # Test gate harus jalan SEBELUM merge, bukan hanya sesudah. Tanpa trigger
+  # pull_request, satu-satunya gerbang ada di main — yaitu setelah kode sudah
+  # menempel di branch rilis.
+  pull_request:
+    paths:
+      - "backend/**"
+      - "bot/**"
+      - ".github/workflows/docker.yml"
   workflow_dispatch:
 
 permissions:
@@ -18,8 +26,50 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Gerbang kualitas. Sebelumnya workflow ini HANYA build-push: push ke main
+  # langsung menerbitkan image :main dan :latest tanpa satu pun test dijalankan.
+  # Job ini memblokir build bila build/vet/test gagal.
+  test:
+    name: test ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [backend, bot]
+    defaults:
+      run:
+        working-directory: ./${{ matrix.module }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ./${{ matrix.module }}/go.mod
+          cache-dependency-path: ./${{ matrix.module }}/go.sum
+
+      - name: go build
+        run: go build ./...
+
+      - name: go vet
+        run: go vet ./...
+
+      # -race: seluruh test bersifat unit murni (tidak butuh Postgres), tapi
+      # limiter & klaim sync memakai state bersama — race detector menangkap
+      # regresi konkurensi yang lolos di `go test` biasa.
+      - name: go test -race
+        run: go test -race ./...
+
   build-backend:
     name: build backend (ressist-api)
+    needs: test
+    # Pada pull_request cukup jalankan gerbang test: image tidak boleh
+    # diterbitkan dari kode yang belum masuk main, dan login GHCR dari fork
+    # tidak punya izin packages:write.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -65,6 +115,8 @@ jobs:
 
   build-bot:
     name: build bot (ressist-bot)
+    needs: test
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
