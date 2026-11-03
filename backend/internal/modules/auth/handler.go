@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +24,10 @@ import (
 const (
 	oauthStateCookieName   = "oauth_state"
 	refreshTokenCookieName = "refresh_token"
+
+	// syncCooldown must match calendar.syncCooldown: both endpoints trigger the
+	// same fan-out and share the same advertised nextRefreshAt.
+	syncCooldown = time.Hour
 )
 
 // Re-export sync types to keep handler API compatible without duplication.
@@ -354,6 +359,25 @@ func (h *Handler) SyncAfterLogin(c *gin.Context) {
 			"reason":  "Silakan hubungkan Moodle atau Google Classroom di pengaturan",
 		})
 		return
+	}
+
+	// A login sync and a forced preview refresh fan out identically, so they
+	// must share one budget. Without this, /auth/sync bypassed the cooldown
+	// that GetPreview enforces.
+	if user.LMSLastSyncedAt != nil {
+		if elapsed := time.Since(*user.LMSLastSyncedAt); elapsed < syncCooldown {
+			seconds := int((syncCooldown - elapsed).Seconds())
+			if seconds < 1 {
+				seconds = 1
+			}
+			c.Header("Retry-After", strconv.Itoa(seconds))
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"synced":              false,
+				"error":               "refresh cooldown active",
+				"retry_after_seconds": seconds,
+			})
+			return
+		}
 	}
 
 	result, err := h.syncUserLMS(ctx, &user, providers)

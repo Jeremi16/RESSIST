@@ -19,10 +19,16 @@ import (
 	"github.com/jeremi16/ressist-api/internal/pkg/urlutil"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/sync/singleflight"
 	"gorm.io/gorm"
 )
 
 const upcomingWindowDays = 60
+
+// maxPages bounds every paginated Google Classroom list call. A page holds up
+// to 100 records, so 50 pages = 5.000 records per collection. Without this cap
+// the record count is set entirely by the contents of the caller's account.
+const maxPages = 50
 
 // CourseFetchStats carries observability counters so callers can explain
 // why tasks were skipped instead of silently returning empty.
@@ -131,6 +137,11 @@ type StudentSubmissionsResponse struct {
 type Client struct {
 	db  *gorm.DB
 	cfg *config.Config
+	// sf serialises token refresh per user within this process. Without it,
+	// two concurrent requests both observe an expired token, both call Google,
+	// and both write — the loser either clobbers the winner or, when Google
+	// rotates the refresh token, leaves an orphaned exchange behind.
+	sf singleflight.Group
 }
 
 // New creates a new Google Client.
@@ -319,7 +330,10 @@ func (c *Client) FetchGoogleCourses(ctx context.Context, accessToken string) ([]
 	courses := make([]GoogleCourse, 0, 16)
 	pageToken := ""
 
-	for {
+	for page := 0; ; page++ {
+		if page >= maxPages {
+			return nil, fmt.Errorf("google courses pagination exceeded %d pages", maxPages)
+		}
 		endpoint := "https://classroom.googleapis.com/v1/courses?pageSize=100&courseStates=ACTIVE"
 		if pageToken != "" {
 			endpoint += "&pageToken=" + url.QueryEscape(pageToken)
@@ -349,7 +363,10 @@ func (c *Client) FetchGoogleCourseWork(ctx context.Context, accessToken string, 
 	works := make([]GoogleCourseWork, 0, 32)
 	pageToken := ""
 
-	for {
+	for page := 0; ; page++ {
+		if page >= maxPages {
+			return nil, fmt.Errorf("google coursework pagination exceeded %d pages course=%s", maxPages, courseID)
+		}
 		endpoint := fmt.Sprintf(
 			"https://classroom.googleapis.com/v1/courses/%s/courseWork?pageSize=100&courseWorkStates=PUBLISHED",
 			url.PathEscape(courseID),
@@ -381,7 +398,10 @@ func (c *Client) FetchGoogleCourseWork(ctx context.Context, accessToken string, 
 func (c *Client) FetchStudentSubmissions(ctx context.Context, accessToken, courseID, courseWorkID string) ([]StudentSubmission, error) {
 	subs := make([]StudentSubmission, 0, 8)
 	pageToken := ""
-	for {
+	for page := 0; ; page++ {
+		if page >= maxPages {
+			return nil, fmt.Errorf("google submissions pagination exceeded %d pages course=%s work=%s", maxPages, courseID, courseWorkID)
+		}
 		endpoint := fmt.Sprintf(
 			"https://classroom.googleapis.com/v1/courses/%s/courseWork/%s/studentSubmissions?pageSize=100",
 			url.PathEscape(courseID), url.PathEscape(courseWorkID),
@@ -435,7 +455,38 @@ func (c *Client) FetchGoogleJSON(ctx context.Context, endpoint string, accessTok
 }
 
 // EnsureGoogleAccessToken ensures valid Google access token (refreshes if needed).
+//
+// The decision is based on the expiry in the caller's *models.User, which may
+// be stale, so the refresh runs under a per-user singleflight with a fresh
+// read of the row. Concurrent callers for the same user collapse into one
+// outbound token exchange.
 func (c *Client) EnsureGoogleAccessToken(ctx context.Context, user *models.User) (string, error) {
+	v, err, _ := c.sf.Do("gtok:"+user.ID, func() (interface{}, error) {
+		// Re-read so we never act on a struct the caller loaded earlier.
+		var fresh models.User
+		if err := c.db.WithContext(ctx).Where("id = ?", user.ID).First(&fresh).Error; err != nil {
+			return "", err
+		}
+		token, err := c.ensureGoogleAccessTokenLocked(ctx, &fresh)
+		if err != nil {
+			return "", err
+		}
+		// Reflect any refresh back into the caller's struct so subsequent
+		// calls in the same request do not try again.
+		*user = fresh
+		return token, nil
+	})
+	if err != nil {
+		return "", err
+	}
+	token, _ := v.(string)
+	if token == "" {
+		return "", fmt.Errorf("google access token is not configured")
+	}
+	return token, nil
+}
+
+func (c *Client) ensureGoogleAccessTokenLocked(ctx context.Context, user *models.User) (string, error) {
 	accessToken := text.Dereference(user.GoogleAccessToken, "")
 	if accessToken == "" {
 		return "", fmt.Errorf("google access token is not configured")
@@ -491,26 +542,61 @@ func (c *Client) RefreshGoogleToken(ctx context.Context, user *models.User, curr
 }
 
 // UpdateGoogleTokens updates Google tokens in database.
+//
+// The write is guarded on the previous access token value so that a concurrent
+// refresher (another replica, or another request in this process that slipped
+// past singleflight) cannot be silently overwritten. When the guard misses we
+// adopt whatever the winner wrote instead of clobbering it.
 func (c *Client) UpdateGoogleTokens(ctx context.Context, user *models.User, token *oauth2.Token) error {
+	oldAccess := text.Dereference(user.GoogleAccessToken, "")
+
 	updates := map[string]interface{}{
 		"google_access_token": token.AccessToken,
 	}
 
 	if !token.Expiry.IsZero() {
-		expiry := token.Expiry.UTC()
-		updates["google_token_expiry"] = expiry
-		user.GoogleTokenExpiry = &expiry
+		updates["google_token_expiry"] = token.Expiry.UTC()
 	}
 	if text.Dereference(&token.RefreshToken, "") != "" {
 		updates["google_refresh_token"] = token.RefreshToken
+	}
+
+	// google_access_token is a *string, so a NULL column never matches "= ''"
+	// under SQL three-valued logic. IS NOT DISTINCT FROM compares NULLs
+	// correctly and keeps the guard from reporting a false race loss.
+	var oldValue interface{}
+	if oldAccess != "" {
+		oldValue = oldAccess
+	}
+
+	res := c.db.WithContext(ctx).Model(&models.User{}).
+		Where("id = ? AND google_access_token IS NOT DISTINCT FROM ?", user.ID, oldValue).
+		Updates(updates)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		// Someone else already refreshed. Use their result; do not overwrite.
+		var fresh models.User
+		if err := c.db.WithContext(ctx).Where("id = ?", user.ID).First(&fresh).Error; err != nil {
+			return err
+		}
+		if tok := text.Dereference(fresh.GoogleAccessToken, ""); tok != "" {
+			*user = fresh
+			return nil
+		}
+		return fmt.Errorf("google token update lost race")
+	}
+
+	// Success: mirror the write into the in-memory struct.
+	user.GoogleAccessToken = &token.AccessToken
+	if !token.Expiry.IsZero() {
+		expiry := token.Expiry.UTC()
+		user.GoogleTokenExpiry = &expiry
+	}
+	if text.Dereference(&token.RefreshToken, "") != "" {
 		user.GoogleRefreshToken = &token.RefreshToken
 	}
-
-	if err := c.db.WithContext(ctx).Model(&models.User{}).Where("id = ?", user.ID).Updates(updates).Error; err != nil {
-		return err
-	}
-
-	user.GoogleAccessToken = &token.AccessToken
 	return nil
 }
 

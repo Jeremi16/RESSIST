@@ -108,6 +108,11 @@ func (h *Handler) GetPreview(c *gin.Context) {
 	sortBy := sortutil.Parse(c.Query("sort"))
 
 	if forceRefresh {
+		// The cooldown was previously only advertised via nextRefreshAt and
+		// never enforced, so ?force=true was an unbounded fan-out trigger.
+		if h.rejectIfCoolingDown(c, user) {
+			return
+		}
 		response, err := h.syncAndBuildResponse(c, user, providers, sortBy)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to refresh calendar preview"})
@@ -152,6 +157,11 @@ func (h *Handler) TestPreview(c *gin.Context) {
 	}
 
 	sortBy := sortutil.Parse(c.Query("sort"))
+	// TestPreview syncs exactly like a forced refresh, so it is subject to the
+	// same budget.
+	if h.rejectIfCoolingDown(c, user) {
+		return
+	}
 	response, err := h.syncAndBuildResponse(c, user, providers, sortBy)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to test calendar"})
@@ -478,6 +488,41 @@ func (h *Handler) calculateNextRefreshAt(user *models.User) *time.Time {
 	}
 	next := user.LMSLastSyncedAt.Add(syncCooldown)
 	return &next
+}
+
+// cooldownRemaining reports how long until a forced refresh is allowed again.
+//
+// This deliberately reads LMSLastSyncedAt — the same field
+// calculateNextRefreshAt advertises to clients as nextRefreshAt. Enforcing on
+// a different field would make the response header lie.
+func (h *Handler) cooldownRemaining(user *models.User) (time.Duration, bool) {
+	if user == nil || user.LMSLastSyncedAt == nil {
+		return 0, false
+	}
+	if elapsed := time.Since(*user.LMSLastSyncedAt); elapsed < syncCooldown {
+		return syncCooldown - elapsed, true
+	}
+	return 0, false
+}
+
+// rejectIfCoolingDown writes a 429 + Retry-After when the user refreshed too
+// recently, and reports whether it handled the request.
+func (h *Handler) rejectIfCoolingDown(c *gin.Context, user *models.User) bool {
+	remaining, cooling := h.cooldownRemaining(user)
+	if !cooling {
+		return false
+	}
+	seconds := int(remaining.Seconds())
+	if seconds < 1 {
+		seconds = 1
+	}
+	c.Header("Retry-After", strconv.Itoa(seconds))
+	c.JSON(http.StatusTooManyRequests, gin.H{
+		"error":               "refresh cooldown active",
+		"retry_after_seconds": seconds,
+		"next_refresh_at":     h.calculateNextRefreshAt(user),
+	})
+	return true
 }
 
 // loadCachedEvents loads events from database. Excludes completed/missed tasks so calendar only shows pending.

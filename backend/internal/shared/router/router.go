@@ -140,18 +140,20 @@ func New(
 	// Cheap per-IP gate that runs before any credential is parsed, so an
 	// unauthenticated flood cannot force a token parse + DB lookup per request.
 	preAuthRateLimit := middleware.IPRateLimit(cfg.PreAuthRateLimitPerMinute, cfg.PreAuthRateLimitBurst)
+	// Per-principal budget for endpoints that trigger a full LMS fan-out.
+	syncRateLimit := middleware.PrincipalRateLimit(cfg.SyncRateLimitPerMinute, cfg.SyncRateLimitBurst)
 	tokenParser := authModule.TokenService
 
 	// Legacy auth group
 	legacyAuthGroup := r.Group("/auth")
-	registerAuthRoutes(legacyAuthGroup, authModule.Handler, tokenParser, authRateLimit)
+	registerAuthRoutes(legacyAuthGroup, authModule.Handler, tokenParser, authRateLimit, syncRateLimit)
 
 	v1 := r.Group("/v1")
 	v1.GET("/openapi.json", func(c *gin.Context) {
 		c.Data(http.StatusOK, "application/json; charset=utf-8", docs.OpenAPI)
 	})
 	v1AuthGroup := v1.Group("/auth")
-	registerAuthRoutes(v1AuthGroup, authModule.Handler, tokenParser, authRateLimit)
+	registerAuthRoutes(v1AuthGroup, authModule.Handler, tokenParser, authRateLimit, syncRateLimit)
 
 	// API Keys management (JWT only — create/list/revoke via website)
 	if apiKeyModule != nil {
@@ -224,12 +226,14 @@ func New(
 	return r
 }
 
-func registerAuthRoutes(group *gin.RouterGroup, h *auth.Handler, parser middleware.TokenParser, authRateLimit gin.HandlerFunc) {
+func registerAuthRoutes(group *gin.RouterGroup, h *auth.Handler, parser middleware.TokenParser, authRateLimit gin.HandlerFunc, syncRateLimit gin.HandlerFunc) {
 	group.GET("/google/login", authRateLimit, h.GoogleLogin)
 	group.GET("/google/callback", authRateLimit, h.GoogleCallback)
 	group.POST("/google/native", authRateLimit, h.GoogleNative)
 	group.POST("/refresh", authRateLimit, h.Refresh)
 	group.POST("/logout", authRateLimit, h.Logout)
 	group.GET("/me", middleware.AccessToken(parser), h.Me)
-	group.POST("/sync", middleware.AccessToken(parser), h.SyncAfterLogin)
+	// /sync fans out to every enrolled course upstream. It previously had no
+	// limiter at all, so one client could drive unbounded outbound traffic.
+	group.POST("/sync", middleware.AccessToken(parser), syncRateLimit, h.SyncAfterLogin)
 }
