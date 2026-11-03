@@ -16,8 +16,10 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-w -s" -o /ressist-api ./cmd/api
 
 FROM alpine:3.21
-# wget for Dockerfile HEALTHCHECK, curl for Coolify healthcheck (GET /healthz).
-RUN apk add --no-cache ca-certificates tzdata wget curl && adduser -D -g '' appuser
+# wget (busybox) serves both the Dockerfile HEALTHCHECK and Coolify's health
+# check. curl was only ever present for the latter, so it is dropped to shrink
+# the runtime attack surface.
+RUN apk add --no-cache ca-certificates tzdata wget && adduser -D -g '' appuser
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 USER appuser
 WORKDIR /home/appuser

@@ -30,15 +30,32 @@ services:
       ENV: production
       PORT: "8080"
       DATABASE_URL: postgresql://${DB_USER:-ressist}:${DB_PASSWORD:?DB_PASSWORD wajib diisi}@db:5432/${DB_NAME:-ressist}?sslmode=disable
-      AUTO_MIGRATE: "true"
+      # Schema changes are applied by an operator/migration step, not by every
+      # replica on boot. Auto-migrating from N replicas races and can leave the
+      # schema half-applied.
+      AUTO_MIGRATE: "false"
       GIN_MODE: release
       BOT_SERVICE_TOKEN: ${BOT_SERVICE_TOKEN:?set BOT_SERVICE_TOKEN in .env}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET in .env}
+      # TTL sesi. Sebelumnya hanya ada di .env.example dan TIDAK diteruskan
+      # ke container, sehingga mengubahnya tidak berefek sama sekali.
+      ACCESS_TOKEN_TTL_MINUTES: ${ACCESS_TOKEN_TTL_MINUTES:-60}
+      REFRESH_TOKEN_TTL_HOURS: ${REFRESH_TOKEN_TTL_HOURS:-72}
+      MOBILE_REFRESH_TOKEN_TTL_HOURS: ${MOBILE_REFRESH_TOKEN_TTL_HOURS:-720}
+      REFRESH_TOKEN_ABSOLUTE_MAX_DAYS: ${REFRESH_TOKEN_ABSOLUTE_MAX_DAYS:-90}
+      # Cookie sesi web. COOKIE_SECURE default true saat ENV=production.
+      # COOKIE_DOMAIN diperlukan bila frontend & api beda subdomain.
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-15}
+      SHUTDOWN_TIMEOUT_SECONDS: ${SHUTDOWN_TIMEOUT_SECONDS:-20}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-}
       ALLOWED_EMAIL_DOMAIN: ${ALLOWED_EMAIL_DOMAIN:-student.itera.ac.id}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      FRONTEND_SUCCESS_PATH: ${FRONTEND_SUCCESS_PATH:-/login?auth=success}
+      FRONTEND_ERROR_PATH: ${FRONTEND_ERROR_PATH:-/login}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
       # Sender-only (POST /v1/telegram/test-*). Polling stays in bot.
       # Sending from N processes is allowed; only getUpdates is exclusive.
@@ -70,6 +87,8 @@ services:
       # Dashboard "test notification" buttons spend a shared operator quota.
       TELEGRAM_TEST_RATE_LIMIT_PER_MINUTE: ${TELEGRAM_TEST_RATE_LIMIT_PER_MINUTE:-5}
       TELEGRAM_TEST_RATE_LIMIT_BURST: ${TELEGRAM_TEST_RATE_LIMIT_BURST:-2}
+      # 0 = API key tanpa default expiry (hidup selamanya).
+      API_KEY_DEFAULT_EXPIRY_DAYS: ${API_KEY_DEFAULT_EXPIRY_DAYS:-90}
       API_KEY_PREFIX: ${API_KEY_PREFIX:-rsk_}
       API_KEY_MAX_PER_USER: ${API_KEY_MAX_PER_USER:-5}
       API_KEY_RATE_LIMIT_PER_MINUTE: ${API_KEY_RATE_LIMIT_PER_MINUTE:-60}
@@ -85,6 +104,19 @@ services:
       # (BFF multi-instance / tab paralel). Bukan grace untuk token yang
       # sudah di-revoke karena logout atau terdeteksi dicuri.
       REFRESH_REUSE_GRACE_SECONDS: ${REFRESH_REUSE_GRACE_SECONDS:-30}
+    # Hardening: the process needs no writable root filesystem, no Linux
+    # capabilities, and no privilege escalation. Resource limits give the
+    # request-body and pagination bounds above a real backstop — without a
+    # mem_limit, an unbounded allocation has no ceiling.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: ${API_MEM_LIMIT:-512m}
+    pids_limit: 256
     ports:
       - "${API_PORT:-8080}:8080"
     healthcheck:
@@ -116,6 +148,19 @@ services:
       interval: 30s
       timeout: 3s
       retries: 3
+    # Hardening (sama seperti api). Bot hanya long-polling + panggil api;
+    # tidak menulis ke disk, jadi root filesystem boleh read-only.
+    # Kalau container gagal start setelah perubahan ini, tersangka pertama
+    # adalah read_only — tambahkan tmpfs untuk path yang ternyata ditulis.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: ${BOT_MEM_LIMIT:-256m}
+    pids_limit: 128
     deploy:
       replicas: 1
     # JANGAN scale bot > 1. Satu poller saja, kalau tidak Telegram akan

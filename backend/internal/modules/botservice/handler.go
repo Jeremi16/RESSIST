@@ -370,21 +370,51 @@ type briefingCandidate struct {
 }
 
 // GetBriefingCandidates returns users eligible for the morning briefing.
-// GET /internal/scheduler/briefing-candidates
+// GET /internal/scheduler/briefing-candidates?after_id=&limit=
+//
+// Paginated because this is a full user roster including telegram_chat_id.
+// Returning every row in one response made a single call both expensive and a
+// large disclosure surface; callers now walk it in pages.
 func (h *Handler) GetBriefingCandidates(c *gin.Context) {
-	var rows []briefingCandidate
-	if err := h.db.WithContext(c.Request.Context()).
+	limit := atoiDefault(c.Query("limit"), 200)
+	if limit <= 0 {
+		limit = 200
+	}
+	if limit > 500 {
+		limit = 500
+	}
+	afterID := strings.TrimSpace(c.Query("after_id"))
+
+	query := h.db.WithContext(c.Request.Context()).
 		Table("users").
 		Select("id, name, telegram_chat_id").
-		Where("telegram_enabled = ? AND morning_briefing = ? AND telegram_chat_id IS NOT NULL", true, true).
-		Scan(&rows).Error; err != nil {
+		Where("telegram_enabled = ? AND morning_briefing = ? AND telegram_chat_id IS NOT NULL", true, true)
+	if afterID != "" {
+		// Keyset pagination on the primary key: stable regardless of writes,
+		// unlike OFFSET.
+		query = query.Where("id > ?", afterID)
+	}
+
+	var rows []briefingCandidate
+	if err := query.Order("id ASC").Limit(limit).Scan(&rows).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
 		return
 	}
 	if rows == nil {
 		rows = []briefingCandidate{}
 	}
-	c.JSON(http.StatusOK, rows)
+
+	// Audit each call: this endpoint hands out chat ids in bulk.
+	log.Printf("[botservice] briefing-candidates after_id=%q limit=%d returned=%d", afterID, limit, len(rows))
+
+	nextAfter := ""
+	if len(rows) == limit {
+		nextAfter = rows[len(rows)-1].ID
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"users":      rows,
+		"next_after": nextAfter,
+	})
 }
 
 func containsReminder(reminders, key string) bool {

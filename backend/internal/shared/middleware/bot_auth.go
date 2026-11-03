@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"crypto/sha256"
 	"crypto/subtle"
 	"log"
 	"net/http"
@@ -90,11 +91,17 @@ func BotOrAccessToken(parser TokenParser, botToken string) gin.HandlerFunc {
 }
 
 // botTokenMatches compares tokens in constant time to avoid timing leaks.
+//
+// subtle.ConstantTimeCompare returns 0 immediately when lengths differ, so
+// comparing the raw strings leaks the length of the correct token through
+// timing. Hashing both sides first makes every comparison exactly 32 bytes.
 func botTokenMatches(got, want string) bool {
 	if got == "" || want == "" {
 		return false
 	}
-	return subtle.ConstantTimeCompare([]byte(got), []byte(want)) == 1
+	gotHash := sha256.Sum256([]byte(got))
+	wantHash := sha256.Sum256([]byte(want))
+	return subtle.ConstantTimeCompare(gotHash[:], wantHash[:]) == 1
 }
 
 // setBotActAs exposes the impersonated user as claims and audits the call.

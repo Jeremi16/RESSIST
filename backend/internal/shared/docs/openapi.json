@@ -7,10 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://ressist-api.nodryx.com"
-    },
-    {
-      "url": "http://localhost:8080"
+      "url": "/"
     }
   ],
   "paths": {

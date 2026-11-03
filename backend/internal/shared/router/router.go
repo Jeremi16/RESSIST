@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -120,18 +121,28 @@ func New(
 	r.GET("/readyz", func(c *gin.Context) {
 		sqlDB, err := db.DB()
 		if err != nil {
-			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "not_ready", "error": "db_unavailable"})
+			log.Printf("[readyz] db handle unavailable: %v", err)
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "not_ready"})
 			return
 		}
 		ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
 		defer cancel()
 		if err := sqlDB.PingContext(ctx); err != nil {
-			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "not_ready", "error": "db_ping_failed"})
+			// Detail stays in the log: telling an anonymous caller whether the
+			// pool is unavailable or the ping failed is free reconnaissance.
+			log.Printf("[readyz] db ping failed: %v", err)
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "not_ready"})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "ready"})
 	})
-	r.GET("/metrics", middleware.PrometheusHandler())
+	// /metrics exposes per-route request volumes and latencies. It is gated by
+	// the same bot token used for service-to-service calls: Prometheus can send
+	// it as a static header, and leaving the endpoint anonymous publishes an
+	// operational map of the API to anyone who can reach the port. If
+	// BOT_SERVICE_TOKEN is unset the endpoint answers 503 rather than
+	// defaulting to open.
+	r.GET("/metrics", middleware.RequireBotService(cfg.BotServiceToken), middleware.PrometheusHandler())
 	r.GET("/openapi.json", func(c *gin.Context) {
 		c.Data(http.StatusOK, "application/json; charset=utf-8", docs.OpenAPI)
 	})

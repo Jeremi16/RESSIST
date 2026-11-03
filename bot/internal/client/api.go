@@ -202,13 +202,32 @@ func (c *Client) MarkReminderSent(assignmentID, key string) error {
 	return c.do(http.MethodPost, "/internal/scheduler/mark-sent", "", body, nil)
 }
 
+// GetBriefingCandidates walks the paginated roster and returns all candidates.
+//
+// The API paginates because the response contains chat ids for every eligible
+// user; the bot still wants the full set, so it follows next_after until the
+// server stops returning one.
 func (c *Client) GetBriefingCandidates() ([]BriefingCandidate, error) {
-	var out []BriefingCandidate
-	if err := c.do(http.MethodGet, "/internal/scheduler/briefing-candidates", "", nil, &out); err != nil {
-		return nil, err
-	}
-	if out == nil {
-		out = []BriefingCandidate{}
+	out := make([]BriefingCandidate, 0, 64)
+	afterID := ""
+
+	for page := 0; page < 100; page++ {
+		path := "/internal/scheduler/briefing-candidates?limit=200"
+		if afterID != "" {
+			path += "&after_id=" + url.QueryEscape(afterID)
+		}
+		var resp struct {
+			Users     []BriefingCandidate `json:"users"`
+			NextAfter string              `json:"next_after"`
+		}
+		if err := c.do(http.MethodGet, path, "", nil, &resp); err != nil {
+			return nil, err
+		}
+		out = append(out, resp.Users...)
+		if resp.NextAfter == "" {
+			break
+		}
+		afterID = resp.NextAfter
 	}
 	return out, nil
 }

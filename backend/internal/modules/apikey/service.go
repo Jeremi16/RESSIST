@@ -80,14 +80,21 @@ func (s *Service) Create(ctx context.Context, userID string, name string, expire
 	}
 
 	var expiresAt *time.Time
-	if expiresInDays != nil {
-		d := *expiresInDays
-		if d <= 0 || d > 3650 {
-			return nil, "", ErrInvalidExpiry
-		}
-		t := time.Now().UTC().Add(time.Duration(d) * 24 * time.Hour)
-		expiresAt = &t
+	defaultDays := s.cfg.ApiKeyDefaultExpiryDays
+	if defaultDays <= 0 {
+		defaultDays = 90
 	}
+	d := defaultDays
+	if expiresInDays != nil {
+		d = *expiresInDays
+	}
+	// Upper bound lowered from 3650: a decade-long credential is effectively
+	// permanent, which is what the default expiry exists to prevent.
+	if d <= 0 || d > 365 {
+		return nil, "", ErrInvalidExpiry
+	}
+	t := time.Now().UTC().Add(time.Duration(d) * 24 * time.Hour)
+	expiresAt = &t
 
 	raw, prefix, err := generateRawKey(s.cfg)
 	if err != nil {

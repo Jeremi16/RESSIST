@@ -73,6 +73,10 @@ type Config struct {
 	ApiKeyMaxPerUser       int
 	ApiKeyRateLimitPerMinute int
 	ApiKeyRateLimitBurst     int
+	// ApiKeyDefaultExpiryDays is applied when a caller creates a key without
+	// specifying expires_in_days. 0 = no default expiry (keys live forever).
+	ApiKeyDefaultExpiryDays int
+
 	// TrustedProxies lists CIDRs whose X-Forwarded-For / X-Real-IP headers are
 	// believed. Empty means no proxy is trusted, so c.ClientIP() returns the
 	// TCP peer address. Leaving this unset behind a reverse proxy makes every
@@ -163,6 +167,8 @@ func Load() (*Config, error) {
 		ApiKeyMaxPerUser:         getEnvAsInt("API_KEY_MAX_PER_USER", 5),
 		ApiKeyRateLimitPerMinute: getEnvAsInt("API_KEY_RATE_LIMIT_PER_MINUTE", 60),
 		ApiKeyRateLimitBurst:     getEnvAsInt("API_KEY_RATE_LIMIT_BURST", 20),
+		ApiKeyDefaultExpiryDays:  getEnvAsInt("API_KEY_DEFAULT_EXPIRY_DAYS", 90),
+
 		TrustedProxies: getEnvAsList("TRUSTED_PROXIES", ""),
 
 		PreAuthRateLimitPerMinute: getEnvAsInt("PREAUTH_RATE_LIMIT_PER_MINUTE", 300),

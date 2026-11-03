@@ -8,11 +8,17 @@ import (
 )
 
 type ApiKey struct {
-	ID         string     `gorm:"primaryKey;size:36"`
-	UserID     string     `gorm:"index;not null"`
-	Name       string     `gorm:"not null;size:64"`
-	Prefix     string     `gorm:"size:16;index;not null"`
-	KeyHash    string     `gorm:"uniqueIndex;not null;size:128"`
+	ID      string `gorm:"primaryKey;size:36"`
+	UserID  string `gorm:"index;not null"`
+	Name    string `gorm:"not null;size:64"`
+	Prefix  string `gorm:"size:16;index;not null"`
+	KeyHash string `gorm:"uniqueIndex;not null;size:128"`
+	// Scopes is NOT enforced. Every key is created with "[]" and
+	// ValidateApiKey never inspects this column, so an API key grants the full
+	// authority of its owning user — exactly the same rights as that user's
+	// JWT. This is intentional and documented rather than silently implied:
+	// do not assume a key can be narrowed by editing this field. Implementing
+	// per-scope checks would require every route to declare a required scope.
 	Scopes     string     `gorm:"default:'[]'"`
 	ExpiresAt  *time.Time `gorm:"index"`
 	LastUsedAt *time.Time `gorm:"index"`
