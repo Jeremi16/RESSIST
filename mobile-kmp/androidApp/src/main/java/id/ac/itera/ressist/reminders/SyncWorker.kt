@@ -10,6 +10,7 @@ import id.ac.itera.ressist.api.SessionExpiredException
 import id.ac.itera.ressist.api.UnauthorizedException
 import id.ac.itera.ressist.data.SyncPrefs
 import id.ac.itera.ressist.data.repository.AuthRepository
+import id.ac.itera.ressist.widget.TugasWidget
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -50,6 +51,7 @@ class SyncWorker(context: Context, params: WorkerParameters) :
             val items = sync.getOrNull()?.newAssignments.orEmpty()
             handleNewAssignments(items, notify)
             runCatching { scheduler.rescheduleAll() }
+            TugasWidget.refresh(applicationContext)
             runCatching { prefs.setLastSuccess(now) }
             return Result.success()
         }
@@ -61,6 +63,7 @@ class SyncWorker(context: Context, params: WorkerParameters) :
         if (err is RessistApiException && err.code == "no_lms_configured") {
             // Belum ada LMS: cukup rebuild dari cache agar alarm tetap segar.
             runCatching { scheduler.rescheduleAll() }
+            TugasWidget.refresh(applicationContext)
             runCatching { prefs.setLastSuccess(now) }
             return Result.success()
         }
@@ -78,6 +81,7 @@ class SyncWorker(context: Context, params: WorkerParameters) :
         val fallback = runCatching { calendar.preview(force = true) }
         if (fallback.isSuccess) {
             runCatching { scheduler.rescheduleAll() }
+            TugasWidget.refresh(applicationContext)
             runCatching { prefs.setLastSuccess(now) }
             return Result.success()
         }

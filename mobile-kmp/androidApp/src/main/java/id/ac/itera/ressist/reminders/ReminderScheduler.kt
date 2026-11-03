@@ -148,7 +148,7 @@ class ReminderScheduler(
         )
     }
 
-    private fun formatCountdown(deadline: Instant, ref: Instant): String {
+    internal fun formatCountdown(deadline: Instant, ref: Instant): String {
         val diff = deadline - ref
         val hours = diff.inWholeHours
         if (hours < 1) return "kurang dari 1 jam lagi"
