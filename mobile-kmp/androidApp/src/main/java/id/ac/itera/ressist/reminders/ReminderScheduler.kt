@@ -9,6 +9,7 @@ import id.ac.itera.ressist.data.repository.AssignmentRepository
 import id.ac.itera.ressist.data.repository.UserRepository
 import id.ac.itera.ressist.domain.model.TaskBuckets
 import id.ac.itera.ressist.domain.time.reminderInstants
+import org.json.JSONObject
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import java.time.LocalDate
@@ -28,6 +29,8 @@ class ReminderScheduler(
 ) {
     companion object {
         const val ACTION_REMIND = "id.ac.itera.ressist.REMIND"
+        const val ACTION_SNOOZE = "id.ac.itera.ressist.SNOOZE"
+        const val EXTRA_SNOOZED = "snoozed"
         const val EXTRA_TITLE = "title"
         const val EXTRA_TEXT = "text"
         const val EXTRA_CODE = "code"
@@ -35,6 +38,7 @@ class ReminderScheduler(
         const val BRIEFING_ID = "morning-briefing"
         private const val PREFS = "ressist_alarms"
         private const val KEY_CODES = "codes"
+        private const val SNOOZE_PREFS = "ressist_snoozes"
         private const val MAX_TASKS = 100
         private val JAKARTA: ZoneId = ZoneId.of("Asia/Jakarta")
     }
@@ -50,7 +54,15 @@ class ReminderScheduler(
         prefs().edit().putStringSet(KEY_CODES, set).apply()
     }
 
+    private fun snoozePrefs() = context.getSharedPreferences(SNOOZE_PREFS, Context.MODE_PRIVATE)
+
+    /** Alarm + penundaan; dipakai saat logout/mematikan pengingat. */
     fun cancelAll() {
+        cancelAlarms()
+        snoozePrefs().edit().clear().apply()
+    }
+
+    private fun cancelAlarms() {
         val codes = prefs().getStringSet(KEY_CODES, emptySet())!!.mapNotNull { it.toIntOrNull() }
         codes.forEach { code ->
             val intent = PendingIntent.getBroadcast(
@@ -63,7 +75,7 @@ class ReminderScheduler(
         prefs().edit().remove(KEY_CODES).apply()
     }
 
-    fun schedule(at: Instant, assignmentId: String, title: String, text: String) {
+    fun schedule(at: Instant, assignmentId: String, title: String, text: String, snoozed: Boolean = false) {
         val code = "$assignmentId@${at.epochSeconds}".hashCode()
         val intent = PendingIntent.getBroadcast(
             context, code,
@@ -72,6 +84,7 @@ class ReminderScheduler(
                 .putExtra(EXTRA_TITLE, title)
                 .putExtra(EXTRA_TEXT, text)
                 .putExtra(EXTRA_CODE, code)
+                .putExtra(EXTRA_SNOOZED, snoozed)
                 .putExtra(EXTRA_ASSIGNMENT_ID, assignmentId),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -88,11 +101,46 @@ class ReminderScheduler(
         rememberCode(code)
     }
 
+    /**
+     * Tunda pengingat 1 jam. Disimpan agar bertahan saat [rescheduleAll]
+     * membangun ulang alarm; satu penundaan aktif per tugas.
+     */
+    fun snooze(assignmentId: String, title: String, text: String, now: Instant = Clock.System.now()) {
+        val at = now + 1.hours
+        val entry = JSONObject().put("at", at.epochSeconds).put("title", title).put("text", text)
+        snoozePrefs().edit().putString(assignmentId, entry.toString()).apply()
+        schedule(at, assignmentId, title, text, snoozed = true)
+    }
+
+    fun clearSnooze(assignmentId: String) {
+        snoozePrefs().edit().remove(assignmentId).apply()
+    }
+
+    private fun restoreSnoozes(activeTaskIds: Set<String>?) {
+        snoozePrefs().all.forEach { (assignmentId, raw) ->
+            val entry = runCatching { JSONObject(raw as String) }.getOrNull()
+            if (entry == null || (activeTaskIds != null && assignmentId !in activeTaskIds)) {
+                clearSnooze(assignmentId)
+                return@forEach
+            }
+            schedule(
+                at = Instant.fromEpochSeconds(entry.getLong("at")),
+                assignmentId = assignmentId,
+                title = entry.getString("title"),
+                text = entry.getString("text"),
+                snoozed = true,
+            )
+        }
+    }
+
     /** Rebuild the whole alarm set from current server data + prefs. */
     suspend fun rescheduleAll(now: Instant = Clock.System.now()) {
-        cancelAll()
-        val user = runCatching { users.get() }.getOrNull() ?: return
-        val buckets = runCatching { assignments.buckets(now) }.getOrNull() ?: return
+        cancelAlarms()
+        // Data gagal dimuat -> penundaan tetap dipasang; tugasnya dicek saat berbunyi.
+        val user = runCatching { users.get() }.getOrNull()
+        val buckets = runCatching { assignments.buckets(now) }.getOrNull()
+        restoreSnoozes(buckets?.upcoming?.map { it.id }?.toSet())
+        if (user == null || buckets == null) return
         buckets.upcoming.take(MAX_TASKS).forEach { task ->
             // Skip sentinel deadlines (backend rows without a deadline):
             // toEpochMilliseconds() overflows on them and AlarmManager

@@ -57,18 +57,28 @@ object NotificationHelper {
             context, id, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        NotificationManagerCompat.from(context).notify(
-            id,
-            NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_stat_reminder)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setContentIntent(pending)
-                .setAutoCancel(true)
-                .build(),
-        )
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_reminder)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pending)
+            .setAutoCancel(true)
+        if (assignmentId != null && assignmentId != ReminderScheduler.BRIEFING_ID) {
+            val snooze = PendingIntent.getBroadcast(
+                context, id,
+                Intent(context, ReminderReceiver::class.java)
+                    .setAction(ReminderScheduler.ACTION_SNOOZE)
+                    .putExtra(ReminderScheduler.EXTRA_TITLE, title)
+                    .putExtra(ReminderScheduler.EXTRA_TEXT, text)
+                    .putExtra(ReminderScheduler.EXTRA_CODE, id)
+                    .putExtra(ReminderScheduler.EXTRA_ASSIGNMENT_ID, assignmentId),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            builder.addAction(0, "Ingatkan lagi 1 jam", snooze)
+        }
+        NotificationManagerCompat.from(context).notify(id, builder.build())
     }
 
     /** Notifikasi tugas baru dari sinkronisasi otomatis (tap → buka aplikasi). */
