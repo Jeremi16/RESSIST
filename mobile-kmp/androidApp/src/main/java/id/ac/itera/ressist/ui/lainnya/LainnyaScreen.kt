@@ -45,6 +45,7 @@ fun LainnyaScreen(
     onOpenMatkul: () -> Unit,
     onOpenFilter: () -> Unit,
     onOpenProfil: () -> Unit,
+    onOpenStatistik: () -> Unit,
     onOpenTampilan: () -> Unit,
     onOpenBatasTugas: () -> Unit,
     onOpenSinkronisasi: () -> Unit,
@@ -73,6 +74,10 @@ fun LainnyaScreen(
                     MenuItem(
                         RessistIcons.Person, "Profil",
                         "Akun saya", onOpenProfil,
+                    ),
+                    MenuItem(
+                        RessistIcons.Assignment, "Statistik",
+                        "Progres & ketepatan waktu", onOpenStatistik,
                     ),
                     MenuItem(
                         RessistIcons.Book, "Mata Kuliah",

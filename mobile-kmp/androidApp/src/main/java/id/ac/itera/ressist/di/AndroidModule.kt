@@ -22,6 +22,7 @@ import id.ac.itera.ressist.ui.tugas.TugasViewModel
 import id.ac.itera.ressist.ui.kalender.KalenderViewModel
 import id.ac.itera.ressist.ui.lms.LmsViewModel
 import id.ac.itera.ressist.ui.profil.ProfilViewModel
+import id.ac.itera.ressist.ui.statistik.StatistikViewModel
 import id.ac.itera.ressist.ui.update.UpdateViewModel
 import id.ac.itera.ressist.update.AppUpdater
 import org.koin.android.ext.koin.androidContext
@@ -47,6 +48,7 @@ val androidModule = module {
     viewModel { OverviewViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { TugasViewModel(get(), get(), get(), get(), get()) }
     viewModel { TaskDetailViewModel(get(), get()) }
+    viewModel { StatistikViewModel(get(), get()) }
     viewModel { KalenderViewModel(get(), get()) }
     viewModel { LmsViewModel(get(), get(), get()) }
     viewModel { KelasViewModel(get(), get(), get()) }
